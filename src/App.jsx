@@ -382,6 +382,135 @@ function Clasificacion() {
   );
 }
 
+// ─── GRUPOS (para el selector) ───────────────────────────────────────────────
+const GRUPOS = {
+  g1: { name: "Grupo 1", label: "TOP",      pick: 1, color: "#F5B731", teams: ["Argentina","Francia","Brasil","Inglaterra","España","Alemania","Portugal"] },
+  g2: { name: "Grupo 2", label: "BUENOS",   pick: 3, color: "#60AAFF", teams: ["Países Bajos","Bélgica","Croacia","Uruguay","Colombia","Marruecos","México","Estados Unidos","Japón","Suiza","Austria","Ecuador","Corea del Sur","Irán","Australia","Paraguay","Túnez","Argelia","Egipto","Noruega","Suecia"] },
+  g3: { name: "Grupo 3", label: "NORMALES", pick: 2, color: "#40D490", teams: ["Canadá","Qatar","Arabia Saudí","Costa de Marfil","Ghana","Sudáfrica","Escocia","Chequia","Turquía","Bosnia y Herzegovina","Uzbekistán","Jordania","Cabo Verde","Panamá"] },
+  g4: { name: "Grupo 4", label: "SORPRESAS",pick: 1, color: "#FF6B8A", teams: ["Nueva Zelanda","Curazao","Haití","Irak","R.D. Congo"] },
+};
+
+// ─── REGISTRO ─────────────────────────────────────────────────────────────────
+function Registro() {
+  const [name, setName]       = useState("");
+  const [sel, setSel]         = useState({ g1: null, g2: [], g3: [], g4: null });
+  const [submitted, setSubmitted] = useState(false);
+
+  const countSel = (gk) => GRUPOS[gk].pick === 1 ? (sel[gk] ? 1 : 0) : sel[gk].length;
+  const isSel    = (gk, t) => GRUPOS[gk].pick === 1 ? sel[gk] === t : sel[gk].includes(t);
+  const allTeams = () => { const t = []; if (sel.g1) t.push(sel.g1); t.push(...sel.g2, ...sel.g3); if (sel.g4) t.push(sel.g4); return t; };
+  const isValid  = () => sel.g1 && sel.g2.length === 3 && sel.g3.length === 2 && sel.g4 && name.trim();
+
+  const toggle = (gk, team) => {
+    const g = GRUPOS[gk];
+    setSel(prev => {
+      if (g.pick === 1) return { ...prev, [gk]: prev[gk] === team ? null : team };
+      const arr = prev[gk];
+      if (arr.includes(team)) return { ...prev, [gk]: arr.filter(t => t !== team) };
+      if (arr.length >= g.pick) return prev;
+      return { ...prev, [gk]: [...arr, team] };
+    });
+  };
+
+  if (submitted) return (
+    <div className="page">
+      <div className="card" style={{ background: "rgba(34,212,142,0.08)", border: "1px solid rgba(34,212,142,0.3)", textAlign: "center", padding: 32 }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+        <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 22, color: "var(--green)", letterSpacing: 1 }}>¡Inscripción completada!</div>
+        <div style={{ fontSize: 13, color: "var(--mut)", marginTop: 6, marginBottom: 16 }}>
+          Hola <strong style={{ color: "var(--white)" }}>{name}</strong>, tus equipos han sido registrados.<br/>
+          <span style={{ fontSize: 11 }}>(Recuerda que el administrador deberá añadirte manualmente al archivo para que aparezcas en la clasificación)</span>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+          {allTeams().map(t => <span key={t} className="chip">{FLAGS[t] || "🏳️"} {t}</span>)}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page">
+      {/* Nombre */}
+      <div className="card">
+        <div className="sect-title">👤 Tu Nombre</div>
+        <input
+          className="inp"
+          placeholder="¿Cómo te llamas?"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+      </div>
+
+      {/* Progress */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 16 }}>
+        {Object.entries(GRUPOS).map(([k, g]) => {
+          const c = countSel(k), done = c === g.pick;
+          return (
+            <div key={k} style={{ background: done ? `${g.color}15` : "var(--sur)", border: `1px solid ${done ? g.color+"60" : "var(--brd)"}`, borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+              <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: done ? g.color : "var(--mut)" }}>{g.label}</div>
+              <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 900, fontSize: 24, color: done ? g.color : "var(--txt)" }}>
+                {c}<span style={{ fontSize: 13, color: "var(--mut)" }}>/{g.pick}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Selectores por grupo */}
+      {Object.entries(GRUPOS).map(([k, g]) => (
+        <div className="card" key={k} style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 10, padding: "2px 10px", borderRadius: 5, textTransform: "uppercase", background: `${g.color}20`, color: g.color, border: `1px solid ${g.color}50` }}>{g.label}</span>
+            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 15, color: "var(--white)" }}>{g.name}</span>
+            <span style={{ fontSize: 11, color: "var(--mut)", marginLeft: "auto" }}>Elige {g.pick} · ({countSel(k)}/{g.pick})</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 5 }}>
+            {g.teams.map(team => {
+              const selected = isSel(k, team);
+              const disabled = !selected && countSel(k) >= g.pick;
+              return (
+                <button key={team}
+                  onClick={() => !disabled && toggle(k, team)}
+                  disabled={disabled}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 7,
+                    background: selected ? `${g.color}15` : "var(--sur2)",
+                    border: `1px solid ${selected ? g.color : "var(--brd)"}`,
+                    borderRadius: 8, padding: "7px 9px", cursor: disabled ? "not-allowed" : "pointer",
+                    opacity: disabled ? 0.3 : 1, color: selected ? g.color : "var(--txt)",
+                    fontFamily: "'Barlow',sans-serif", fontSize: 12, width: "100%",
+                  }}>
+                  <span style={{ fontSize: 14 }}>{FLAGS[team] || "🏳️"}</span>
+                  <span>{team}</span>
+                  {selected && <span style={{ marginLeft: "auto" }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Resumen */}
+      {allTeams().length > 0 && (
+        <div style={{ background: "rgba(245,183,49,0.06)", border: "1px solid rgba(245,183,49,0.2)", borderRadius: 12, padding: "13px 16px", marginBottom: 14 }}>
+          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: 1, textTransform: "uppercase", color: "var(--gold)", marginBottom: 8 }}>🗂️ Tu selección</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {allTeams().map(t => <span key={t} className="chip">{FLAGS[t] || "🏳️"} {t}</span>)}
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={() => setSubmitted(true)}
+        disabled={!isValid()}
+        style={{ width: "100%", padding: 13, fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: 2, textTransform: "uppercase", background: "var(--gold)", color: "#080c14", border: "none", borderRadius: 9, cursor: isValid() ? "pointer" : "not-allowed", opacity: isValid() ? 1 : 0.4 }}
+      >
+        {isValid() ? "✅ Confirmar inscripción" : `Selecciona todos los equipos (${allTeams().length}/7)`}
+      </button>
+    </div>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("inicio");
@@ -403,7 +532,7 @@ export default function App() {
           </div>
         </div>
         <nav className="nav">
-          {[["inicio","Inicio"],["normas","Normas"],["resultados","Resultados"],["clasificacion","Clasificación"]].map(([id, label]) => (
+          {[["inicio","Inicio"],["normas","Normas"],["registro","Mis Equipos"],["resultados","Resultados"],["clasificacion","Clasificación"]].map(([id, label]) => (
             <button key={id} className={`nav-btn ${tab === id ? "on" : ""}`} onClick={() => setTab(id)}>{label}</button>
           ))}
         </nav>
@@ -411,6 +540,7 @@ export default function App() {
 
       {tab === "inicio"        && <Inicio goTo={setTab} />}
       {tab === "normas"        && <Normas />}
+      {tab === "registro"      && <Registro />}
       {tab === "resultados"    && <Resultados />}
       {tab === "clasificacion" && <Clasificacion />}
     </>
