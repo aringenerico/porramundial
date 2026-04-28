@@ -244,7 +244,7 @@ function InicioPage({ participants, goTo }) {
   return (
     <div className="page">
       <div className="hero">
-        <div className="hero-title">🏆 Porra Mundial Timestamp 2026</div>
+        <div className="hero-title">🏆 Porra Mundial TS 2026</div>
         <div className="hero-sub">USA · México · Canadá &nbsp;|&nbsp; 11 Jun – 19 Jul 2026</div>
         <div className="hero-grid">
           <div className="hero-stat">
