@@ -91,6 +91,16 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 .hdr-bote-lbl { font-size: 10px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 .hdr-bote-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; color: var(--gold); }
 
+.hdr-logo { height: 22px; opacity: 0.3; mix-blend-mode: screen; transition: opacity .2s; }
+.hdr-logo:hover { opacity: 0.5; }
+
+.app-footer {
+  text-align: center; padding: 32px 20px 24px;
+  font-size: 11px; color: var(--mut);
+  letter-spacing: 1px; border-top: 1px solid var(--brd);
+  margin-top: 8px;
+}
+
 .nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
 .nav::-webkit-scrollbar { display: none; }
 .nav-btn {
@@ -244,7 +254,7 @@ function InicioPage({ participants, goTo }) {
   return (
     <div className="page">
       <div className="hero">
-        <div className="hero-title">🏆 Porra Mundial TS 2026</div>
+        <div className="hero-title">🏆 Porra Mundial 2026</div>
         <div className="hero-sub">USA · México · Canadá &nbsp;|&nbsp; 11 Jun – 19 Jul 2026</div>
         <div className="hero-grid">
           <div className="hero-stat">
@@ -714,13 +724,14 @@ export default function App() {
         <div className="hdr-top">
           <span className="hdr-icon">⚽</span>
           <div>
-            <div className="hdr-name">Porra Mundial Timestamp 2026</div>
+            <div className="hdr-name">Porra Mundial 2026</div>
             <div className="hdr-sub">USA · México · Canadá</div>
           </div>
           <div className="hdr-bote">
             <div className="hdr-bote-lbl">Bote</div>
             <div className="hdr-bote-val">€{bote}</div>
           </div>
+          <img src="/timestamp-logo.png" alt="Timestamp" className="hdr-logo" />
         </div>
         <nav className="nav">
           {[{id:'inicio',l:'Inicio'},{id:'normas',l:'Normas'},{id:'seleccion',l:'Mis Equipos'},{id:'resultados',l:'Resultados'},{id:'clasificacion',l:'Clasificación'}].map(t=>(
@@ -737,6 +748,10 @@ export default function App() {
       {tab === 'seleccion'     && <SeleccionPage onSubmit={handleRegister} />}
       {tab === 'resultados'    && <ResultadosPage resultsMap={resultsMap} onRefresh={loadData} />}
       {tab === 'clasificacion' && <ClasificacionPage participants={participantsWithTotals} onRefresh={loadData} />}
+
+      <div className="app-footer">
+        Created by Aitor Alegría &amp; Gorka Barroso
+      </div>
     </>
   );
 }
