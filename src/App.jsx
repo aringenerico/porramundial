@@ -1,6 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+// Reemplaza estos valores con los de tu proyecto en supabase.com > Settings > API
+
+const SUPABASE_URL  = "https://kvdtuogpkpklnqmbcjvo.supabase.co/rest/v1/";
+const SUPABASE_KEY  = "sb_publishable_AbG3ihjRbQ8BAERBOr4GBA_kkrVqSyN";
+const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 
 const GRUPOS = {
   g1: { name: "Grupo 1", label: "TOP", pick: 1, color: "#F5B731", badge: "⭐",
@@ -27,28 +35,8 @@ const FLAGS = {
   "Cabo Verde":"🇨🇻","Panamá":"🇵🇦","Nueva Zelanda":"🇳🇿","Curazao":"🇨🇼","Haití":"🇭🇹","Irak":"🇮🇶","R.D. Congo":"🇨🇩"
 };
 
-const MOCK_CLASIF = [
-  { name:"Gorka",  total:107, teams:["España","Colombia","Marruecos","México","Corea del Sur","Irán","Australia"] },
-  { name:"Iker",   total:89,  teams:["Argentina","Francia","México","Japón","Chequia","Escocia","Nueva Zelanda"] },
-  { name:"Amaia",  total:74,  teams:["Brasil","Colombia","Suiza","Noruega","Ghana","Turquía","Curazao"] },
-  { name:"Josu",   total:61,  teams:["España","Países Bajos","Uruguay","Ecuador","Arabia Saudí","Bosnia y Herzegovina","Haití"] },
-  { name:"Miren",  total:55,  teams:["Francia","Japón","Australia","Noruega","Sudáfrica","Jordania","Irak"] },
-];
-
-const MOCK_RESULTADOS = [
-  { team:"Argentina",     j1:8, j2:7, j3:5, r32:6, r16:6, qf:6, sf:7, final:0 },
-  { team:"Francia",       j1:9, j2:8, j3:6, r32:6, r16:6, qf:6, sf:6, final:6 },
-  { team:"Brasil",        j1:7, j2:8, j3:7, r32:6, r16:6, qf:6, sf:6, final:0 },
-  { team:"España",        j1:5, j2:6, j3:7, r32:6, r16:6, qf:2, sf:0, final:0 },
-  { team:"Marruecos",     j1:4, j2:6, j3:4, r32:6, r16:6, qf:6, sf:0, final:0 },
-  { team:"Colombia",      j1:5, j2:7, j3:4, r32:6, r16:6, qf:0, sf:0, final:0 },
-  { team:"Corea del Sur", j1:4, j2:5, j3:4, r32:6, r16:6, qf:0, sf:0, final:0 },
-  { team:"México",        j1:6, j2:4, j3:6, r32:6, r16:0, qf:0, sf:0, final:0 },
-  { team:"Australia",     j1:3, j2:5, j3:4, r32:6, r16:0, qf:0, sf:0, final:0 },
-  { team:"Irán",          j1:4, j2:5, j3:6, r32:0, r16:0, qf:0, sf:0, final:0 },
-];
-
-const calcTotal = r => r.j1 + r.j2 + r.j3 + r.r32 + r.r16 + r.qf + r.sf + r.final;
+const calcTotal = r =>
+  (r?.j1||0)+(r?.j2||0)+(r?.j3||0)+(r?.r32||0)+(r?.r16||0)+(r?.qf||0)+(r?.sf||0)+(r?.final||0);
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
@@ -74,7 +62,6 @@ const CSS = `
 
 html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--txt); min-height: 100vh; }
 
-/* ── Header ── */
 .hdr {
   background: linear-gradient(180deg, #0a1628 0%, #080e1c 100%);
   border-bottom: 1px solid var(--brd);
@@ -107,7 +94,6 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 .hdr-bote-lbl { font-size: 10px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 .hdr-bote-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; color: var(--gold); }
 
-/* Nav */
 .nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
 .nav::-webkit-scrollbar { display: none; }
 .nav-btn {
@@ -122,10 +108,8 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 .nav-btn:hover { color: var(--txt); }
 .nav-btn.on { color: var(--gold); border-bottom-color: var(--gold); }
 
-/* ── Content ── */
 .page { padding: 24px 20px; max-width: 860px; margin: 0 auto; }
 
-/* ── Cards / shared ── */
 .card {
   background: var(--sur); border: 1px solid var(--brd);
   border-radius: 12px; padding: 20px;
@@ -144,7 +128,6 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   border-radius: 4px; text-transform: uppercase;
 }
 
-/* ── INICIO ── */
 .hero {
   background: linear-gradient(135deg, #0e1e38, #091428);
   border: 1px solid var(--brd); border-radius: 16px;
@@ -181,7 +164,6 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 }
 .hero-stat-lbl { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 
-/* ── NORMAS ── */
 .scoring-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 10px; margin-bottom: 12px;
@@ -226,7 +208,6 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 }
 .premio-lbl { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 
-/* ── SELECCIÓN ── */
 .sel-progress {
   display: grid; grid-template-columns: repeat(4,1fr);
   gap: 8px; margin-bottom: 20px;
@@ -317,8 +298,12 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   background: rgba(34,212,142,0.08); border: 1px solid rgba(34,212,142,0.3);
   border-radius: 12px; padding: 20px; text-align: center;
 }
+.error-box {
+  background: rgba(255,107,138,0.08); border: 1px solid rgba(255,107,138,0.3);
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+  font-size: 13px; color: #ff6b8a;
+}
 
-/* ── RESULTADOS ── */
 .res-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .res-table th {
   font-family: 'Barlow Condensed', sans-serif;
@@ -344,9 +329,7 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 800; font-size: 16px; color: var(--gold);
 }
-.phase-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
-/* ── CLASIFICACIÓN ── */
 .podium { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 12px; margin-bottom: 20px; align-items: end; }
 .podium-card {
   border-radius: 12px; border: 1px solid;
@@ -532,10 +515,12 @@ function NormasPage() {
   );
 }
 
-function SeleccionPage({ onSubmit, participants }) {
-  const [name, setName] = useState('');
-  const [sel, setSel] = useState({ g1: null, g2: [], g3: [], g4: null });
-  const [done, setDone] = useState(false);
+function SeleccionPage({ onSubmit }) {
+  const [name, setName]           = useState('');
+  const [sel, setSel]             = useState({ g1: null, g2: [], g3: [], g4: null });
+  const [done, setDone]           = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]         = useState('');
 
   const toggle = (gKey, team) => {
     const g = GRUPOS[gKey];
@@ -561,8 +546,7 @@ function SeleccionPage({ onSubmit, participants }) {
     return sel[gKey].length;
   };
 
-  const allSelected = () =>
-    sel.g1 && sel.g2.length === 3 && sel.g3.length === 2 && sel.g4;
+  const allSelected = () => sel.g1 && sel.g2.length === 3 && sel.g3.length === 2 && sel.g4;
 
   const allTeams = () => {
     const t = [];
@@ -572,10 +556,17 @@ function SeleccionPage({ onSubmit, participants }) {
     return t;
   };
 
-  const handleSubmit = () => {
-    if (!name.trim() || !allSelected()) return;
-    onSubmit({ name: name.trim(), teams: allTeams(), total: 0 });
-    setDone(true);
+  const handleSubmit = async () => {
+    if (!name.trim() || !allSelected() || submitting) return;
+    setSubmitting(true);
+    setError('');
+    const ok = await onSubmit({ name: name.trim(), teams: allTeams() });
+    if (ok) {
+      setDone(true);
+    } else {
+      setError('Ese nombre ya está registrado. Prueba con otro.');
+      setSubmitting(false);
+    }
   };
 
   if (done) return (
@@ -595,21 +586,21 @@ function SeleccionPage({ onSubmit, participants }) {
     <div className="page">
       <div className="card">
         <div className="sect-title">👤 Tu Nombre</div>
+        {error && <div className="error-box">⚠️ {error}</div>}
         <input className="inp" placeholder="¿Cómo te llamas?" value={name} onChange={e=>setName(e.target.value)} />
       </div>
 
-      {/* Progress */}
       <div className="sel-progress">
         {Object.entries(GRUPOS).map(([key,g]) => {
           const c = countSel(key);
-          const done = c === g.pick;
+          const complete = c === g.pick;
           return (
             <div className="sel-prog-item" key={key} style={{
-              background: done ? `${g.color}15` : "var(--sur)",
-              borderColor: done ? `${g.color}60` : "var(--brd)"
+              background: complete ? `${g.color}15` : "var(--sur)",
+              borderColor: complete ? `${g.color}60` : "var(--brd)"
             }}>
-              <div className="sel-prog-g" style={{color: done ? g.color : "var(--mut)"}}>{g.label}</div>
-              <div className="sel-prog-count" style={{color: done ? g.color : "var(--txt)"}}>
+              <div className="sel-prog-g" style={{color: complete ? g.color : "var(--mut)"}}>{g.label}</div>
+              <div className="sel-prog-count" style={{color: complete ? g.color : "var(--txt)"}}>
                 {c}<span style={{fontSize:"14px",color:"var(--mut)"}}>/{g.pick}</span>
               </div>
             </div>
@@ -617,7 +608,6 @@ function SeleccionPage({ onSubmit, participants }) {
         })}
       </div>
 
-      {/* Group pickers */}
       {Object.entries(GRUPOS).map(([key,g]) => (
         <div className="card group-section" key={key}>
           <div className="group-header">
@@ -647,7 +637,6 @@ function SeleccionPage({ onSubmit, participants }) {
         </div>
       ))}
 
-      {/* Summary */}
       {allTeams().length > 0 && (
         <div className="sel-summary">
           <div className="sum-title">🗂️ Tus equipos seleccionados</div>
@@ -660,27 +649,42 @@ function SeleccionPage({ onSubmit, participants }) {
       )}
 
       <div style={{marginTop:"16px"}}>
-        <button className="btn-primary" onClick={handleSubmit} disabled={!name.trim() || !allSelected()}>
-          {allSelected() && name.trim() ? "✅ Confirmar inscripción" : `Selecciona todos los equipos (${allTeams().length}/7)`}
+        <button className="btn-primary" onClick={handleSubmit} disabled={!name.trim() || !allSelected() || submitting}>
+          {submitting ? "⏳ Guardando..." : allSelected() && name.trim() ? "✅ Confirmar inscripción" : `Selecciona todos los equipos (${allTeams().length}/7)`}
         </button>
       </div>
     </div>
   );
 }
 
-function ResultadosPage() {
+function ResultadosPage({ resultsMap }) {
   const cols = [
     {k:"j1",lbl:"J1"},{k:"j2",lbl:"J2"},{k:"j3",lbl:"J3"},
     {k:"r32",lbl:"1/32"},{k:"r16",lbl:"1/16"},{k:"qf",lbl:"QF"},
     {k:"sf",lbl:"SF"},{k:"final",lbl:"FIN"}
   ];
-  const sorted = [...MOCK_RESULTADOS].sort((a,b) => calcTotal(b)-calcTotal(a));
+
+  const sorted = Object.values(resultsMap)
+    .map(r => ({ ...r, _total: calcTotal(r) }))
+    .sort((a, b) => b._total - a._total);
+
+  if (sorted.length === 0) {
+    return (
+      <div className="page">
+        <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
+          <div style={{fontSize:"48px",marginBottom:"12px"}}>⏳</div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
+            LOS RESULTADOS SE PUBLICARÁN CUANDO ARRANQUE EL TORNEO
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
       <div className="card">
         <div className="sect-title">📊 Resultados por Equipo</div>
-        <div style={{fontSize:"12px",color:"var(--mut)",marginBottom:"14px"}}>Datos de ejemplo — se actualizarán automáticamente vía API durante el torneo</div>
         <div style={{overflowX:"auto"}}>
           <table className="res-table">
             <thead>
@@ -691,7 +695,7 @@ function ResultadosPage() {
               </tr>
             </thead>
             <tbody>
-              {sorted.map((r,i) => (
+              {sorted.map((r, i) => (
                 <tr key={r.team}>
                   <td>
                     <div className="res-team">
@@ -705,18 +709,11 @@ function ResultadosPage() {
                       {r[c.k] || "—"}
                     </td>
                   ))}
-                  <td className="res-total">{calcTotal(r)}</td>
+                  <td className="res-total">{r._total || "—"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <div className="card" style={{background:"rgba(245,183,49,0.04)",border:"1px solid rgba(245,183,49,0.15)"}}>
-        <div style={{fontSize:"13px",color:"var(--mut)"}}>
-          <strong style={{color:"var(--gold)"}}>🔄 Actualización automática</strong>
-          <br/>En producción, estos datos se obtienen automáticamente de la API de fútbol (API-Football) y se actualizan cada partido. No hay que introducir nada a mano.
         </div>
       </div>
     </div>
@@ -724,21 +721,33 @@ function ResultadosPage() {
 }
 
 function ClasificacionPage({ participants }) {
-  const sorted = [...participants].sort((a,b) => b.total - a.total);
-  const bote = participants.length * 10;
-  const top3 = sorted.slice(0, 3);
-  const rest = sorted.slice(3);
-  const premios = [Math.round(bote*0.75), Math.round(bote*0.20), Math.round(bote*0.05)];
-  const medals = ["🥇","🥈","🥉"];
+  const sorted   = [...participants].sort((a, b) => b.total - a.total);
+  const bote     = participants.length * 10;
+  const top3     = sorted.slice(0, 3);
+  const rest     = sorted.slice(3);
+  const premios  = [Math.round(bote*0.75), Math.round(bote*0.20), Math.round(bote*0.05)];
+  const medals   = ["🥇","🥈","🥉"];
   const podColors = ["var(--gold)","#b0b8cc","#9a7050"];
-  const podBg = ["rgba(245,183,49,0.08)","rgba(176,184,204,0.06)","rgba(154,112,80,0.06)"];
+  const podBg    = ["rgba(245,183,49,0.08)","rgba(176,184,204,0.06)","rgba(154,112,80,0.06)"];
+
+  if (participants.length === 0) {
+    return (
+      <div className="page">
+        <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
+          <div style={{fontSize:"48px",marginBottom:"12px"}}>👥</div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
+            AÚN NO HAY PARTICIPANTES
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
-      {/* Podium */}
       {top3.length >= 2 && (
         <div className="podium">
-          {[top3[1], top3[0], top3[2]].filter(Boolean).map((p,i) => {
+          {[top3[1], top3[0], top3[2]].filter(Boolean).map((p, i) => {
             const realIdx = i === 0 ? 1 : i === 1 ? 0 : 2;
             return (
               <div className="podium-card" key={p.name}
@@ -759,7 +768,6 @@ function ClasificacionPage({ participants }) {
         </div>
       )}
 
-      {/* Rest of classification */}
       {rest.map((p, i) => (
         <div className="clasif-row" key={p.name}>
           <div className="clasif-pos">{i + 4}</div>
@@ -783,15 +791,55 @@ function ClasificacionPage({ participants }) {
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [tab, setTab] = useState('inicio');
-  const [participants, setParticipants] = useState(MOCK_CLASIF);
+  const [tab, setTab]             = useState('inicio');
+  const [participants, setParticipants] = useState([]);
+  const [resultsMap, setResultsMap]     = useState({});
+  const [loading, setLoading]           = useState(true);
 
-  const handleRegister = (entry) => {
-    setParticipants(prev => [...prev, entry]);
-    setTimeout(() => setTab('clasificacion'), 1500);
-  };
+  useEffect(() => { loadData(); }, []);
 
-  const bote = participants.length * 10;
+  async function loadData() {
+    const [{ data: parts }, { data: res }] = await Promise.all([
+      supabase.from('participants').select('*').order('created_at'),
+      supabase.from('results').select('*')
+    ]);
+    setParticipants(parts || []);
+    const map = {};
+    (res || []).forEach(r => { map[r.team] = r; });
+    setResultsMap(map);
+    setLoading(false);
+  }
+
+  const calcParticipantTotal = (teams) =>
+    (teams || []).reduce((sum, team) => sum + calcTotal(resultsMap[team] || {}), 0);
+
+  const participantsWithTotals = participants.map(p => ({
+    ...p,
+    total: calcParticipantTotal(p.teams)
+  }));
+
+  async function handleRegister({ name, teams }) {
+    const { error } = await supabase.from('participants').insert({ name, teams });
+    if (!error) {
+      await loadData();
+      setTimeout(() => setTab('clasificacion'), 1500);
+      return true;
+    }
+    return false;
+  }
+
+  const bote = participantsWithTotals.length * 10;
+
+  if (loading) return (
+    <>
+      <style>{CSS}</style>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"var(--bg)"}}>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"22px",color:"var(--gold)",letterSpacing:"4px",textTransform:"uppercase"}}>
+          ⚽ Cargando...
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <>
@@ -815,11 +863,11 @@ export default function App() {
         </nav>
       </div>
 
-      {tab === 'inicio'        && <InicioPage participants={participants} goTo={setTab} />}
+      {tab === 'inicio'        && <InicioPage participants={participantsWithTotals} goTo={setTab} />}
       {tab === 'normas'        && <NormasPage />}
-      {tab === 'seleccion'     && <SeleccionPage onSubmit={handleRegister} participants={participants} />}
-      {tab === 'resultados'    && <ResultadosPage />}
-      {tab === 'clasificacion' && <ClasificacionPage participants={participants} />}
+      {tab === 'seleccion'     && <SeleccionPage onSubmit={handleRegister} />}
+      {tab === 'resultados'    && <ResultadosPage resultsMap={resultsMap} />}
+      {tab === 'clasificacion' && <ClasificacionPage participants={participantsWithTotals} />}
     </>
   );
 }
