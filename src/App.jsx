@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 // Reemplaza estos valores con los de tu proyecto en supabase.com > Settings > API
 
-const SUPABASE_URL  = "https://kvdtuogpkpklnqmbcjvo.supabase.co/rest/v1/";
+const SUPABASE_URL  = "https://kvdtuogpkpklnqmbcjvo.supabase.co";
 const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2ZHR1b2dwa3BrbG5xbWJjanZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODY2MTQsImV4cCI6MjA5Mjk2MjYxNH0.wad92BnQtbkhH-J8Y1Zlas8_Kxk5wfULd1F9UXJzwNw";
 const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
 
