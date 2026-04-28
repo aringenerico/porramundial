@@ -2,11 +2,16 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
-// Reemplaza estos valores con los de tu proyecto en supabase.com > Settings > API
 
-const SUPABASE_URL  = "https://kvdtuogpkpklnqmbcjvo.supabase.co";
-const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2ZHR1b2dwa3BrbG5xbWJjanZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODY2MTQsImV4cCI6MjA5Mjk2MjYxNH0.wad92BnQtbkhH-J8Y1Zlas8_Kxk5wfULd1F9UXJzwNw";
-const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL = "https://kvdtuogpkpklnqmbcjvo.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2ZHR1b2dwa3BrbG5xbWJjanZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODY2MTQsImV4cCI6MjA5Mjk2MjYxNH0.wad92BnQtbkhH-J8Y1Zlas8_Kxk5wfULd1F9UXJzwNw";
+const supabase    = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── FECHA LÍMITE INSCRIPCIÓN ─────────────────────────────────────────────────
+// Las inscripciones cierran el 7 de junio de 2026 a las 23:59
+
+const DEADLINE = new Date('2026-06-07T23:59:59');
+const inscripcionAbierta = () => new Date() < DEADLINE;
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -68,10 +73,7 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   padding: 0 20px;
   position: sticky; top: 0; z-index: 50;
 }
-.hdr-top {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 0 12px;
-}
+.hdr-top { display: flex; align-items: center; gap: 14px; padding: 16px 0 12px; }
 .hdr-icon { font-size: 30px; }
 .hdr-name {
   font-family: 'Barlow Condensed', sans-serif;
@@ -79,17 +81,12 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   letter-spacing: 3px; text-transform: uppercase;
   color: var(--gold); line-height: 1;
 }
-.hdr-sub {
-  font-size: 11px; color: var(--mut);
-  letter-spacing: 2px; text-transform: uppercase;
-  margin-top: 2px;
-}
+.hdr-sub { font-size: 11px; color: var(--mut); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
 .hdr-bote {
   margin-left: auto;
   background: rgba(245,183,49,0.1);
   border: 1px solid rgba(245,183,49,0.25);
-  border-radius: 8px;
-  padding: 6px 14px; text-align: right;
+  border-radius: 8px; padding: 6px 14px; text-align: right;
 }
 .hdr-bote-lbl { font-size: 10px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 .hdr-bote-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; color: var(--gold); }
@@ -110,22 +107,13 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 
 .page { padding: 24px 20px; max-width: 860px; margin: 0 auto; }
 
-.card {
-  background: var(--sur); border: 1px solid var(--brd);
-  border-radius: 12px; padding: 20px;
-  margin-bottom: 16px;
-}
+.card { background: var(--sur); border: 1px solid var(--brd); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
 .sect-title {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 800; font-size: 20px;
   letter-spacing: 2px; text-transform: uppercase;
   color: var(--white); margin-bottom: 14px;
   display: flex; align-items: center; gap: 8px;
-}
-.badge {
-  display: inline-block; font-size: 10px; font-weight: 700;
-  letter-spacing: 1px; padding: 2px 8px;
-  border-radius: 4px; text-transform: uppercase;
 }
 
 .hero {
@@ -142,102 +130,39 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900; font-size: 48px; letter-spacing: 4px;
   text-transform: uppercase; color: var(--gold);
-  text-shadow: 0 0 40px rgba(245,183,49,0.3);
-  line-height: 1;
+  text-shadow: 0 0 40px rgba(245,183,49,0.3); line-height: 1;
 }
-.hero-sub {
-  font-size: 14px; color: var(--mut); letter-spacing: 2px;
-  text-transform: uppercase; margin-top: 6px;
-}
-.hero-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 12px; margin-top: 28px;
-}
-.hero-stat {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--brd); border-radius: 10px;
-  padding: 14px 10px;
-}
-.hero-stat-val {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 28px; color: var(--white);
-}
+.hero-sub { font-size: 14px; color: var(--mut); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; }
+.hero-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 28px; }
+.hero-stat { background: rgba(255,255,255,0.04); border: 1px solid var(--brd); border-radius: 10px; padding: 14px 10px; }
+.hero-stat-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 28px; color: var(--white); }
 .hero-stat-lbl { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 
-.scoring-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; margin-bottom: 12px;
-}
-.scoring-item {
-  background: var(--sur2); border: 1px solid var(--brd);
-  border-radius: 10px; padding: 12px 14px;
-  display: flex; align-items: center; gap: 12px;
-}
+.scoring-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.scoring-item { background: var(--sur2); border: 1px solid var(--brd); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
 .scoring-icon { font-size: 22px; width: 30px; text-align: center; }
-.scoring-pts {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 22px; color: var(--gold);
-  margin-left: auto; white-space: nowrap;
-}
+.scoring-pts { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 22px; color: var(--gold); margin-left: auto; white-space: nowrap; }
 .scoring-lbl { font-size: 13px; color: var(--txt); font-weight: 600; }
 .scoring-note { font-size: 11px; color: var(--mut); }
 
-.grupo-strip {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--sur2); border: 1px solid var(--brd);
-  border-radius: 10px; padding: 12px 14px;
-  margin-bottom: 8px;
-}
-.grupo-badge {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 11px; letter-spacing: 1px;
-  padding: 3px 10px; border-radius: 5px;
-  text-transform: uppercase; min-width: 80px; text-align: center;
-}
+.grupo-strip { display: flex; align-items: center; gap: 10px; background: var(--sur2); border: 1px solid var(--brd); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.grupo-badge { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 1px; padding: 3px 10px; border-radius: 5px; text-transform: uppercase; min-width: 80px; text-align: center; }
 .grupo-pick { font-size: 12px; color: var(--mut); margin-left: auto; }
 
 .premio-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-.premio-card {
-  border-radius: 10px; padding: 14px; text-align: center;
-  border: 1px solid;
-}
+.premio-card { border-radius: 10px; padding: 14px; text-align: center; border: 1px solid; }
 .premio-medal { font-size: 28px; margin-bottom: 6px; }
-.premio-pct {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 26px;
-}
+.premio-pct { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 26px; }
 .premio-lbl { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: 1px; }
 
-.sel-progress {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 8px; margin-bottom: 20px;
-}
-.sel-prog-item {
-  border-radius: 10px; padding: 10px 12px;
-  border: 1px solid; text-align: center;
-  transition: all .2s;
-}
-.sel-prog-g {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 12px; letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.sel-prog-count {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 28px; line-height: 1.1;
-}
-.sel-prog-need { font-size: 11px; color: var(--mut); }
+.sel-progress { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px; }
+.sel-prog-item { border-radius: 10px; padding: 10px 12px; border: 1px solid; text-align: center; transition: all .2s; }
+.sel-prog-g { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+.sel-prog-count { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 28px; line-height: 1.1; }
 
 .group-section { margin-bottom: 20px; }
-.group-header {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 10px;
-}
-.group-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 16px; letter-spacing: 1px;
-  text-transform: uppercase;
-}
+.group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.group-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
 .group-limit { font-size: 12px; color: var(--mut); }
 
 .teams-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
@@ -249,30 +174,14 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
   font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--txt);
 }
 .team-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
-.team-btn.sel {
-  border-color: currentColor; color: var(--white);
-  background: rgba(0,0,0,0.3);
-}
+.team-btn.sel { border-color: currentColor; color: var(--white); background: rgba(0,0,0,0.3); }
 .team-btn.dis { opacity: 0.35; cursor: not-allowed; }
 .team-flag { font-size: 16px; }
 
-.sel-summary {
-  background: rgba(245,183,49,0.06);
-  border: 1px solid rgba(245,183,49,0.2);
-  border-radius: 12px; padding: 16px 18px;
-  margin-top: 4px;
-}
-.sum-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 14px; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
-}
+.sel-summary { background: rgba(245,183,49,0.06); border: 1px solid rgba(245,183,49,0.2); border-radius: 12px; padding: 16px 18px; margin-top: 4px; }
+.sum-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
 .sum-teams { display: flex; flex-wrap: wrap; gap: 6px; }
-.sum-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: var(--sur2); border: 1px solid var(--brd);
-  border-radius: 6px; padding: 4px 10px; font-size: 12px;
-}
+.sum-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--sur2); border: 1px solid var(--brd); border-radius: 6px; padding: 4px 10px; font-size: 12px; }
 
 .inp {
   width: 100%; background: var(--sur2); border: 1px solid var(--brd);
@@ -285,105 +194,57 @@ html, body { font-family: 'Barlow', sans-serif; background: var(--bg); color: va
 .btn-primary {
   width: 100%; padding: 13px;
   font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 15px; letter-spacing: 2px;
-  text-transform: uppercase;
+  font-weight: 800; font-size: 15px; letter-spacing: 2px; text-transform: uppercase;
   background: var(--gold); color: #080c14;
-  border: none; border-radius: 9px; cursor: pointer;
-  transition: opacity .2s;
+  border: none; border-radius: 9px; cursor: pointer; transition: opacity .2s;
 }
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.success-box {
-  background: rgba(34,212,142,0.08); border: 1px solid rgba(34,212,142,0.3);
-  border-radius: 12px; padding: 20px; text-align: center;
-}
-.error-box {
-  background: rgba(255,107,138,0.08); border: 1px solid rgba(255,107,138,0.3);
-  border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
-  font-size: 13px; color: #ff6b8a;
-}
+.success-box { background: rgba(34,212,142,0.08); border: 1px solid rgba(34,212,142,0.3); border-radius: 12px; padding: 20px; text-align: center; }
+.error-box { background: rgba(255,107,138,0.08); border: 1px solid rgba(255,107,138,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #ff6b8a; }
+.closed-box { background: rgba(78,94,120,0.15); border: 1px solid rgba(78,94,120,0.4); border-radius: 12px; padding: 40px 20px; text-align: center; }
 
 .res-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.res-table th {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 11px; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--mut);
-  padding: 6px 10px; text-align: center; border-bottom: 1px solid var(--brd);
-}
+.res-table th { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); padding: 6px 10px; text-align: center; border-bottom: 1px solid var(--brd); }
 .res-table th:first-child { text-align: left; }
-.res-table td {
-  padding: 10px; text-align: center;
-  border-bottom: 1px solid rgba(30,41,64,0.5);
-}
+.res-table td { padding: 10px; text-align: center; border-bottom: 1px solid rgba(30,41,64,0.5); }
 .res-table td:first-child { text-align: left; }
 .res-table tr:last-child td { border-bottom: none; }
 .res-table tr:hover td { background: rgba(255,255,255,0.02); }
 .res-team { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--white); }
-.res-pts {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 15px;
-}
+.res-pts { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; }
 .res-zero { color: var(--mut); }
-.res-total {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 16px; color: var(--gold);
-}
+.res-total { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; color: var(--gold); }
 
 .podium { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 12px; margin-bottom: 20px; align-items: end; }
-.podium-card {
-  border-radius: 12px; border: 1px solid;
-  padding: 16px 12px; text-align: center;
-}
+.podium-card { border-radius: 12px; border: 1px solid; padding: 16px 12px; text-align: center; }
 .podium-medal { font-size: 32px; margin-bottom: 8px; }
-.podium-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 800; font-size: 18px; color: var(--white);
-  text-transform: uppercase; letter-spacing: 1px;
-}
-.podium-pts {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 28px; margin: 4px 0;
-}
+.podium-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; color: var(--white); text-transform: uppercase; letter-spacing: 1px; }
+.podium-pts { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 28px; margin: 4px 0; }
 .podium-pts span { font-size: 13px; color: var(--mut); }
 .podium-premio { font-size: 13px; margin-top: 4px; font-weight: 600; }
 .podium-teams { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 8px; }
 .podium-team-chip { font-size: 10px; background: rgba(255,255,255,0.06); border-radius: 4px; padding: 2px 6px; }
 
-.clasif-row {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--sur); border: 1px solid var(--brd);
-  border-radius: 10px; padding: 12px 16px;
-  margin-bottom: 8px;
-}
-.clasif-pos {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 22px; color: var(--mut);
-  width: 28px; text-align: center;
-}
-.clasif-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 17px; color: var(--white);
-  text-transform: uppercase; letter-spacing: 1px;
-}
+.clasif-row { display: flex; align-items: center; gap: 14px; background: var(--sur); border: 1px solid var(--brd); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; }
+.clasif-pos { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; color: var(--mut); width: 28px; text-align: center; }
+.clasif-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; color: var(--white); text-transform: uppercase; letter-spacing: 1px; }
 .clasif-teams-mini { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 .clasif-team-chip { font-size: 11px; color: var(--mut); }
-.clasif-pts {
-  margin-left: auto;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 26px; color: var(--gold);
-}
+.clasif-pts { margin-left: auto; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 26px; color: var(--gold); }
 .clasif-pts span { font-size: 12px; color: var(--mut); }
 `;
 
 // ─── COMPONENTS ──────────────────────────────────────────────────────────────
 
 function InicioPage({ participants, goTo }) {
-  const bote = participants.length * 10;
+  const bote   = participants.length * 10;
+  const abierta = inscripcionAbierta();
   return (
     <div className="page">
       <div className="hero">
-        <div className="hero-title">🏆 Porra Mundial 2026</div>
+        <div className="hero-title">🏆 Porra Mundial Timestamp 2026</div>
         <div className="hero-sub">USA · México · Canadá &nbsp;|&nbsp; 11 Jun – 19 Jul 2026</div>
         <div className="hero-grid">
           <div className="hero-stat">
@@ -438,9 +299,15 @@ function InicioPage({ participants, goTo }) {
         </div>
       </div>
 
-      <button className="btn-primary" onClick={() => goTo('seleccion')}>
-        ⚡ Registrarme y elegir equipos
-      </button>
+      {abierta ? (
+        <button className="btn-primary" onClick={() => goTo('seleccion')}>
+          ⚡ Registrarme y elegir equipos
+        </button>
+      ) : (
+        <div style={{textAlign:"center",padding:"14px 0",fontSize:"13px",color:"var(--mut)"}}>
+          🔒 El plazo de inscripción finalizó el 7 de junio de 2026
+        </div>
+      )}
     </div>
   );
 }
@@ -516,38 +383,40 @@ function NormasPage() {
 }
 
 function SeleccionPage({ onSubmit }) {
-  const [name, setName]           = useState('');
-  const [sel, setSel]             = useState({ g1: null, g2: [], g3: [], g4: null });
-  const [done, setDone]           = useState(false);
+  const [name, setName]             = useState('');
+  const [sel, setSel]               = useState({ g1: null, g2: [], g3: [], g4: null });
+  const [done, setDone]             = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError]         = useState('');
+  const [error, setError]           = useState('');
+
+  if (!inscripcionAbierta()) return (
+    <div className="page">
+      <div className="closed-box">
+        <div style={{fontSize:"52px",marginBottom:"16px"}}>🔒</div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"800",fontSize:"24px",color:"var(--white)",letterSpacing:"2px",marginBottom:"8px"}}>
+          INSCRIPCIONES CERRADAS
+        </div>
+        <div style={{fontSize:"14px",color:"var(--mut)"}}>
+          El plazo de inscripción finalizó el <strong style={{color:"var(--txt)"}}>7 de junio de 2026</strong>
+        </div>
+      </div>
+    </div>
+  );
 
   const toggle = (gKey, team) => {
     const g = GRUPOS[gKey];
     setSel(prev => {
-      if (g.pick === 1) {
-        return { ...prev, [gKey]: prev[gKey] === team ? null : team };
-      } else {
-        const arr = prev[gKey];
-        if (arr.includes(team)) return { ...prev, [gKey]: arr.filter(t => t !== team) };
-        if (arr.length >= g.pick) return prev;
-        return { ...prev, [gKey]: [...arr, team] };
-      }
+      if (g.pick === 1) return { ...prev, [gKey]: prev[gKey] === team ? null : team };
+      const arr = prev[gKey];
+      if (arr.includes(team)) return { ...prev, [gKey]: arr.filter(t => t !== team) };
+      if (arr.length >= g.pick) return prev;
+      return { ...prev, [gKey]: [...arr, team] };
     });
   };
 
-  const isSelected = (gKey, team) => {
-    if (GRUPOS[gKey].pick === 1) return sel[gKey] === team;
-    return sel[gKey].includes(team);
-  };
-
-  const countSel = (gKey) => {
-    if (GRUPOS[gKey].pick === 1) return sel[gKey] ? 1 : 0;
-    return sel[gKey].length;
-  };
-
+  const isSelected = (gKey, team) => GRUPOS[gKey].pick === 1 ? sel[gKey] === team : sel[gKey].includes(team);
+  const countSel   = (gKey) => GRUPOS[gKey].pick === 1 ? (sel[gKey] ? 1 : 0) : sel[gKey].length;
   const allSelected = () => sel.g1 && sel.g2.length === 3 && sel.g3.length === 2 && sel.g4;
-
   const allTeams = () => {
     const t = [];
     if (sel.g1) t.push(sel.g1);
@@ -587,7 +456,7 @@ function SeleccionPage({ onSubmit }) {
       <div className="card">
         <div className="sect-title">👤 Tu Nombre</div>
         {error && <div className="error-box">⚠️ {error}</div>}
-        <input className="inp" placeholder="¿Cómo te llamas?" value={name} onChange={e=>setName(e.target.value)} />
+        <input className="inp" placeholder="¿Cómo te llamas?" value={name} onChange={e => setName(e.target.value)} />
       </div>
 
       <div className="sel-progress">
@@ -620,8 +489,7 @@ function SeleccionPage({ onSubmit }) {
               const selected = isSelected(key, team);
               const disabled = !selected && countSel(key) >= g.pick;
               return (
-                <button
-                  key={team}
+                <button key={team}
                   className={`team-btn ${selected ? "sel" : ""} ${disabled ? "dis" : ""}`}
                   style={selected ? {color:g.color,borderColor:g.color,background:`${g.color}12`} : {}}
                   onClick={() => !disabled && toggle(key, team)}
@@ -641,9 +509,7 @@ function SeleccionPage({ onSubmit }) {
         <div className="sel-summary">
           <div className="sum-title">🗂️ Tus equipos seleccionados</div>
           <div className="sum-teams">
-            {allTeams().map(t => (
-              <span key={t} className="sum-chip">{FLAGS[t]||"🏳️"} {t}</span>
-            ))}
+            {allTeams().map(t => <span key={t} className="sum-chip">{FLAGS[t]||"🏳️"} {t}</span>)}
           </div>
         </div>
       )}
@@ -657,7 +523,7 @@ function SeleccionPage({ onSubmit }) {
   );
 }
 
-function ResultadosPage({ resultsMap }) {
+function ResultadosPage({ resultsMap, onRefresh }) {
   const cols = [
     {k:"j1",lbl:"J1"},{k:"j2",lbl:"J2"},{k:"j3",lbl:"J3"},
     {k:"r32",lbl:"1/32"},{k:"r16",lbl:"1/16"},{k:"qf",lbl:"QF"},
@@ -668,23 +534,24 @@ function ResultadosPage({ resultsMap }) {
     .map(r => ({ ...r, _total: calcTotal(r) }))
     .sort((a, b) => b._total - a._total);
 
-  if (sorted.length === 0) {
-    return (
-      <div className="page">
-        <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
-          <div style={{fontSize:"48px",marginBottom:"12px"}}>⏳</div>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
-            LOS RESULTADOS SE PUBLICARÁN CUANDO ARRANQUE EL TORNEO
-          </div>
+  if (sorted.length === 0) return (
+    <div className="page">
+      <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
+        <div style={{fontSize:"48px",marginBottom:"12px"}}>⏳</div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
+          LOS RESULTADOS SE PUBLICARÁN CUANDO ARRANQUE EL TORNEO
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="page">
       <div className="card">
-        <div className="sect-title">📊 Resultados por Equipo</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
+          <div className="sect-title" style={{marginBottom:0}}>📊 Resultados por Equipo</div>
+          <button onClick={onRefresh} style={{background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"7px",padding:"6px 12px",color:"var(--mut)",cursor:"pointer",fontSize:"12px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"1px"}}>↻ Actualizar</button>
+        </div>
         <div style={{overflowX:"auto"}}>
           <table className="res-table">
             <thead>
@@ -705,9 +572,7 @@ function ResultadosPage({ resultsMap }) {
                     </div>
                   </td>
                   {cols.map(c => (
-                    <td key={c.k} className={r[c.k] ? "res-pts" : "res-zero"}>
-                      {r[c.k] || "—"}
-                    </td>
+                    <td key={c.k} className={r[c.k] ? "res-pts" : "res-zero"}>{r[c.k] || "—"}</td>
                   ))}
                   <td className="res-total">{r._total || "—"}</td>
                 </tr>
@@ -720,32 +585,31 @@ function ResultadosPage({ resultsMap }) {
   );
 }
 
-function ClasificacionPage({ participants }) {
-  const sorted   = [...participants].sort((a, b) => b.total - a.total);
-  const bote     = participants.length * 10;
-  const top3     = sorted.slice(0, 3);
-  const rest     = sorted.slice(3);
-  const premios  = [Math.round(bote*0.75), Math.round(bote*0.20), Math.round(bote*0.05)];
-  const medals   = ["🥇","🥈","🥉"];
-  const podColors = ["var(--gold)","#b0b8cc","#9a7050"];
-  const podBg    = ["rgba(245,183,49,0.08)","rgba(176,184,204,0.06)","rgba(154,112,80,0.06)"];
+function ClasificacionPage({ participants, onRefresh }) {
+  const sorted     = [...participants].sort((a, b) => b.total - a.total);
+  const bote       = participants.length * 10;
+  const top3       = sorted.slice(0, 3);
+  const showPodium = top3.length >= 2;
+  const rest       = showPodium ? sorted.slice(3) : sorted;
+  const premios    = [Math.round(bote*0.75), Math.round(bote*0.20), Math.round(bote*0.05)];
+  const medals     = ["🥇","🥈","🥉"];
+  const podColors  = ["var(--gold)","#b0b8cc","#9a7050"];
+  const podBg      = ["rgba(245,183,49,0.08)","rgba(176,184,204,0.06)","rgba(154,112,80,0.06)"];
 
-  if (participants.length === 0) {
-    return (
-      <div className="page">
-        <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
-          <div style={{fontSize:"48px",marginBottom:"12px"}}>👥</div>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
-            AÚN NO HAY PARTICIPANTES
-          </div>
+  if (participants.length === 0) return (
+    <div className="page">
+      <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
+        <div style={{fontSize:"48px",marginBottom:"12px"}}>👥</div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
+          AÚN NO HAY PARTICIPANTES
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="page">
-      {top3.length >= 2 && (
+      {showPodium && (
         <div className="podium">
           {[top3[1], top3[0], top3[2]].filter(Boolean).map((p, i) => {
             const realIdx = i === 0 ? 1 : i === 1 ? 0 : 2;
@@ -770,7 +634,7 @@ function ClasificacionPage({ participants }) {
 
       {rest.map((p, i) => (
         <div className="clasif-row" key={p.name}>
-          <div className="clasif-pos">{i + 4}</div>
+          <div className="clasif-pos">{showPodium ? i + 4 : i + 1}</div>
           <div>
             <div className="clasif-name">{p.name}</div>
             <div className="clasif-teams-mini">
@@ -783,6 +647,8 @@ function ClasificacionPage({ participants }) {
 
       <div style={{textAlign:"center",padding:"14px",fontSize:"12px",color:"var(--mut)",marginTop:"8px"}}>
         Bote total: <strong style={{color:"var(--gold)"}}>€{bote}</strong> · {participants.length} participantes · 10€/inscripción
+        <br/>
+        <button onClick={onRefresh} style={{marginTop:"10px",background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"7px",padding:"6px 16px",color:"var(--mut)",cursor:"pointer",fontSize:"12px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"1px"}}>↻ Actualizar clasificación</button>
       </div>
     </div>
   );
@@ -791,7 +657,7 @@ function ClasificacionPage({ participants }) {
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [tab, setTab]             = useState('inicio');
+  const [tab, setTab]                   = useState('inicio');
   const [participants, setParticipants] = useState([]);
   const [resultsMap, setResultsMap]     = useState({});
   const [loading, setLoading]           = useState(true);
@@ -848,7 +714,7 @@ export default function App() {
         <div className="hdr-top">
           <span className="hdr-icon">⚽</span>
           <div>
-            <div className="hdr-name">Porra Mundial 2026</div>
+            <div className="hdr-name">Porra Mundial Timestamp 2026</div>
             <div className="hdr-sub">USA · México · Canadá</div>
           </div>
           <div className="hdr-bote">
@@ -858,7 +724,10 @@ export default function App() {
         </div>
         <nav className="nav">
           {[{id:'inicio',l:'Inicio'},{id:'normas',l:'Normas'},{id:'seleccion',l:'Mis Equipos'},{id:'resultados',l:'Resultados'},{id:'clasificacion',l:'Clasificación'}].map(t=>(
-            <button key={t.id} className={`nav-btn ${tab===t.id?'on':''}`} onClick={()=>setTab(t.id)}>{t.l}</button>
+            <button key={t.id} className={`nav-btn ${tab===t.id?'on':''}`}
+              onClick={() => { setTab(t.id); if(t.id==='resultados'||t.id==='clasificacion') loadData(); }}>
+              {t.l}
+            </button>
           ))}
         </nav>
       </div>
@@ -866,8 +735,8 @@ export default function App() {
       {tab === 'inicio'        && <InicioPage participants={participantsWithTotals} goTo={setTab} />}
       {tab === 'normas'        && <NormasPage />}
       {tab === 'seleccion'     && <SeleccionPage onSubmit={handleRegister} />}
-      {tab === 'resultados'    && <ResultadosPage resultsMap={resultsMap} />}
-      {tab === 'clasificacion' && <ClasificacionPage participants={participantsWithTotals} />}
+      {tab === 'resultados'    && <ResultadosPage resultsMap={resultsMap} onRefresh={loadData} />}
+      {tab === 'clasificacion' && <ClasificacionPage participants={participantsWithTotals} onRefresh={loadData} />}
     </>
   );
 }
