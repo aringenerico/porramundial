@@ -636,9 +636,11 @@ function RegistrationPage({ onSubmit }) {
   const handleSubmit = async () => {
     if (!name.trim() || !allSelected() || !allPicks() || submitting) return;
     setSubmitting(true); setError('');
-    const ok = await onSubmit({ name: name.trim(), teams: allTeams(), picks });
-    if (ok) { setDone(true); } else {
-      setError('That name is already registered. Please try another.');
+    const result = await onSubmit({ name: name.trim(), teams: allTeams(), picks });
+    if (result === true) { setDone(true); } else {
+      setError(result === 'duplicate'
+        ? 'That name is already registered. Please try another full name.'
+        : 'Registration failed. Please check your connection and try again.');
       setSubmitting(false);
       setTimeout(() => nameCardRef.current?.scrollIntoView({ behavior:'smooth', block:'start' }), 50);
     }
@@ -1086,7 +1088,7 @@ export default function App() {
 
   async function handleRegister({ name, teams, picks }) {
     const { data:existing } = await supabase.from('participants').select('id').eq('name', name).maybeSingle();
-    if (existing) return false;
+    if (existing) return 'duplicate';
     const { error } = await supabase.from('participants').insert({
       name, teams,
       pick_top_scorer: picks.top_scorer      || null,
@@ -1095,7 +1097,8 @@ export default function App() {
       pick_goalkeeper: picks.best_goalkeeper || null,
     });
     if (!error) { await loadData(); setTimeout(() => setTab('clasificacion'), 1500); return true; }
-    return false;
+    if (error.code === '23505') return 'duplicate';
+    return 'error';
   }
 
   const pot = participantsWithTotals.length * 10;
