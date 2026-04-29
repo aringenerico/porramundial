@@ -1089,16 +1089,28 @@ export default function App() {
   async function handleRegister({ name, teams, picks }) {
     const { data:existing } = await supabase.from('participants').select('id').eq('name', name).maybeSingle();
     if (existing) return 'duplicate';
-    const { error } = await supabase.from('participants').insert({
-      name, teams,
-      pick_top_scorer: picks.top_scorer      || null,
-      pick_mvp:        picks.mvp             || null,
-      pick_young:      picks.best_young      || null,
-      pick_goalkeeper: picks.best_goalkeeper || null,
-    });
-    if (!error) { await loadData(); setTimeout(() => setTab('clasificacion'), 1500); return true; }
-    if (error.code === '23505') return 'duplicate';
-    return 'error';
+
+    const { data:inserted, error } = await supabase
+      .from('participants').insert({ name, teams }).select('id').single();
+    if (error) {
+      console.error('Insert error:', error);
+      if (error.code === '23505') return 'duplicate';
+      return 'error';
+    }
+
+    // Save award picks separately — silently ignored if columns don't exist yet
+    if (inserted?.id) {
+      await supabase.from('participants').update({
+        pick_top_scorer: picks.top_scorer      || null,
+        pick_mvp:        picks.mvp             || null,
+        pick_young:      picks.best_young      || null,
+        pick_goalkeeper: picks.best_goalkeeper || null,
+      }).eq('id', inserted.id);
+    }
+
+    await loadData();
+    setTimeout(() => setTab('clasificacion'), 1500);
+    return true;
   }
 
   const pot = participantsWithTotals.length * 10;
