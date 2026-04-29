@@ -166,7 +166,7 @@ function HomePage({ participants, goTo }) {
   return (
     <div className="page">
       <div className="hero">
-        <div className="hero-title">🏆 World Cup Pool 2026</div>
+        <div className="hero-title">🏆 TS World Cup Pool 2026</div>
         <div className="hero-sub">USA · Mexico · Canada &nbsp;|&nbsp; Jun 11 – Jul 19 2026</div>
         <div className="hero-grid">
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">Participants</div></div>
