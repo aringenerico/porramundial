@@ -463,47 +463,132 @@ function RegistrationPage({ onSubmit }) {
   );
 }
 
-function ResultsPage({ resultsMap, onRefresh }) {
+function ResultsPage({ resultsMap, participants, onRefresh }) {
+  const [query,setQuery]   = useState('');
+  const [searched,setSearched] = useState(false);
+
   const cols=[
     {k:"j1",lbl:"MD1"},{k:"j2",lbl:"MD2"},{k:"j3",lbl:"MD3"},
     {k:"r32",lbl:"R32"},{k:"r16",lbl:"R16"},{k:"qf",lbl:"QF"},
     {k:"sf",lbl:"SF"},{k:"final",lbl:"FIN"}
   ];
-  const sorted=Object.values(resultsMap).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total);
 
-  if(sorted.length===0) return(
-    <div className="page">
-      <div className="card" style={{textAlign:"center",padding:"48px 20px"}}>
-        <div style={{fontSize:"48px",marginBottom:"12px"}}>⏳</div>
-        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"18px",color:"var(--mut)",letterSpacing:"1px"}}>
-          RESULTS WILL BE AVAILABLE ONCE THE TOURNAMENT BEGINS
-        </div>
-      </div>
+  const allSorted=Object.values(resultsMap).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total);
+
+  // Participant search
+  const foundParticipant = searched && query.trim()
+    ? participants.find(p=>p.name.toLowerCase()===query.trim().toLowerCase())
+    : null;
+  const notFound = searched && query.trim() && !foundParticipant;
+
+  const participantRows = foundParticipant
+    ? foundParticipant.teams
+        .map(t=>({ ...(resultsMap[t]||{team:t,j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0}) }))
+        .map(r=>({...r,_total:calcTotal(r)}))
+        .sort((a,b)=>b._total-a._total)
+    : [];
+
+  const participantTotal = participantRows.reduce((s,r)=>s+r._total,0);
+
+  const handleSearch=(e)=>{
+    e.preventDefault();
+    setSearched(true);
+  };
+
+  const handleClear=()=>{
+    setQuery('');
+    setSearched(false);
+  };
+
+  const TeamTable=({rows,showIndex=true})=>(
+    <div style={{overflowX:"auto"}}>
+      <table className="res-table">
+        <thead><tr><th style={{textAlign:"left"}}>Team</th>{cols.map(c=><th key={c.k}>{c.lbl}</th>)}<th>TOTAL</th></tr></thead>
+        <tbody>
+          {rows.map((r,i)=>(
+            <tr key={r.team}>
+              <td><div className="res-team">{showIndex&&<span style={{width:"22px",textAlign:"center",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"13px",color:"var(--mut)"}}>{i+1}</span>}<span>{FLAGS[r.team]||"🏳️"}</span><span>{r.team}</span></div></td>
+              {cols.map(c=><td key={c.k} className={r[c.k]?"res-pts":"res-zero"}>{r[c.k]||"—"}</td>)}
+              <td className="res-total">{r._total||"—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 
   return(
     <div className="page">
+      {/* Search bar */}
       <div className="card">
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
-          <div className="sect-title" style={{marginBottom:0}}>📊 Points by Team</div>
-          <button onClick={onRefresh} style={{background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"7px",padding:"6px 12px",color:"var(--mut)",cursor:"pointer",fontSize:"12px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"1px"}}>↻ Refresh</button>
-        </div>
-        <div style={{overflowX:"auto"}}>
-          <table className="res-table">
-            <thead><tr><th style={{textAlign:"left"}}>Team</th>{cols.map(c=><th key={c.k}>{c.lbl}</th>)}<th>TOTAL</th></tr></thead>
-            <tbody>
-              {sorted.map((r,i)=>(
-                <tr key={r.team}>
-                  <td><div className="res-team"><span style={{width:"22px",textAlign:"center",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"13px",color:"var(--mut)"}}>{i+1}</span><span>{FLAGS[r.team]||"🏳️"}</span><span>{r.team}</span></div></td>
-                  {cols.map(c=><td key={c.k} className={r[c.k]?"res-pts":"res-zero"}>{r[c.k]||"—"}</td>)}
-                  <td className="res-total">{r._total||"—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <div className="sect-title" style={{marginBottom:"12px"}}>🔍 Search by Participant</div>
+        <form onSubmit={handleSearch} style={{display:"flex",gap:"8px"}}>
+          <input
+            className="inp"
+            style={{marginBottom:0,flex:1}}
+            placeholder="Enter participant name…"
+            value={query}
+            onChange={e=>{setQuery(e.target.value);setSearched(false);}}
+          />
+          <button type="submit" style={{background:"var(--gold)",border:"none",borderRadius:"8px",padding:"0 18px",color:"#080c14",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"800",fontSize:"13px",letterSpacing:"1px",cursor:"pointer",whiteSpace:"nowrap"}}>
+            SEARCH
+          </button>
+          {searched&&<button type="button" onClick={handleClear} style={{background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"8px",padding:"0 14px",color:"var(--mut)",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"13px",cursor:"pointer"}}>✕</button>}
+        </form>
+
+        {/* Not found error */}
+        {notFound&&(
+          <div className="error-box" style={{marginTop:"10px",marginBottom:0}}>
+            ⚠️ No participant found with the name "<strong>{query}</strong>". Check the spelling and try again.
+          </div>
+        )}
       </div>
+
+      {/* Participant result */}
+      {foundParticipant&&(
+        <div className="card" style={{border:"1px solid rgba(245,183,49,0.3)",background:"rgba(245,183,49,0.04)"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px",flexWrap:"wrap",gap:"8px"}}>
+            <div>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"900",fontSize:"22px",color:"var(--white)",letterSpacing:"2px",textTransform:"uppercase"}}>{foundParticipant.name}</div>
+              <div style={{fontSize:"12px",color:"var(--mut)",marginTop:"2px"}}>{foundParticipant.teams.length} teams selected</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"900",fontSize:"32px",color:"var(--gold)",lineHeight:1}}>{participantTotal}</div>
+              <div style={{fontSize:"11px",color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px"}}>Total pts</div>
+            </div>
+          </div>
+          <TeamTable rows={participantRows} showIndex={false}/>
+          {/* Award picks */}
+          {(foundParticipant.top_scorer||foundParticipant.mvp||foundParticipant.best_young||foundParticipant.best_goalkeeper)&&(
+            <div style={{marginTop:"14px",paddingTop:"14px",borderTop:"1px solid var(--brd)"}}>
+              <div style={{fontSize:"11px",color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700"}}>Award Predictions</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                {[{key:"top_scorer",icon:"⚽"},{key:"mvp",icon:"🏆"},{key:"best_young",icon:"🌟"},{key:"best_goalkeeper",icon:"🧤"}]
+                  .filter(a=>foundParticipant[a.key])
+                  .map(a=><span key={a.key} className="sum-chip">{a.icon} {foundParticipant[a.key]}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Full table */}
+      {!foundParticipant&&(
+        <div className="card">
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
+            <div className="sect-title" style={{marginBottom:0}}>📊 Points by Team</div>
+            <button onClick={onRefresh} style={{background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"7px",padding:"6px 12px",color:"var(--mut)",cursor:"pointer",fontSize:"12px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"1px"}}>↻ Refresh</button>
+          </div>
+          {allSorted.length===0?(
+            <div style={{textAlign:"center",padding:"32px 0"}}>
+              <div style={{fontSize:"40px",marginBottom:"10px"}}>⏳</div>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700",fontSize:"16px",color:"var(--mut)",letterSpacing:"1px"}}>RESULTS WILL BE AVAILABLE ONCE THE TOURNAMENT BEGINS</div>
+            </div>
+          ):(
+            <TeamTable rows={allSorted}/>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -720,7 +805,7 @@ export default function App() {
       {tab==='inicio'        && <HomePage         participants={participantsWithTotals} goTo={setTab}/>}
       {tab==='normas'        && <RulesPage/>}
       {tab==='seleccion'     && <RegistrationPage  onSubmit={handleRegister}/>}
-      {tab==='resultados'    && <ResultsPage       resultsMap={resultsMap} onRefresh={loadData}/>}
+      {tab==='resultados'    && <ResultsPage       resultsMap={resultsMap} participants={participants} onRefresh={loadData}/>}
       {tab==='clasificacion' && <LeaderboardPage   participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData}/>}
 
       <div className="app-footer">
