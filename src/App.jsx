@@ -8,19 +8,21 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const DEADLINE = new Date('2026-06-07T23:59:59');
 const isRegistrationOpen = () => new Date() < DEADLINE;
 
+const AWARD_BONUS = 10; // pts per correct award pick
+
 const GROUPS = {
-  g1: { name: "Group 1", label: "TOP",      pick: 1, color: "#F5B731", badge: "⭐",
-    teams: ["Argentina","France","Brazil","England","Spain","Germany","Portugal"] },
-  g2: { name: "Group 2", label: "STRONG",   pick: 3, color: "#60AAFF", badge: "🔵",
-    teams: ["Netherlands","Belgium","Croatia","Uruguay","Colombia","Morocco","Mexico",
-            "United States","Japan","Switzerland","Austria","Ecuador","South Korea","Iran",
-            "Australia","Paraguay","Tunisia","Algeria","Egypt","Norway","Sweden"] },
-  g3: { name: "Group 3", label: "AVERAGE",  pick: 2, color: "#40D490", badge: "🟢",
-    teams: ["Canada","Qatar","Saudi Arabia","Ivory Coast","Ghana","South Africa",
-            "Scotland","Czech Republic","Turkey","Bosnia and Herzegovina","Uzbekistan","Jordan",
-            "Cape Verde","Panama"] },
-  g4: { name: "Group 4", label: "SURPRISE", pick: 1, color: "#FF6B8A", badge: "🔮",
-    teams: ["New Zealand","Curacao","Haiti","Iraq","DR Congo"] }
+  g1: { name:"Group 1", label:"TOP",      pick:1, color:"#F5B731", badge:"⭐",
+    teams:["Argentina","France","Brazil","England","Spain","Germany","Portugal"] },
+  g2: { name:"Group 2", label:"STRONG",   pick:3, color:"#60AAFF", badge:"🔵",
+    teams:["Netherlands","Belgium","Croatia","Uruguay","Colombia","Morocco","Mexico",
+           "United States","Japan","Switzerland","Austria","Ecuador","South Korea","Iran",
+           "Australia","Paraguay","Tunisia","Algeria","Egypt","Norway","Sweden"] },
+  g3: { name:"Group 3", label:"AVERAGE",  pick:2, color:"#40D490", badge:"🟢",
+    teams:["Canada","Qatar","Saudi Arabia","Ivory Coast","Ghana","South Africa",
+           "Scotland","Czech Republic","Turkey","Bosnia and Herzegovina","Uzbekistan","Jordan",
+           "Cape Verde","Panama"] },
+  g4: { name:"Group 4", label:"SURPRISE", pick:1, color:"#FF6B8A", badge:"🔮",
+    teams:["New Zealand","Curacao","Haiti","Iraq","DR Congo"] }
 };
 
 const FLAGS = {
@@ -33,9 +35,17 @@ const FLAGS = {
   "Cape Verde":"🇨🇻","Panama":"🇵🇦","New Zealand":"🇳🇿","Curacao":"🇨🇼","Haiti":"🇭🇹","Iraq":"🇮🇶","DR Congo":"🇨🇩"
 };
 
+const AWARD_LABELS = {
+  top_scorer:      { label:"⚽ Top Scorer",          icon:"⚽" },
+  mvp:             { label:"🏆 Tournament MVP",       icon:"🏆" },
+  best_young:      { label:"🌟 Best Young Player (U21)", icon:"🌟" },
+  best_goalkeeper: { label:"🧤 Best Goalkeeper",     icon:"🧤" },
+};
+
 const calcTotal = r =>
   (r?.j1||0)+(r?.j2||0)+(r?.j3||0)+(r?.r32||0)+(r?.r16||0)+(r?.qf||0)+(r?.sf||0)+(r?.final||0);
 
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -102,12 +112,21 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .sum-chip{display:inline-flex;align-items:center;gap:5px;background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:4px 10px;font-size:12px}
 .inp{width:100%;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:10px}
 .inp:focus{border-color:var(--gold)}
+.sel-inp{width:100%;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .2s;cursor:pointer;appearance:none;-webkit-appearance:none}
+.sel-inp:focus{border-color:var(--gold)}
+.sel-inp option{background:var(--sur2);color:var(--white)}
 .btn-primary{width:100%;padding:13px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;text-transform:uppercase;background:var(--gold);color:#080c14;border:none;border-radius:9px;cursor:pointer;transition:opacity .2s}
 .btn-primary:hover{opacity:0.9}
 .btn-primary:disabled{opacity:0.35;cursor:not-allowed}
 .success-box{background:rgba(34,212,142,0.08);border:1px solid rgba(34,212,142,0.3);border-radius:12px;padding:20px;text-align:center}
 .error-box{background:rgba(255,107,138,0.08);border:1px solid rgba(255,107,138,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#ff6b8a}
 .closed-box{background:rgba(78,94,120,0.15);border:1px solid rgba(78,94,120,0.4);border-radius:12px;padding:40px 20px;text-align:center}
+.award-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.award-pick{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px}
+.award-pick-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700}
+.award-pick-val{font-size:13px;color:var(--white);font-weight:600}
+.award-correct{border-color:rgba(34,212,142,0.5);background:rgba(34,212,142,0.08)}
+.award-correct .award-pick-val{color:var(--green)}
 .res-table{width:100%;border-collapse:collapse;font-size:13px}
 .res-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);padding:6px 10px;text-align:center;border-bottom:1px solid var(--brd)}
 .res-table th:first-child{text-align:left}
@@ -135,7 +154,11 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .clasif-team-chip{font-size:11px;color:var(--mut)}
 .clasif-pts{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--gold)}
 .clasif-pts span{font-size:12px;color:var(--mut)}
+.bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
+@media(max-width:600px){.award-grid{grid-template-columns:1fr}}
 `;
+
+// ─── PAGES ────────────────────────────────────────────────────────────────────
 
 function HomePage({ participants, goTo }) {
   const pot  = participants.length * 10;
@@ -156,8 +179,9 @@ function HomePage({ participants, goTo }) {
         <div style={{display:"grid",gap:"10px"}}>
           {[
             {n:"1",t:"Pick 7 teams",d:"1 TOP + 3 STRONG + 2 AVERAGE + 1 SURPRISE"},
-            {n:"2",t:"Accumulate points",d:"Your teams earn points for goals, wins and advancing rounds"},
-            {n:"3",t:"Win the pot",d:"Most points at the end takes 75% of the prize"},
+            {n:"2",t:"Make your award predictions",d:"Pick Top Scorer, MVP, Best Young Player & Best Goalkeeper (+10 pts each)"},
+            {n:"3",t:"Accumulate points",d:"Your teams earn points for goals, wins and advancing rounds"},
+            {n:"4",t:"Win the pot",d:"Most points at the end takes 75% of the prize"},
           ].map(s=>(
             <div key={s.n} style={{display:"flex",gap:"14px",alignItems:"flex-start",background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"10px",padding:"14px"}}>
               <div style={{background:"var(--gold)",color:"#080c14",width:"28px",height:"28px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"900",fontSize:"16px",flexShrink:0}}>{s.n}</div>
@@ -197,7 +221,7 @@ function HomePage({ participants, goTo }) {
 }
 
 function RulesPage() {
-  const scoring = [
+  const scoring=[
     {icon:"⚽",lbl:"Goal scored",pts:1,note:""},
     {icon:"🏆",lbl:"Match won",pts:3,note:"Does not count extra time"},
     {icon:"🤝",lbl:"Match drawn",pts:1,note:"Does not count extra time"},
@@ -205,6 +229,12 @@ function RulesPage() {
     {icon:"🥇",lbl:"Winning the tournament",pts:10,note:"Final bonus"},
     {icon:"👟",lbl:"Tournament top scorer",pts:8,note:"If in your selection"},
     {icon:"🛡️",lbl:"Fewest goals conceded",pts:6,note:"Semi-finalists only"},
+  ];
+  const awards=[
+    {icon:"⚽",lbl:"Correct Top Scorer pick",pts:10},
+    {icon:"🏆",lbl:"Correct MVP pick",pts:10},
+    {icon:"🌟",lbl:"Correct Best Young Player pick",pts:10},
+    {icon:"🧤",lbl:"Correct Best Goalkeeper pick",pts:10},
   ];
   return (
     <div className="page">
@@ -231,6 +261,21 @@ function RulesPage() {
         </div>
       </div>
       <div className="card">
+        <div className="sect-title">🎯 Award Predictions Bonus</div>
+        <div style={{fontSize:"13px",color:"var(--mut)",marginBottom:"12px"}}>
+          Predict the 4 tournament awards when registering. Each correct prediction adds <strong style={{color:"var(--gold)"}}>+10 pts</strong> to your total.
+        </div>
+        <div className="scoring-grid">
+          {awards.map((a,i)=>(
+            <div className="scoring-item" key={i}>
+              <span className="scoring-icon">{a.icon}</span>
+              <div><div className="scoring-lbl">{a.lbl}</div></div>
+              <div className="scoring-pts">+{a.pts}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="card">
         <div className="sect-title">💰 Prize Distribution</div>
         <div className="premio-grid">
           {[{medal:"🥇",pos:"Winner",pct:75,col:"var(--gold)"},{medal:"🥈",pos:"2nd Place",pct:20,col:"#b0b8cc"},{medal:"🥉",pos:"3rd Place",pct:5,col:"#9a7050"}].map(p=>(
@@ -248,12 +293,12 @@ function RulesPage() {
       <div className="card">
         <div className="sect-title">📅 Tournament Format</div>
         {[
-          {phase:"Group Stage",     detail:"Match days 1, 2 and 3"},
-          {phase:"Round of 32",     detail:"32 teams → 16"},
-          {phase:"Round of 16",     detail:"16 teams → 8"},
-          {phase:"Quarter-finals",  detail:"8 teams → 4"},
-          {phase:"Semi-finals",     detail:"4 teams → 2"},
-          {phase:"Final",           detail:"World Champion"},
+          {phase:"Group Stage",    detail:"Match days 1, 2 and 3"},
+          {phase:"Round of 32",    detail:"32 teams → 16"},
+          {phase:"Round of 16",    detail:"16 teams → 8"},
+          {phase:"Quarter-finals", detail:"8 teams → 4"},
+          {phase:"Semi-finals",    detail:"4 teams → 2"},
+          {phase:"Final",          detail:"World Champion"},
         ].map((f,i)=>(
           <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid var(--brd)"}}>
             <span style={{fontWeight:"600",color:"var(--white)",fontSize:"14px"}}>{f.phase}</span>
@@ -268,11 +313,22 @@ function RulesPage() {
 function RegistrationPage({ onSubmit }) {
   const [name,setName]             = useState('');
   const [sel,setSel]               = useState({g1:null,g2:[],g3:[],g4:null});
+  const [picks,setPicks]           = useState({top_scorer:'',mvp:'',best_young:'',best_goalkeeper:''});
+  const [players,setPlayers]       = useState({top_scorer:[],mvp:[],best_young:[],best_goalkeeper:[]});
   const [done,setDone]             = useState(false);
   const [submitting,setSubmitting] = useState(false);
   const [error,setError]           = useState('');
 
-  if (!isRegistrationOpen()) return (
+  useEffect(()=>{
+    supabase.from('players').select('*').order('name').then(({data})=>{
+      if(!data) return;
+      const grouped = {top_scorer:[],mvp:[],best_young:[],best_goalkeeper:[]};
+      data.forEach(p=>{ if(grouped[p.category]) grouped[p.category].push(p); });
+      setPlayers(grouped);
+    });
+  },[]);
+
+  if(!isRegistrationOpen()) return(
     <div className="page">
       <div className="closed-box">
         <div style={{fontSize:"52px",marginBottom:"16px"}}>🔒</div>
@@ -282,7 +338,7 @@ function RegistrationPage({ onSubmit }) {
     </div>
   );
 
-  const toggle = (gKey,team) => {
+  const toggle=(gKey,team)=>{
     const g=GROUPS[gKey];
     setSel(prev=>{
       if(g.pick===1) return{...prev,[gKey]:prev[gKey]===team?null:team};
@@ -293,41 +349,44 @@ function RegistrationPage({ onSubmit }) {
     });
   };
 
-  const isSelected  = (gKey,team) => GROUPS[gKey].pick===1?sel[gKey]===team:sel[gKey].includes(team);
-  const countSel    = (gKey) => GROUPS[gKey].pick===1?(sel[gKey]?1:0):sel[gKey].length;
-  const allSelected = () => sel.g1&&sel.g2.length===3&&sel.g3.length===2&&sel.g4;
-  const allTeams    = () => { const t=[]; if(sel.g1)t.push(sel.g1); t.push(...sel.g2,...sel.g3); if(sel.g4)t.push(sel.g4); return t; };
+  const isSelected  = (gKey,team)=>GROUPS[gKey].pick===1?sel[gKey]===team:sel[gKey].includes(team);
+  const countSel    = (gKey)=>GROUPS[gKey].pick===1?(sel[gKey]?1:0):sel[gKey].length;
+  const allSelected = ()=>sel.g1&&sel.g2.length===3&&sel.g3.length===2&&sel.g4;
+  const allTeams    = ()=>{const t=[];if(sel.g1)t.push(sel.g1);t.push(...sel.g2,...sel.g3);if(sel.g4)t.push(sel.g4);return t;};
 
-  const handleSubmit = async () => {
+  const handleSubmit=async()=>{
     if(!name.trim()||!allSelected()||submitting) return;
     setSubmitting(true); setError('');
-    const ok = await onSubmit({name:name.trim(),teams:allTeams()});
-    if(ok){ setDone(true); } else { setError('That name is already registered. Please try another.'); setSubmitting(false); }
+    const ok=await onSubmit({name:name.trim(),teams:allTeams(),picks});
+    if(ok){setDone(true);}else{setError('That name is already registered. Please try another.');setSubmitting(false);}
   };
 
-  if(done) return (
+  if(done) return(
     <div className="page">
       <div className="success-box">
         <div style={{fontSize:"48px",marginBottom:"12px"}}>✅</div>
         <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"800",fontSize:"22px",color:"var(--green)",letterSpacing:"1px"}}>Registration complete!</div>
-        <div style={{fontSize:"14px",color:"var(--mut)",marginTop:"6px"}}>Your teams have been saved. Good luck!</div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center",marginTop:"16px"}}>
+        <div style={{fontSize:"14px",color:"var(--mut)",marginTop:"6px",marginBottom:"16px"}}>Your teams and predictions have been saved. Good luck!</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}}>
           {allTeams().map(t=><span key={t} className="sum-chip">{FLAGS[t]||"🏳️"} {t}</span>)}
         </div>
       </div>
     </div>
   );
 
-  return (
+  return(
     <div className="page">
+      {/* Name */}
       <div className="card">
         <div className="sect-title">👤 Your Name</div>
         {error&&<div className="error-box">⚠️ {error}</div>}
         <input className="inp" placeholder="What's your name?" value={name} onChange={e=>setName(e.target.value)}/>
       </div>
+
+      {/* Group progress */}
       <div className="sel-progress">
         {Object.entries(GROUPS).map(([key,g])=>{
-          const c=countSel(key); const complete=c===g.pick;
+          const c=countSel(key),complete=c===g.pick;
           return(
             <div className="sel-prog-item" key={key} style={{background:complete?`${g.color}15`:"var(--sur)",borderColor:complete?`${g.color}60`:"var(--brd)"}}>
               <div className="sel-prog-g" style={{color:complete?g.color:"var(--mut)"}}>{g.label}</div>
@@ -336,6 +395,8 @@ function RegistrationPage({ onSubmit }) {
           );
         })}
       </div>
+
+      {/* Team pickers */}
       {Object.entries(GROUPS).map(([key,g])=>(
         <div className="card group-section" key={key}>
           <div className="group-header">
@@ -345,7 +406,7 @@ function RegistrationPage({ onSubmit }) {
           </div>
           <div className="teams-grid">
             {g.teams.map(team=>{
-              const selected=isSelected(key,team); const disabled=!selected&&countSel(key)>=g.pick;
+              const selected=isSelected(key,team),disabled=!selected&&countSel(key)>=g.pick;
               return(
                 <button key={team} className={`team-btn ${selected?"sel":""} ${disabled?"dis":""}`}
                   style={selected?{color:g.color,borderColor:g.color,background:`${g.color}12`}:{}}
@@ -359,12 +420,40 @@ function RegistrationPage({ onSubmit }) {
           </div>
         </div>
       ))}
+
+      {/* Team summary */}
       {allTeams().length>0&&(
         <div className="sel-summary">
           <div className="sum-title">🗂️ Your selected teams</div>
           <div className="sum-teams">{allTeams().map(t=><span key={t} className="sum-chip">{FLAGS[t]||"🏳️"} {t}</span>)}</div>
         </div>
       )}
+
+      {/* Award predictions */}
+      <div className="card" style={{marginTop:"16px"}}>
+        <div className="sect-title">🎯 Award Predictions <span style={{fontSize:"13px",color:"var(--mut)",fontFamily:"'Barlow',sans-serif",fontWeight:"400",letterSpacing:0,textTransform:"none"}}>+10 pts each if correct</span></div>
+        <div className="award-grid">
+          {Object.entries(AWARD_LABELS).map(([key,{label,icon}])=>(
+            <div key={key}>
+              <div style={{fontSize:"11px",color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"6px",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700"}}>{label}</div>
+              <div style={{position:"relative"}}>
+                <select className="sel-inp"
+                  value={picks[key]}
+                  onChange={e=>setPicks(p=>({...p,[key]:e.target.value}))}>
+                  <option value="">— Select a player —</option>
+                  {players[key].map(p=>(
+                    <option key={p.id} value={p.name}>{p.name} ({p.team})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:"10px",fontSize:"12px",color:"var(--mut)"}}>
+          Predictions are optional but each correct one adds +10 pts to your total.
+        </div>
+      </div>
+
       <div style={{marginTop:"16px"}}>
         <button className="btn-primary" onClick={handleSubmit} disabled={!name.trim()||!allSelected()||submitting}>
           {submitting?"⏳ Saving...":allSelected()&&name.trim()?"✅ Confirm registration":`Pick all your teams (${allTeams().length}/7)`}
@@ -419,7 +508,7 @@ function ResultsPage({ resultsMap, onRefresh }) {
   );
 }
 
-function LeaderboardPage({ participants, onRefresh }) {
+function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const sorted    =[...participants].sort((a,b)=>b.total-a.total);
   const pot       =participants.length*10;
   const top3      =sorted.slice(0,3);
@@ -429,6 +518,7 @@ function LeaderboardPage({ participants, onRefresh }) {
   const medals    =["🥇","🥈","🥉"];
   const podColors =["var(--gold)","#b0b8cc","#9a7050"];
   const podBg     =["rgba(245,183,49,0.08)","rgba(176,184,204,0.06)","rgba(154,112,80,0.06)"];
+  const hasWinners= Object.values(winnersMap).some(v=>v);
 
   if(participants.length===0) return(
     <div className="page">
@@ -439,8 +529,31 @@ function LeaderboardPage({ participants, onRefresh }) {
     </div>
   );
 
+  const BonusBadge=({p})=>{
+    const b=Object.keys(AWARD_LABELS).filter(k=>winnersMap[k]&&p[k]===winnersMap[k]).length*AWARD_BONUS;
+    if(!b) return null;
+    return <span className="bonus-badge">+{b} BONUS</span>;
+  };
+
   return(
     <div className="page">
+      {/* Award winners banner */}
+      {hasWinners&&(
+        <div className="card" style={{marginBottom:"16px",background:"rgba(245,183,49,0.05)",border:"1px solid rgba(245,183,49,0.2)"}}>
+          <div className="sect-title" style={{marginBottom:"10px"}}>🏅 Award Winners</div>
+          <div className="award-grid">
+            {Object.entries(AWARD_LABELS).map(([key,{label}])=>(
+              winnersMap[key]&&(
+                <div key={key} style={{background:"var(--sur2)",border:"1px solid var(--brd)",borderRadius:"8px",padding:"10px 12px"}}>
+                  <div style={{fontSize:"10px",color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:"700"}}>{label}</div>
+                  <div style={{fontSize:"13px",color:"var(--gold)",fontWeight:"600"}}>{winnersMap[key]}</div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      )}
+
       {showPodium&&(
         <div className="podium">
           {[top3[1],top3[0],top3[2]].filter(Boolean).map((p,i)=>{
@@ -457,16 +570,21 @@ function LeaderboardPage({ participants, onRefresh }) {
           })}
         </div>
       )}
+
       {rest.map((p,i)=>(
         <div className="clasif-row" key={p.name}>
           <div className="clasif-pos">{showPodium?i+4:i+1}</div>
-          <div>
-            <div className="clasif-name">{p.name}</div>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"4px"}}>
+              <span className="clasif-name">{p.name}</span>
+              <BonusBadge p={p}/>
+            </div>
             <div className="clasif-teams-mini">{p.teams.map(t=><span key={t} className="clasif-team-chip">{FLAGS[t]||"🏳️"} {t} · </span>)}</div>
           </div>
           <div className="clasif-pts">{p.total}<span> pts</span></div>
         </div>
       ))}
+
       <div style={{textAlign:"center",padding:"14px",fontSize:"12px",color:"var(--mut)",marginTop:"8px"}}>
         Total pot: <strong style={{color:"var(--gold)"}}>€{pot}</strong> · {participants.length} participants · €10/entry
         <br/>
@@ -476,38 +594,57 @@ function LeaderboardPage({ participants, onRefresh }) {
   );
 }
 
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [tab,setTab]                   = useState('inicio');
   const [participants,setParticipants] = useState([]);
   const [resultsMap,setResultsMap]     = useState({});
+  const [winnersMap,setWinnersMap]     = useState({});
   const [loading,setLoading]           = useState(true);
 
   useEffect(()=>{ loadData(); },[]);
 
   async function loadData() {
-    const [{data:parts},{data:res}] = await Promise.all([
+    const [{data:parts},{data:res},{data:winners}] = await Promise.all([
       supabase.from('participants').select('*').order('created_at'),
-      supabase.from('results').select('*')
+      supabase.from('results').select('*'),
+      supabase.from('award_winners').select('*'),
     ]);
     setParticipants(parts||[]);
     const map={};
     (res||[]).forEach(r=>{ map[r.team]=r; });
     setResultsMap(map);
+    const wmap={};
+    (winners||[]).forEach(w=>{ wmap[w.category]=w.player_name; });
+    setWinnersMap(wmap);
     setLoading(false);
   }
 
-  const calcParticipantTotal = (teams) =>
+  const calcBonus=(p)=>
+    Object.keys(AWARD_LABELS).filter(k=>winnersMap[k]&&p[k]===winnersMap[k]).length*AWARD_BONUS;
+
+  const calcTeamPts=(teams)=>
     (teams||[]).reduce((sum,team)=>sum+calcTotal(resultsMap[team]||{}),0);
 
-  const participantsWithTotals = participants.map(p=>({...p,total:calcParticipantTotal(p.teams)}));
+  const participantsWithTotals=participants.map(p=>({
+    ...p,
+    total: calcTeamPts(p.teams) + calcBonus(p)
+  }));
 
-  async function handleRegister({name,teams}) {
-    const {error} = await supabase.from('participants').insert({name,teams});
+  async function handleRegister({name,teams,picks}) {
+    const {error}=await supabase.from('participants').insert({
+      name, teams,
+      top_scorer:      picks.top_scorer      || null,
+      mvp:             picks.mvp             || null,
+      best_young:      picks.best_young      || null,
+      best_goalkeeper: picks.best_goalkeeper || null,
+    });
     if(!error){ await loadData(); setTimeout(()=>setTab('clasificacion'),1500); return true; }
     return false;
   }
 
-  const pot = participantsWithTotals.length*10;
+  const pot=participantsWithTotals.length*10;
 
   if(loading) return(
     <>
@@ -537,7 +674,7 @@ export default function App() {
         <nav className="nav">
           {[{id:'inicio',l:'Home'},{id:'normas',l:'Rules'},{id:'seleccion',l:'My Teams'},{id:'resultados',l:'Results'},{id:'clasificacion',l:'Leaderboard'}].map(t=>(
             <button key={t.id} className={`nav-btn ${tab===t.id?'on':''}`}
-              onClick={()=>{ setTab(t.id); if(t.id==='resultados'||t.id==='clasificacion') loadData(); }}>
+              onClick={()=>{setTab(t.id);if(t.id==='resultados'||t.id==='clasificacion')loadData();}}>
               {t.l}
             </button>
           ))}
@@ -548,7 +685,7 @@ export default function App() {
       {tab==='normas'        && <RulesPage/>}
       {tab==='seleccion'     && <RegistrationPage  onSubmit={handleRegister}/>}
       {tab==='resultados'    && <ResultsPage       resultsMap={resultsMap} onRefresh={loadData}/>}
-      {tab==='clasificacion' && <LeaderboardPage   participants={participantsWithTotals} onRefresh={loadData}/>}
+      {tab==='clasificacion' && <LeaderboardPage   participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData}/>}
 
       <div className="app-footer">
         Created by Aitor Alegría &amp; Gorka Barroso
