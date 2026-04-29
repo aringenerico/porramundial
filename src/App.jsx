@@ -623,6 +623,7 @@ function RegistrationPage({ onSubmit }) {
   const isSelected  = (gKey, team) => GROUPS[gKey].pick === 1 ? sel[gKey] === team : sel[gKey].includes(team);
   const countSel    = (gKey) => GROUPS[gKey].pick === 1 ? (sel[gKey] ? 1 : 0) : sel[gKey].length;
   const allSelected = () => sel.g1 && sel.g2.length === 3 && sel.g3.length === 2 && sel.g4;
+  const allPicks    = () => AWARD_CONFIG.every(a => picks[a.key]);
   const allTeams    = () => {
     const t = [];
     if (sel.g1) t.push(sel.g1);
@@ -632,7 +633,7 @@ function RegistrationPage({ onSubmit }) {
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !allSelected() || submitting) return;
+    if (!name.trim() || !allSelected() || !allPicks() || submitting) return;
     setSubmitting(true); setError('');
     const ok = await onSubmit({ name: name.trim(), teams: allTeams(), picks });
     if (ok) { setDone(true); } else { setError('That name is already registered. Please try another.'); setSubmitting(false); }
@@ -666,6 +667,7 @@ function RegistrationPage({ onSubmit }) {
 
   const step1Done = !!name.trim();
   const step2Done = allSelected();
+  const step3Done = allPicks();
 
   return (
     <div className="page">
@@ -673,7 +675,7 @@ function RegistrationPage({ onSubmit }) {
       <div className="step-indicator">
         <div className={`step-item ${step1Done ? 'done' : 'active'}`}>{step1Done ? '✓ ' : ''}Name</div>
         <div className={`step-item ${step2Done ? 'done' : step1Done ? 'active' : ''}`}>{step2Done ? '✓ ' : ''}Teams</div>
-        <div className={`step-item ${step1Done && step2Done ? 'active' : ''}`}>Awards</div>
+        <div className={`step-item ${step3Done ? 'done' : step1Done && step2Done ? 'active' : ''}`}>{step3Done ? '✓ ' : ''}Awards</div>
         <div className={`step-item ${step1Done && step2Done ? 'active' : ''}`}>Confirm</div>
       </div>
 
@@ -737,7 +739,7 @@ function RegistrationPage({ onSubmit }) {
       <div className="card" style={{ marginTop:16, border:'1px solid rgba(245,183,49,0.25)', background:'linear-gradient(135deg,#0e1e38,#091428)' }}>
         <div className="sect-title" style={{ color:'var(--gold)' }}>
           🎯 Award Predictions
-          <span style={{ fontSize:12, color:'var(--mut)', fontFamily:"'Barlow',sans-serif", fontWeight:400, letterSpacing:0, textTransform:'none', marginLeft:4 }}>+10 pts each if correct · optional</span>
+          <span style={{ fontSize:12, color:'var(--mut)', fontFamily:"'Barlow',sans-serif", fontWeight:400, letterSpacing:0, textTransform:'none', marginLeft:4 }}>+10 pts each · {AWARD_CONFIG.filter(a => picks[a.key]).length}/4 selected</span>
         </div>
         <div className="award-grid">
           {AWARD_CONFIG.map(a => (
@@ -759,10 +761,11 @@ function RegistrationPage({ onSubmit }) {
       </div>
 
       <div style={{ marginTop:16 }}>
-        <button className="btn-primary" onClick={handleSubmit} disabled={!name.trim() || !allSelected() || submitting}>
+        <button className="btn-primary" onClick={handleSubmit} disabled={!name.trim() || !allSelected() || !allPicks() || submitting}>
           {submitting ? '⏳ Saving…'
             : !name.trim() ? 'Enter your name to continue'
             : !allSelected() ? `Pick all your teams (${allTeams().length}/7)`
+            : !allPicks() ? `Pick all 4 award predictions (${AWARD_CONFIG.filter(a => picks[a.key]).length}/4)`
             : '✅ Confirm registration'}
         </button>
       </div>
@@ -1112,7 +1115,6 @@ export default function App() {
             <div className="hdr-bote-lbl">Pot</div>
             <div className="hdr-bote-val">€{pot}</div>
           </div>
-          <img src="/timestamp-logo.png" alt="Timestamp" className="hdr-logo" />
         </div>
         <nav className="nav">
           {[
