@@ -565,6 +565,17 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
                 <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> pts</span></div>
                 <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>
                 <div className="podium-teams">{p.teams.map(t=><span key={t} className="podium-team-chip">{FLAGS[t]||"🏳️"} {t}</span>)}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"4px",justifyContent:"center",marginTop:"6px"}}>
+                  {[{key:"top_scorer",icon:"⚽"},{key:"mvp",icon:"🏆"},{key:"best_young",icon:"🌟"},{key:"best_goalkeeper",icon:"🧤"}]
+                    .filter(a=>p[a.key]).map(a=>{
+                      const correct=winnersMap[a.key]&&p[a.key]===winnersMap[a.key];
+                      return(
+                        <span key={a.key} style={{fontSize:"10px",padding:"2px 6px",borderRadius:"4px",background:correct?"rgba(34,212,142,0.15)":"rgba(255,255,255,0.06)",border:correct?"1px solid rgba(34,212,142,0.35)":"1px solid rgba(255,255,255,0.08)",color:correct?"var(--green)":"var(--mut)"}}>
+                          {a.icon} {p[a.key]}{correct&&" ✓"}
+                        </span>
+                      );
+                  })}
+                </div>
               </div>
             );
           })}
@@ -580,6 +591,27 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
               <BonusBadge p={p}/>
             </div>
             <div className="clasif-teams-mini">{p.teams.map(t=><span key={t} className="clasif-team-chip">{FLAGS[t]||"🏳️"} {t} · </span>)}</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"5px"}}>
+              {[
+                {key:"top_scorer",     icon:"⚽"},
+                {key:"mvp",            icon:"🏆"},
+                {key:"best_young",     icon:"🌟"},
+                {key:"best_goalkeeper",icon:"🧤"},
+              ].filter(a=>p[a.key]).map(a=>{
+                const correct=winnersMap[a.key]&&p[a.key]===winnersMap[a.key];
+                return(
+                  <span key={a.key} style={{
+                    display:"inline-flex",alignItems:"center",gap:"4px",
+                    fontSize:"11px",padding:"2px 8px",borderRadius:"5px",
+                    background: correct?"rgba(34,212,142,0.12)":"rgba(255,255,255,0.05)",
+                    border: correct?"1px solid rgba(34,212,142,0.35)":"1px solid var(--brd)",
+                    color: correct?"var(--green)":"var(--mut)",
+                  }}>
+                    {a.icon} {p[a.key]}{correct&&" ✓"}
+                  </span>
+                );
+              })}
+            </div>
           </div>
           <div className="clasif-pts">{p.total}<span> pts</span></div>
         </div>
@@ -633,6 +665,10 @@ export default function App() {
   }));
 
   async function handleRegister({name,teams,picks}) {
+    // Pre-check: name already exists?
+    const {data:existing}=await supabase.from('participants').select('id').eq('name',name).maybeSingle();
+    if(existing) return false;
+
     const {error}=await supabase.from('participants').insert({
       name, teams,
       top_scorer:      picks.top_scorer      || null,
