@@ -589,6 +589,7 @@ function RegistrationPage({ onSubmit }) {
   const [done,       setDone]       = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error,      setError]      = useState('');
+  const nameCardRef = useRef(null);
 
   useEffect(() => {
     supabase.from('players').select('*').order('name').then(({ data }) => {
@@ -636,7 +637,11 @@ function RegistrationPage({ onSubmit }) {
     if (!name.trim() || !allSelected() || !allPicks() || submitting) return;
     setSubmitting(true); setError('');
     const ok = await onSubmit({ name: name.trim(), teams: allTeams(), picks });
-    if (ok) { setDone(true); } else { setError('That name is already registered. Please try another.'); setSubmitting(false); }
+    if (ok) { setDone(true); } else {
+      setError('That name is already registered. Please try another.');
+      setSubmitting(false);
+      setTimeout(() => nameCardRef.current?.scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+    }
   };
 
   if (done) return (
@@ -680,11 +685,12 @@ function RegistrationPage({ onSubmit }) {
       </div>
 
       {/* Name */}
-      <div className="card">
+      <div className="card" ref={nameCardRef}>
         <div className="sect-title">👤 Your Name</div>
         {error && <div className="error-box" role="alert">⚠️ {error}</div>}
-        <label htmlFor="participant-name" style={{ display:'block', fontSize:12, color:'var(--mut)', textTransform:'uppercase', letterSpacing:1, marginBottom:6, fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700 }}>
-          Full name <span style={{ color:'var(--pink)' }}>*</span>
+        <label htmlFor="participant-name" style={{ display:'block', marginBottom:6 }}>
+          <span style={{ fontSize:13, color:'var(--white)', fontWeight:600 }}>Full name</span>
+          <span style={{ display:'block', fontSize:11, color:'var(--mut)', marginTop:2 }}>First name + Last name</span>
         </label>
         <input id="participant-name" className="inp" placeholder="e.g. Pedro Sánchez" value={name} onChange={e => setName(e.target.value)} autoComplete="name" />
       </div>
@@ -917,7 +923,7 @@ function ResultsPage({ resultsMap, participants, onRefresh }) {
 // ─── LEADERBOARD PAGE ─────────────────────────────────────────────────────────
 
 function LeaderboardPage({ participants, winnersMap, onRefresh }) {
-  const sorted     = [...participants].sort((a,b) => b.total - a.total);
+  const sorted     = [...participants].sort((a,b) => b.total - a.total).slice(0, 20);
   const pot        = participants.length * 10;
   const top3       = sorted.slice(0, 3);
   const showPodium = top3.length >= 2;
