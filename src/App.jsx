@@ -1295,9 +1295,7 @@ export default function App() {
   async function handleSync(log) {
     log('Fetching matches from football-data.org…');
     try {
-      const res = await fetch(`${FD_API}/competitions/WC/matches?season=2026`, {
-        headers: { 'X-Auth-Token': import.meta.env.VITE_FD_KEY }
-      });
+      const res = await fetch('/api/sync');
       if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
       const { matches } = await res.json();
 
