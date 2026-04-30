@@ -50,6 +50,31 @@ const AWARD_CONFIG = [
 const calcTotal = r =>
   (r?.j1||0)+(r?.j2||0)+(r?.j3||0)+(r?.r32||0)+(r?.r16||0)+(r?.qf||0)+(r?.sf||0)+(r?.final||0);
 
+// ─── ADMIN ────────────────────────────────────────────────────────────────────
+
+const ADMIN_PIN = 'Arin2026!';
+const FD_API    = 'https://api.football-data.org/v4';
+
+const FD_TEAM_MAP = {
+  'Korea Republic':              'South Korea',
+  "Côte d'Ivoire":               'Ivory Coast',
+  'IR Iran':                     'Iran',
+  'Congo DR':                    'DR Congo',
+  'Democratic Republic of Congo':'DR Congo',
+  'Curaçao':                     'Curacao',
+  'Bosnia-Herzegovina':          'Bosnia and Herzegovina',
+  'USA':                         'United States',
+};
+const normTeam = n => FD_TEAM_MAP[n] || n;
+
+const STAGE_COL = {
+  'ROUND_OF_32':'r32', 'LAST_32':'r32',
+  'ROUND_OF_16':'r16', 'LAST_16':'r16',
+  'QUARTER_FINALS':'qf',
+  'SEMI_FINALS':'sf',
+  'FINAL':'final',
+};
+
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const CSS = `
@@ -292,6 +317,13 @@ html, body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--
   .teams-grid { grid-template-columns:repeat(2,1fr); }
   .hero-title { font-size:28px; }
 }
+
+/* ── ADMIN ── */
+.admin-log { margin-top:10px; padding:10px 14px; background:var(--sur2); border:1px solid var(--brd); border-radius:8px; font-size:12px; color:var(--txt); font-family:monospace; line-height:1.6; white-space:pre-wrap; }
+.admin-divider { border:none; border-top:1px solid var(--brd); margin:20px 0; }
+.pin-input { background:var(--sur2); border:1px solid var(--brd); border-radius:6px; padding:7px 12px; color:var(--white); font-size:14px; outline:none; width:140px; transition:border-color .2s; }
+.pin-input:focus { border-color:var(--gold); }
+.pin-input.err { border-color:var(--pink); }
 `;
 
 // ─── AWARD SEARCHABLE DROPDOWN ────────────────────────────────────────────────
@@ -402,9 +434,30 @@ function LoadingScreen() {
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
+function useCountdown(target) {
+  const calc = () => {
+    const diff = target - Date.now();
+    if (diff <= 0) return null;
+    return {
+      d: Math.floor(diff / 86400000),
+      h: Math.floor((diff % 86400000) / 3600000),
+      m: Math.floor((diff % 3600000) / 60000),
+      s: Math.floor((diff % 60000) / 1000),
+    };
+  };
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return time;
+}
+
 function HomePage({ participants, goTo }) {
-  const pot  = participants.length * 10;
-  const open = isRegistrationOpen();
+  const pot      = participants.length * 10;
+  const open     = isRegistrationOpen();
+  const countdown = useCountdown(DEADLINE);
+
   return (
     <div className="page">
       <div className="hero">
@@ -424,6 +477,22 @@ function HomePage({ participants, goTo }) {
             <div className="hero-stat-lbl">Teams / entry</div>
           </div>
         </div>
+
+        {open && countdown && (
+          <div style={{ marginTop:20, padding:'14px 16px', background:'rgba(245,183,49,0.07)', border:'1px solid rgba(245,183,49,0.2)', borderRadius:10 }}>
+            <div style={{ fontSize:10, color:'var(--mut)', textTransform:'uppercase', letterSpacing:2, marginBottom:8, textAlign:'center' }}>Registration closes in</div>
+            <div style={{ display:'flex', justifyContent:'center', gap:8 }}>
+              {[{ v:countdown.d, l:'Days' }, { v:countdown.h, l:'Hrs' }, { v:countdown.m, l:'Min' }, { v:countdown.s, l:'Sec' }].map(({ v, l }) => (
+                <div key={l} style={{ textAlign:'center', minWidth:48, background:'rgba(0,0,0,0.3)', border:'1px solid rgba(245,183,49,0.2)', borderRadius:8, padding:'8px 4px' }}>
+                  <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:900, fontSize:26, color:'var(--gold)', lineHeight:1 }}>
+                    {String(v).padStart(2,'0')}
+                  </div>
+                  <div style={{ fontSize:9, color:'var(--mut)', textTransform:'uppercase', letterSpacing:1, marginTop:3 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="card">
@@ -1044,6 +1113,115 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   );
 }
 
+// ─── FOOTER PIN ───────────────────────────────────────────────────────────────
+
+function FooterPin({ onUnlock }) {
+  const [show, setShow] = useState(false);
+  const [pin,  setPin]  = useState('');
+  const [err,  setErr]  = useState(false);
+
+  const tryPin = () => {
+    if (pin === ADMIN_PIN) { onUnlock(); setShow(false); setPin(''); }
+    else { setErr(true); setPin(''); setTimeout(() => setErr(false), 1200); }
+  };
+
+  return (
+    <div className="app-footer">
+      Created by Aitor Alegría &amp; Gorka Barroso
+      <span style={{ cursor:'pointer', marginLeft:10, opacity:0.25, userSelect:'none' }}
+        onClick={() => { setShow(s => !s); setPin(''); setErr(false); }}>🔐</span>
+      {show && (
+        <div style={{ marginTop:10, display:'flex', gap:8, justifyContent:'center' }}>
+          <input
+            className={`pin-input ${err ? 'err' : ''}`}
+            type="password"
+            placeholder="Admin PIN"
+            value={pin}
+            onChange={e => setPin(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && tryPin()}
+            autoFocus
+          />
+          <button className="btn-ghost" onClick={tryPin}>Enter</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ADMIN PAGE ───────────────────────────────────────────────────────────────
+
+function AdminPage({ onSync, winnersMap, onSaveWinners }) {
+  const [log,     setLog]     = useState('Ready. Press Sync to fetch latest results.');
+  const [syncing, setSyncing] = useState(false);
+  const [winners, setWinners] = useState({
+    top_scorer: winnersMap.top_scorer      || '',
+    mvp:        winnersMap.mvp             || '',
+    young:      winnersMap.best_young      || '',
+    goalkeeper: winnersMap.best_goalkeeper || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved,  setSaved]  = useState(false);
+
+  const sync = async () => {
+    setSyncing(true);
+    await onSync(msg => setLog(prev => prev + '\n' + msg));
+    setSyncing(false);
+  };
+
+  const saveWinners = async () => {
+    setSaving(true);
+    await onSaveWinners(winners);
+    setSaving(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="page">
+      <div className="card" style={{ border:'1px solid rgba(245,183,49,0.3)' }}>
+        <div className="sect-title">⚙️ Admin Panel</div>
+
+        {/* Sync */}
+        <div style={{ fontSize:13, color:'var(--mut)', marginBottom:12 }}>
+          Fetches all finished World Cup 2026 matches from football-data.org and recalculates every team's points automatically.
+        </div>
+        <button className="btn-primary" onClick={sync} disabled={syncing}>
+          {syncing ? '⏳ Syncing…' : '🔄 Sync Results from API'}
+        </button>
+        {log && <div className="admin-log">{log}</div>}
+
+        <hr className="admin-divider" />
+
+        {/* Award winners */}
+        <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontWeight:800, fontSize:16, color:'var(--white)', letterSpacing:1, marginBottom:14 }}>
+          🏅 Award Winners
+        </div>
+        <div style={{ fontSize:13, color:'var(--mut)', marginBottom:14 }}>
+          Fill these in when the tournament ends. Each participant who predicted correctly earns +10 pts.
+        </div>
+        <div className="award-grid">
+          {[
+            { k:'top_scorer', label:'⚽ Top Scorer' },
+            { k:'mvp',        label:'🏆 Tournament MVP' },
+            { k:'young',      label:'🌟 Best Young Player' },
+            { k:'goalkeeper', label:'🧤 Best Goalkeeper' },
+          ].map(a => (
+            <div key={a.k}>
+              <label style={{ display:'block', fontSize:11, color:'var(--mut)', textTransform:'uppercase', letterSpacing:1, marginBottom:5, fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700 }}>
+                {a.label}
+              </label>
+              <input className="inp" style={{ marginBottom:0 }} placeholder="Player name…"
+                value={winners[a.k]} onChange={e => setWinners(w => ({ ...w, [a.k]: e.target.value }))} />
+            </div>
+          ))}
+        </div>
+        <button className="btn-primary" style={{ marginTop:14 }} onClick={saveWinners} disabled={saving}>
+          {saved ? '✅ Saved!' : saving ? '⏳ Saving…' : '💾 Save Award Winners'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -1052,6 +1230,7 @@ export default function App() {
   const [resultsMap,   setResultsMap]   = useState({});
   const [winnersMap,   setWinnersMap]   = useState({});
   const [loading,      setLoading]      = useState(true);
+  const [adminMode,    setAdminMode]    = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -1113,6 +1292,82 @@ export default function App() {
     return true;
   }
 
+  async function handleSync(log) {
+    log('Fetching matches from football-data.org…');
+    try {
+      const res = await fetch(`${FD_API}/competitions/WC/matches?season=2026`, {
+        headers: { 'X-Auth-Token': import.meta.env.VITE_FD_KEY }
+      });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+      const { matches } = await res.json();
+
+      const finished = matches.filter(m => m.status === 'FINISHED');
+      log(`${finished.length} finished matches found. Calculating points…`);
+
+      const blank = () => ({ j1:0, j2:0, j3:0, r32:0, r16:0, qf:0, sf:0, final:0 });
+      const pts   = {};
+
+      for (const m of finished) {
+        const home = normTeam(m.homeTeam.name);
+        const away = normTeam(m.awayTeam.name);
+        const hg   = m.score.fullTime.home ?? 0;
+        const ag   = m.score.fullTime.away ?? 0;
+
+        let col;
+        if (m.stage === 'GROUP_STAGE') {
+          col = m.matchday === 1 ? 'j1' : m.matchday === 2 ? 'j2' : 'j3';
+        } else {
+          col = STAGE_COL[m.stage];
+        }
+        if (!col) continue;
+
+        if (!pts[home]) pts[home] = blank();
+        if (!pts[away]) pts[away] = blank();
+
+        // Goals (regulation only)
+        pts[home][col] += hg;
+        pts[away][col] += ag;
+
+        // Win/draw bonus (regulation only)
+        if      (hg > ag) pts[home][col] += 3;
+        else if (hg < ag) pts[away][col] += 3;
+        else { pts[home][col] += 1; pts[away][col] += 1; }
+
+        // Both teams get +6 for reaching this knockout round
+        if (col !== 'j1' && col !== 'j2' && col !== 'j3') {
+          pts[home][col] += 6;
+          pts[away][col] += 6;
+        }
+
+        // Tournament winner +10
+        if (col === 'final') {
+          const winner = hg >= ag ? home : away;
+          pts[winner][col] += 10;
+        }
+      }
+
+      const rows = Object.entries(pts).map(([team, p]) => ({ team, ...p }));
+      log(`Saving ${rows.length} teams to Supabase…`);
+      const { error } = await supabase.from('results').upsert(rows, { onConflict: 'team' });
+      if (error) throw new Error(error.message);
+
+      await loadData();
+      log(`✅ Done! ${rows.length} teams synced from ${finished.length} matches.`);
+    } catch (e) {
+      log(`❌ Error: ${e.message}`);
+    }
+  }
+
+  async function handleSaveWinners(w) {
+    await supabase.from('award_winners').update({
+      top_scorer: w.top_scorer || null,
+      mvp:        w.mvp        || null,
+      young:      w.young      || null,
+      goalkeeper: w.goalkeeper || null,
+    }).eq('id', 1);
+    await loadData();
+  }
+
   const pot = participantsWithTotals.length * 10;
 
   if (loading) return (
@@ -1144,6 +1399,7 @@ export default function App() {
             { id:'seleccion',     l:'My Teams' },
             { id:'resultados',    l:'Results' },
             { id:'clasificacion', l:'Leaderboard' },
+            ...(adminMode ? [{ id:'admin', l:'⚙️ Admin' }] : []),
           ].map(t => (
             <button key={t.id} className={`nav-btn ${tab === t.id ? 'on' : ''}`}
               onClick={() => { setTab(t.id); if (t.id === 'resultados' || t.id === 'clasificacion') loadData(); }}>
@@ -1158,10 +1414,9 @@ export default function App() {
       {tab === 'seleccion'     && <RegistrationPage onSubmit={handleRegister} />}
       {tab === 'resultados'    && <ResultsPage      resultsMap={resultsMap} participants={participants} onRefresh={loadData} />}
       {tab === 'clasificacion' && <LeaderboardPage  participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData} />}
+      {tab === 'admin'         && <AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} />}
 
-      <div className="app-footer">
-        Created by Aitor Alegría &amp; Gorka Barroso
-      </div>
+      <FooterPin onUnlock={() => { setAdminMode(true); setTab('admin'); }} />
     </>
   );
 }
