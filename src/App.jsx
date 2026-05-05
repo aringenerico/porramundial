@@ -728,6 +728,8 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
                 background:podBg[ri],
                 borderColor:`${podColors[ri]}40`,
                 order:ri===0?2:ri===1?1:3,
+                transform: ri===0 ? 'scale(1.05)' : ri===1 ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'bottom center',
               }}>
                 <div className="podium-medal">{medals[ri]}</div>
                 <div className="podium-name">{p.name}</div>
