@@ -605,7 +605,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
         {notFound&&<div className="error-box" style={{marginTop:10,marginBottom:0}}>⚠️ No participant found with the name "<strong>{query}</strong>". Check the spelling and try again.</div>}
       </div>
       {foundParticipant&&(
-        <div className="card" style={{border:'1px solid rgba(245,183,49,0.3)',background:'rgba(245,183,49,0.04)'}}>
+        <div className="card" style={{border:'1px solid var(--brd2)',background:'var(--sur)'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}}>
             <div>
               <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:'var(--white)',letterSpacing:2,textTransform:'uppercase'}}>{foundParticipant.name}</div>
@@ -613,9 +613,12 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
             </div>
             <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
               {participantRank>0&&(
-                <div style={{background: participantRank===1?'rgba(245,183,49,0.12)':participantRank===2?'rgba(176,184,204,0.08)':participantRank===3?'rgba(154,112,80,0.10)':'rgba(245,183,49,0.08)',border:`1px solid ${participantRank===1?'rgba(245,183,49,0.35)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(245,183,49,0.2)'}`,borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
+                <div style={{
+                  background: participantRank===1?'rgba(245,183,49,0.12)':participantRank===2?'rgba(176,184,204,0.08)':participantRank===3?'rgba(154,112,80,0.10)':'rgba(90,159,255,0.10)',
+                  border:`1px solid ${participantRank===1?'rgba(245,183,49,0.35)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(90,159,255,0.30)'}`,
+                  borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
                   <span style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>Rank</span>
-                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:participantRank===1?'var(--gold)':participantRank===2?'#b0b8cc':participantRank===3?'#9a7050':'var(--gold)',lineHeight:1}}>#{participantRank}</span>
+                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:participantRank===1?'var(--gold)':participantRank===2?'#b0b8cc':participantRank===3?'#9a7050':'var(--blue)',lineHeight:1}}>#{participantRank}</span>
                 </div>
               )}
               <div style={{textAlign:'right'}}>
