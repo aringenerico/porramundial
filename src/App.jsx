@@ -605,7 +605,10 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
         {notFound&&<div className="error-box" style={{marginTop:10,marginBottom:0}}>⚠️ No participant found with the name "<strong>{query}</strong>". Check the spelling and try again.</div>}
       </div>
       {foundParticipant&&(
-        <div className="card" style={{border:'1px solid var(--brd2)',background:'var(--sur)'}}>
+        <div className="card" style={{
+          border:`1px solid ${participantRank===1?'rgba(245,183,49,0.4)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(90,159,255,0.25)'}`,
+          background:'var(--sur)'
+        }}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}}>
             <div>
               <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:'var(--white)',letterSpacing:2,textTransform:'uppercase'}}>{foundParticipant.name}</div>
