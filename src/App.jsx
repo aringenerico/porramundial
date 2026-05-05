@@ -615,10 +615,9 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
             </div>
             <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
               {participantRank>0&&(
-                <div style={{background:'rgba(245,183,49,0.12)',border:'1px solid rgba(245,183,49,0.35)',borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
+                <div style={{background: participantRank===1?'rgba(255,215,0,0.14)':participantRank===2?'rgba(192,200,216,0.10)':participantRank===3?'rgba(205,127,50,0.12)':'rgba(245,183,49,0.08)',border:`1px solid ${participantRank===1?'rgba(255,215,0,0.4)':participantRank===2?'rgba(192,200,216,0.35)':participantRank===3?'rgba(205,127,50,0.38)':'rgba(245,183,49,0.25)'}`,borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
                   <span style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>Rank</span>
-                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:'var(--gold)',lineHeight:1}}>#{participantRank}</span>
-                  <span style={{fontSize:11,color:'var(--mut)'}}>of {participantsSorted.length}</span>
+                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:participantRank===1?'#FFD700':participantRank===2?'#C0C8D8':participantRank===3?'#CD7F32':'var(--gold)',lineHeight:1}}>#{participantRank}</span>
                 </div>
               )}
               <div style={{textAlign:'right'}}>
@@ -657,22 +656,25 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 function LeaderboardPage({ participants, winnersMap, onRefresh }) {
-  const [visibleCount,setVisibleCount] = useState(PAGE_SIZE);
+  const [page,setPage] = useState(1);
 
   const sorted     = [...participants].sort((a,b)=>b.total-a.total);
   const pot        = participants.length*10;
   const top3       = sorted.slice(0,3);
-  const showPodium = top3.length>=2;
+  const isFirstPage= page===1;
+  const showPodium = isFirstPage && top3.length>=2;
   const prizes     = [Math.round(pot*0.75),Math.round(pot*0.20),Math.round(pot*0.05)];
   const medals     = ['🥇','🥈','🥉'];
-  const podColors  = ['var(--gold)','#b0b8cc','#9a7050'];
-  const podBg      = ['rgba(245,183,49,0.08)','rgba(176,184,204,0.06)','rgba(154,112,80,0.06)'];
+  const podColors  = ['#FFD700','#C0C8D8','#CD7F32'];
+  const podBg      = ['rgba(255,215,0,0.10)','rgba(192,200,216,0.08)','rgba(205,127,50,0.08)'];
   const hasWinners = Object.values(winnersMap).some(v=>v);
 
-  // Visible rows (after podium)
-  const allRest    = showPodium ? sorted.slice(3) : sorted;
-  const visibleRest= allRest.slice(0, Math.max(0, visibleCount - (showPodium ? 3 : 0)));
-  const remaining  = allRest.length - visibleRest.length;
+  // Pagination
+  const pageStart  = (page-1)*PAGE_SIZE;           // 0-based index into sorted
+  const pageRows   = sorted.slice(pageStart, pageStart+PAGE_SIZE);
+  const totalPages = Math.ceil(sorted.length/PAGE_SIZE);
+  // On page 1, podium shows top3; the list rows start from position 4
+  const listRows   = isFirstPage && showPodium ? pageRows.slice(3) : pageRows;
 
   if(participants.length===0)return(
     <div className="page"><div className="card" style={{textAlign:'center',padding:'56px 20px'}}>
@@ -721,12 +723,11 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
           {[top3[1],top3[0],top3[2]].filter(Boolean).map((p,i)=>{
             const ri=i===0?1:i===1?0:2;
             return(
-              <div className="podium-card" key={p.name} style={{background:podBg[ri],borderColor:`${podColors[ri]}40`,order:ri===0?2:ri===1?1:3}}>
+              <div className="podium-card" key={p.name} style={{background:podBg[ri],borderColor:`${podColors[ri]}55`,order:ri===0?2:ri===1?1:3}}>
                 <div className="podium-medal">{medals[ri]}</div>
                 <div className="podium-name">{p.name}</div>
                 <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> pts</span></div>
-                <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>
-                <div className="podium-teams">{p.teams.map(t=><span key={t} className="podium-team-chip">{FLAGS[t]||'🏳️'} {t}</span>)}</div>
+                <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>                <div className="podium-teams">{p.teams.map(t=><span key={t} className="podium-team-chip">{FLAGS[t]||'🏳️'} {t}</span>)}</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:4,justifyContent:'center',marginTop:8}}>
                   {AWARD_CONFIG.filter(a=>p[a.col]).map(a=>{
                     const correct=winnersMap[a.key]&&p[a.col]===winnersMap[a.key];
@@ -742,11 +743,15 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
       )}
 
       {/* Ranking rows */}
-      {visibleRest.map((p,i)=>{
-        const pos=showPodium?i+4:i+1;
+      {listRows.map((p,i)=>{
+        const pos = pageStart + i + 1;
         return(
           <div className="clasif-row" key={p.name}>
-            <div className="clasif-pos" style={pos<=3&&!showPodium?{background:'rgba(245,183,49,0.15)',borderColor:'rgba(245,183,49,0.4)',color:'var(--gold)'}:{}}>
+            <div className="clasif-pos" style={
+              pos===1?{background:'rgba(255,215,0,0.18)',borderColor:'rgba(255,215,0,0.5)',color:'#FFD700'}:
+              pos===2?{background:'rgba(192,200,216,0.14)',borderColor:'rgba(192,200,216,0.45)',color:'#C0C8D8'}:
+              pos===3?{background:'rgba(205,127,50,0.16)',borderColor:'rgba(205,127,50,0.45)',color:'#CD7F32'}:{}
+            }>
               {pos}
             </div>
             <div style={{flex:1,minWidth:0}}>
@@ -762,17 +767,25 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
         );
       })}
 
-      {/* Load more */}
-      {remaining>0&&(
-        <button onClick={()=>setVisibleCount(c=>c+PAGE_SIZE)}
-          style={{width:'100%',padding:'13px',background:'var(--sur2)',border:'1px solid var(--brd)',borderRadius:10,color:'var(--txt)',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:14,letterSpacing:1,cursor:'pointer',transition:'var(--tr)',marginBottom:16}}>
-          Load more ({remaining} remaining)
-        </button>
+      {/* Pagination controls */}
+      {totalPages>1&&(
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginTop:8,marginBottom:4,flexWrap:'wrap'}}>
+          <button className="btn-ghost" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{minWidth:80}}>← Prev</button>
+          <div style={{display:'flex',gap:4}}>
+            {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
+              <button key={n} onClick={()=>setPage(n)}
+                style={{width:36,height:36,borderRadius:8,border:`1px solid ${n===page?'var(--gold)':'var(--brd)'}`,background:n===page?'rgba(245,183,49,0.15)':'var(--sur2)',color:n===page?'var(--gold)':'var(--mut)',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:13,cursor:'pointer',transition:'var(--tr)'}}>
+                {n}
+              </button>
+            ))}
+          </div>
+          <button className="btn-ghost" onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{minWidth:80}}>Next →</button>
+        </div>
       )}
 
       <div style={{textAlign:'center',padding:16,fontSize:12,color:'var(--mut)',marginTop:4}}>
-        Showing <strong style={{color:'var(--txt)'}}>{Math.min(visibleCount,sorted.length)}</strong> of <strong style={{color:'var(--txt)'}}>{sorted.length}</strong> participants
-        &nbsp;·&nbsp; Total pot: <strong style={{color:'var(--gold)'}}>€{pot}</strong>
+        Page <strong style={{color:'var(--txt)'}}>{page}</strong> of <strong style={{color:'var(--txt)'}}>{totalPages}</strong>
+        &nbsp;·&nbsp; {sorted.length} participants &nbsp;·&nbsp; Total pot: <strong style={{color:'var(--gold)'}}>€{pot}</strong>
         <br/>
         <button className="btn-ghost" onClick={onRefresh} style={{marginTop:12}}>↻ Refresh leaderboard</button>
       </div>
