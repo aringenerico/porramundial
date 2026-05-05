@@ -664,7 +664,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const isFirstPage= page===1;
   const showPodium = isFirstPage && top3.length>=2;
   const prizes     = [Math.round(pot*0.75),Math.round(pot*0.20),Math.round(pot*0.05)];
-  const podiums  = [top3[1], top3[0], top3[2]].filter(Boolean);
+  const medals     = ['🥇','🥈','🥉'];
   const podColors  = ['var(--gold)','#b0b8cc','#9a7050'];
   const podBg      = ['rgba(245,183,49,0.08)','rgba(176,184,204,0.06)','rgba(154,112,80,0.06)'];
   const hasWinners = Object.values(winnersMap).some(v=>v);
