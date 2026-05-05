@@ -625,7 +625,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
                 </div>
               )}
               <div style={{textAlign:'right'}}>
-                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:32,color:'var(--gold)',lineHeight:1}}>{participantTotal}</div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:32,color:'var(--white)',lineHeight:1}}>{participantTotal}</div>
                 <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>Total pts</div>
               </div>
             </div>
