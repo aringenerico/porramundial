@@ -197,8 +197,7 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .res-zero{color:var(--mut)}
 .res-total{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--gold)}
 
-/* CHANGE 1: align-items:start so marginTop controls the step-down effect */
-.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:24px;align-items:start}
+.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:24px;align-items:end}
 .podium-card{border-radius:var(--r);border:1px solid;padding:18px 12px;text-align:center;transition:transform .2s}
 .podium-card:hover{transform:translateY(-3px)}
 .podium-medal{font-size:34px;margin-bottom:10px}
@@ -730,7 +729,6 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
                 background:podBg[ri],
                 borderColor:`${podColors[ri]}50`,
                 order:ri===0?2:ri===1?1:3,
-                marginTop: ri===0 ? 0 : ri===1 ? 12 : 20,
               }}>
                 <div className="podium-medal">{medals[ri]}</div>
                 <div className="podium-name">{p.name}</div>
