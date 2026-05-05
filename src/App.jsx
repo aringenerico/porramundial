@@ -197,12 +197,11 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .res-zero{color:var(--mut)}
 .res-total{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--gold)}
 
-.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:24px;align-items:end}
-.podium-card{border-radius:var(--r);border:1px solid;padding:18px 12px;text-align:center;transition:transform .2s}
-.podium-card:hover{transform:translateY(-3px)}
-.podium-medal{font-size:34px;margin-bottom:10px}
-.podium-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--white);text-transform:uppercase;letter-spacing:1px;line-height:1.2}
-.podium-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;margin:6px 0 2px}
+.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:20px;align-items:end}
+.podium-card{border-radius:12px;border:1px solid;padding:16px 12px;text-align:center}
+.podium-medal{font-size:32px;margin-bottom:8px}
+.podium-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--white);text-transform:uppercase;letter-spacing:1px;line-height:1.2}
+.podium-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;margin:4px 0}
 .podium-pts span{font-size:13px;color:var(--mut)}
 .podium-premio{font-size:13px;margin-top:4px;font-weight:600}
 .podium-teams{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:8px}
@@ -727,7 +726,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
             return(
               <div className="podium-card" key={p.name} style={{
                 background:podBg[ri],
-                borderColor:`${podColors[ri]}50`,
+                borderColor:`${podColors[ri]}40`,
                 order:ri===0?2:ri===1?1:3,
               }}>
                 <div className="podium-medal">{medals[ri]}</div>
