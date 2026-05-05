@@ -615,9 +615,9 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
             </div>
             <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
               {participantRank>0&&(
-                <div style={{background: participantRank===1?'rgba(255,215,0,0.14)':participantRank===2?'rgba(192,200,216,0.10)':participantRank===3?'rgba(205,127,50,0.12)':'rgba(245,183,49,0.08)',border:`1px solid ${participantRank===1?'rgba(255,215,0,0.4)':participantRank===2?'rgba(192,200,216,0.35)':participantRank===3?'rgba(205,127,50,0.38)':'rgba(245,183,49,0.25)'}`,borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
+                <div style={{background: participantRank===1?'rgba(245,183,49,0.12)':participantRank===2?'rgba(176,184,204,0.08)':participantRank===3?'rgba(154,112,80,0.10)':'rgba(245,183,49,0.08)',border:`1px solid ${participantRank===1?'rgba(245,183,49,0.35)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(245,183,49,0.2)'}`,borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
                   <span style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>Rank</span>
-                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:participantRank===1?'#FFD700':participantRank===2?'#C0C8D8':participantRank===3?'#CD7F32':'var(--gold)',lineHeight:1}}>#{participantRank}</span>
+                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:participantRank===1?'var(--gold)':participantRank===2?'#b0b8cc':participantRank===3?'#9a7050':'var(--gold)',lineHeight:1}}>#{participantRank}</span>
                 </div>
               )}
               <div style={{textAlign:'right'}}>
@@ -665,8 +665,8 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const showPodium = isFirstPage && top3.length>=2;
   const prizes     = [Math.round(pot*0.75),Math.round(pot*0.20),Math.round(pot*0.05)];
   const medals     = ['🥇','🥈','🥉'];
-  const podColors  = ['#FFD700','#C0C8D8','#CD7F32'];
-  const podBg      = ['rgba(255,215,0,0.10)','rgba(192,200,216,0.08)','rgba(205,127,50,0.08)'];
+  const podColors  = ['var(--gold)','#b0b8cc','#9a7050'];
+  const podBg      = ['rgba(245,183,49,0.08)','rgba(176,184,204,0.06)','rgba(154,112,80,0.06)'];
   const hasWinners = Object.values(winnersMap).some(v=>v);
 
   // Pagination
@@ -723,7 +723,13 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
           {[top3[1],top3[0],top3[2]].filter(Boolean).map((p,i)=>{
             const ri=i===0?1:i===1?0:2;
             return(
-              <div className="podium-card" key={p.name} style={{background:podBg[ri],borderColor:`${podColors[ri]}55`,order:ri===0?2:ri===1?1:3}}>
+              <div className="podium-card" key={p.name} style={{
+                background:podBg[ri],
+                borderColor:`${podColors[ri]}50`,
+                order:ri===0?2:ri===1?1:3,
+                paddingTop: ri===0 ? 28 : ri===1 ? 18 : 12,
+                paddingBottom: 16,
+              }}>
                 <div className="podium-medal">{medals[ri]}</div>
                 <div className="podium-name">{p.name}</div>
                 <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> pts</span></div>
@@ -748,9 +754,9 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
         return(
           <div className="clasif-row" key={p.name}>
             <div className="clasif-pos" style={
-              pos===1?{background:'rgba(255,215,0,0.18)',borderColor:'rgba(255,215,0,0.5)',color:'#FFD700'}:
-              pos===2?{background:'rgba(192,200,216,0.14)',borderColor:'rgba(192,200,216,0.45)',color:'#C0C8D8'}:
-              pos===3?{background:'rgba(205,127,50,0.16)',borderColor:'rgba(205,127,50,0.45)',color:'#CD7F32'}:{}
+              pos===1?{background:'rgba(245,183,49,0.15)',borderColor:'rgba(245,183,49,0.4)',color:'var(--gold)'}:
+              pos===2?{background:'rgba(176,184,204,0.10)',borderColor:'rgba(176,184,204,0.35)',color:'#b0b8cc'}:
+              pos===3?{background:'rgba(154,112,80,0.12)',borderColor:'rgba(154,112,80,0.35)',color:'#9a7050'}:{}
             }>
               {pos}
             </div>
