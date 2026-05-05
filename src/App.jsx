@@ -607,7 +607,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
       {foundParticipant&&(
         <div className="card" style={{
           border:`1px solid ${participantRank===1?'rgba(245,183,49,0.4)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(90,159,255,0.25)'}`,
-          background:'var(--sur)'
+          background: participantRank===1?'rgba(245,183,49,0.04)':participantRank===2?'rgba(176,184,204,0.04)':participantRank===3?'rgba(154,112,80,0.04)':'rgba(90,159,255,0.04)'
         }}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}}>
             <div>
