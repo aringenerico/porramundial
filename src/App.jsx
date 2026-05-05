@@ -735,14 +735,6 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
                 <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> pts</span></div>
                 <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>
                 <div className="podium-teams">{(p.teams||[]).map(t=><span key={t} className="podium-team-chip">{FLAGS[t]||'🏳️'} {t}</span>)}</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:4,justifyContent:'center',marginTop:8}}>
-                  {AWARD_CONFIG.filter(a=>p[a.col]).map(a=>{
-                    const correct=winnersMap[a.key]&&p[a.col]===winnersMap[a.key];
-                    return(<span key={a.key} style={{fontSize:10,padding:'2px 6px',borderRadius:4,background:correct?'rgba(34,212,142,0.15)':'rgba(255,255,255,0.06)',border:correct?'1px solid rgba(34,212,142,0.35)':'1px solid rgba(255,255,255,0.08)',color:correct?'var(--green)':'var(--mut)'}}>
-                      {a.icon} {p[a.col]}{correct&&' ✓'}
-                    </span>);
-                  })}
-                </div>
               </div>
             );
           })}
