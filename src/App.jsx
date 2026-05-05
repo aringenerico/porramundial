@@ -196,7 +196,9 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .res-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px}
 .res-zero{color:var(--mut)}
 .res-total{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--gold)}
-.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:24px;align-items:end}
+
+/* CHANGE 1: align-items:start so marginTop controls the step-down effect */
+.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:24px;align-items:start}
 .podium-card{border-radius:var(--r);border:1px solid;padding:18px 12px;text-align:center;transition:transform .2s}
 .podium-card:hover{transform:translateY(-3px)}
 .podium-medal{font-size:34px;margin-bottom:10px}
@@ -215,8 +217,6 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .clasif-pts{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
 .clasif-pts span{font-size:12px;color:var(--mut)}
 .bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
-.highlight-row{border-color:var(--gold) !important;background:rgba(245,183,49,0.06) !important}
-.highlight-row .clasif-pos{background:rgba(245,183,49,0.15);border-color:rgba(245,183,49,0.4);color:var(--gold)}
 @media(max-width:480px){.page{padding:16px 14px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:21px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
@@ -590,7 +590,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
   const allSorted=Object.values(resultsMap).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total);
   const foundParticipant=searched&&query.trim()?participants.find(p=>p.name.toLowerCase()===query.trim().toLowerCase()):null;
   const notFound=searched&&query.trim()&&!foundParticipant;
-  const participantRows=foundParticipant?foundParticipant.teams.map(t=>({...(resultsMap[t]||{team:t,j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0})})).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total):[];
+  const participantRows=foundParticipant?(foundParticipant.teams||[]).map(t=>({...(resultsMap[t]||{team:t,j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0})})).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total):[];
   const participantTotal=participantRows.reduce((s,r)=>s+r._total,0);
   const participantRank=foundParticipant?participantsSorted.findIndex(p=>p.name===foundParticipant.name)+1:-1;
   const handleSearch=(e)=>{e.preventDefault();setSearched(true);};
@@ -611,7 +611,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}}>
             <div>
               <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:'var(--white)',letterSpacing:2,textTransform:'uppercase'}}>{foundParticipant.name}</div>
-              <div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>{foundParticipant.teams.length} teams selected</div>
+              <div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>{(foundParticipant.teams||[]).length} teams selected</div>
             </div>
             <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
               {participantRank>0&&(
@@ -670,10 +670,10 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const hasWinners = Object.values(winnersMap).some(v=>v);
 
   // Pagination
-  const pageStart  = (page-1)*PAGE_SIZE;           // 0-based index into sorted
+  const pageStart  = (page-1)*PAGE_SIZE;
   const pageRows   = sorted.slice(pageStart, pageStart+PAGE_SIZE);
   const totalPages = Math.ceil(sorted.length/PAGE_SIZE);
-  // On page 1, podium shows top3; the list rows start from position 4
+  // CHANGE 2: on page 1 the podium already shows top 3, so list starts at position 4
   const listRows   = isFirstPage && showPodium ? pageRows.slice(3) : pageRows;
 
   if(participants.length===0)return(
@@ -717,23 +717,26 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
         </div>
       )}
 
-      {/* Podium */}
+      {/* CHANGE 1: Podium with stepped effect via marginTop + align-items:start in CSS */}
       {showPodium&&(
         <div className="podium">
           {[top3[1],top3[0],top3[2]].filter(Boolean).map((p,i)=>{
             const ri=i===0?1:i===1?0:2;
+            // ri=0 → 1st place (center): no margin
+            // ri=1 → 2nd place (left): pushed down 36px
+            // ri=2 → 3rd place (right): pushed down 60px
             return(
               <div className="podium-card" key={p.name} style={{
                 background:podBg[ri],
                 borderColor:`${podColors[ri]}50`,
                 order:ri===0?2:ri===1?1:3,
-                paddingTop: ri===0 ? 28 : ri===1 ? 18 : 12,
-                paddingBottom: 16,
+                marginTop: ri===0 ? 0 : ri===1 ? 36 : 60,
               }}>
                 <div className="podium-medal">{medals[ri]}</div>
                 <div className="podium-name">{p.name}</div>
                 <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> pts</span></div>
-                <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>                <div className="podium-teams">{p.teams.map(t=><span key={t} className="podium-team-chip">{FLAGS[t]||'🏳️'} {t}</span>)}</div>
+                <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>
+                <div className="podium-teams">{(p.teams||[]).map(t=><span key={t} className="podium-team-chip">{FLAGS[t]||'🏳️'} {t}</span>)}</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:4,justifyContent:'center',marginTop:8}}>
                   {AWARD_CONFIG.filter(a=>p[a.col]).map(a=>{
                     const correct=winnersMap[a.key]&&p[a.col]===winnersMap[a.key];
@@ -748,9 +751,9 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
         </div>
       )}
 
-      {/* Ranking rows */}
+      {/* CHANGE 2: correct position numbers accounting for podium on page 1 */}
       {listRows.map((p,i)=>{
-        const pos = pageStart + i + 1;
+        const pos = pageStart + (isFirstPage && showPodium ? 3 : 0) + i + 1;
         return(
           <div className="clasif-row" key={p.name}>
             <div className="clasif-pos" style={
@@ -765,7 +768,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
                 <span className="clasif-name">{p.name}</span>
                 <BonusBadge p={p}/>
               </div>
-              <div className="clasif-teams-mini">{p.teams.map(t=><span key={t} className="clasif-team-chip">{FLAGS[t]||'🏳️'} {t} · </span>)}</div>
+              <div className="clasif-teams-mini">{(p.teams||[]).map(t=><span key={t} className="clasif-team-chip">{FLAGS[t]||'🏳️'} {t} · </span>)}</div>
               <PickChips p={p}/>
             </div>
             <div className="clasif-pts">{p.total}<span> pts</span></div>
@@ -773,7 +776,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
         );
       })}
 
-      {/* Pagination controls */}
+      {/* Pagination */}
       {totalPages>1&&(
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginTop:8,marginBottom:4,flexWrap:'wrap'}}>
           <button className="btn-ghost" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{minWidth:80}}>← Prev</button>
