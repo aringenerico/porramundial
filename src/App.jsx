@@ -662,7 +662,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
 function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const [page,setPage] = useState(1);
 
-  const changePage = (n) => { setPage(n); window.scrollTo({top:0, behavior:'smooth'}); };
+  const changePage = (n) => { window.scrollTo(0, 0); setPage(n); };
 
   const sorted     = [...participants].sort((a,b)=>b.total-a.total);
   const pot        = participants.length*10;
