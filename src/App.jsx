@@ -662,6 +662,8 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
 function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const [page,setPage] = useState(1);
 
+  const changePage = (n) => { setPage(n); window.scrollTo({top:0, behavior:'smooth'}); };
+
   const sorted     = [...participants].sort((a,b)=>b.total-a.total);
   const pot        = participants.length*10;
   const top3       = sorted.slice(0,3);
@@ -775,16 +777,16 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
       {/* Pagination */}
       {totalPages>1&&(
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginTop:8,marginBottom:4,flexWrap:'wrap'}}>
-          <button className="btn-ghost" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{minWidth:80}}>← Prev</button>
+          <button className="btn-ghost" onClick={()=>changePage(Math.max(1,page-1))} disabled={page===1} style={{minWidth:80}}>← Prev</button>
           <div style={{display:'flex',gap:4}}>
             {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
-              <button key={n} onClick={()=>setPage(n)}
+              <button key={n} onClick={()=>changePage(n)}
                 style={{width:36,height:36,borderRadius:8,border:`1px solid ${n===page?'var(--gold)':'var(--brd)'}`,background:n===page?'rgba(245,183,49,0.15)':'var(--sur2)',color:n===page?'var(--gold)':'var(--mut)',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:13,cursor:'pointer',transition:'var(--tr)'}}>
                 {n}
               </button>
             ))}
           </div>
-          <button className="btn-ghost" onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{minWidth:80}}>Next →</button>
+          <button className="btn-ghost" onClick={()=>changePage(Math.min(totalPages,page+1))} disabled={page===totalPages} style={{minWidth:80}}>Next →</button>
         </div>
       )}
 
