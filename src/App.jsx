@@ -661,8 +661,11 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const [page,setPage] = useState(1);
+  const topRef = useRef(null);
 
-  const changePage = (n) => { window.scrollTo(0, 0); setPage(n); };
+  useEffect(()=>{ topRef.current?.scrollIntoView({behavior:'instant'}); },[page]);
+
+  const changePage = (n) => { setPage(n); };
 
   const sorted     = [...participants].sort((a,b)=>b.total-a.total);
   const pot        = participants.length*10;
@@ -707,8 +710,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   };
 
   return(
-    <div className="page">
-      {/* Award winners */}
+    <div className="page" ref={topRef}>
       {hasWinners&&(
         <div className="card" style={{background:'rgba(245,183,49,0.05)',border:'1px solid rgba(245,183,49,0.2)'}}>
           <div className="sect-title" style={{marginBottom:10}}>🏅 Award Winners</div>
