@@ -217,7 +217,6 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
 @media(max-width:480px){.page{padding:16px 14px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:21px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
 .admin-divider{border:none;border-top:1px solid var(--brd);margin:20px 0}
 .pin-input{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:7px 12px;color:var(--white);font-size:14px;outline:none;width:140px;transition:border-color .2s}
@@ -662,11 +661,8 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh }
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   const [page,setPage] = useState(1);
-  const topRef = useRef(null);
 
-  useEffect(()=>{ topRef.current?.scrollIntoView({behavior:'instant'}); },[page]);
-
-  const changePage = (n) => { setPage(n); };
+  const changePage = (n) => { window.scrollTo(0, 0); setPage(n); };
 
   const sorted     = [...participants].sort((a,b)=>b.total-a.total);
   const pot        = participants.length*10;
@@ -711,7 +707,8 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
   };
 
   return(
-    <div className="page" ref={topRef}>
+    <div className="page">
+      {/* Award winners */}
       {hasWinners&&(
         <div className="card" style={{background:'rgba(245,183,49,0.05)',border:'1px solid rgba(245,183,49,0.2)'}}>
           <div className="sect-title" style={{marginBottom:10}}>🏅 Award Winners</div>
@@ -725,9 +722,6 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
           </div>
         </div>
       )}
-
-      {/* Podium + rows animated on page change */}
-      <div key={page} style={{animation:'fadeIn 0.2s ease'}}>
 
       {/* CHANGE 1: Podium with stepped effect via marginTop + align-items:start in CSS */}
       {showPodium&&(
@@ -779,8 +773,6 @@ function LeaderboardPage({ participants, winnersMap, onRefresh }) {
           </div>
         );
       })}
-
-      </div>
 
       {/* Pagination */}
       {totalPages>1&&(
