@@ -57,10 +57,9 @@ const STAGE_COL = {
   'QUARTER_FINALS':'qf','SEMI_FINALS':'sf','FINAL':'final',
 };
 
-// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const LANGS = {
   es: {
-    pot:'Bote', nav_home:'Inicio', nav_rules:'Normas', nav_teams:'Mis Equipos',
+    pot:'Participantes', nav_home:'Inicio', nav_rules:'Normas', nav_teams:'Mis Equipos',
     nav_results:'Resultados', nav_leaderboard:'Clasificación',
     countdown_label:'Inscripción cierra en',
     days:'Días', hrs:'Hrs', min:'Min', sec:'Seg',
@@ -69,9 +68,10 @@ const LANGS = {
     step1_t:'Elige 7 equipos',         step1_d:'1 TOP + 3 STRONG + 2 AVERAGE + 1 SURPRISE',
     step2_t:'Predicciones de premios', step2_d:'Pichichi, MVP, Mejor Joven y Portero (+10 pts cada uno)',
     step3_t:'Acumula puntos',          step3_d:'Tus equipos ganan puntos por goles, victorias y rondas avanzadas',
-    step4_t:'Gana el bote',            step4_d:'Más puntos al final se lleva el 75% del premio',
+    step4_t:'Gana el premio',          step4_d:'Más puntos al final se lleva el 1er premio',
     prize1:'1er Premio', prize2:'2º Premio', prize3:'3er Premio',
-    entry_fee:'€10 por participante',
+    prize_tbd:'Por confirmar',
+    prize_tbd_note:'🎁 Los premios están pendientes de decisión · ¡Pronto habrá novedades!',
     register_btn:'⚡ Inscribirme y elegir mis equipos',
     reg_closed_msg:'🔒 Inscripción cerrada el 7 de junio de 2026',
     team_selection:'📋 Selección de Equipos', group_label:'Grupo',
@@ -87,9 +87,8 @@ const LANGS = {
     award_bonus_title:'🎖️ Bonus Predicciones de Premios',
     award_bonus_desc:'Predice los 4 premios del torneo al inscribirte. Cada predicción correcta añade',
     award_bonus_max:'Máximo',
-    prize_title:'💰 Distribución de Premios',
+    prize_title:'🏆 Premios',
     winner:'Ganador', second:'2º Puesto', third:'3er Puesto',
-    tie_note:'🎟️ Inscripción: €10 · En caso de empate, el premio se reparte',
     format_title:'📅 Formato del Torneo',
     format:[
       {phase:'Fase de Grupos',detail:'Jornadas 1, 2 y 3'},
@@ -120,11 +119,11 @@ const LANGS = {
     refresh:'↻ Actualizar', no_results_title:'LOS RESULTADOS ESTARÁN DISPONIBLES AL INICIO DEL TORNEO',
     no_results_date:'11 de junio de 2026',
     award_winners:'🏅 Ganadores de Premios', no_part_title:'SIN PARTICIPANTES AÚN', no_part_sub:'Sé el primero en inscribirte',
-    pts:'pts', pot_footer:'Bote total', part_footer:'participantes', entry_short:'€10/inscripción',
+    pts:'pts', pot_footer:'Participantes', part_footer:'participantes', entry_short:'',
     refresh_lb:'↻ Actualizar clasificación', page_of:'de',
   },
   en: {
-    pot:'Pot', nav_home:'Home', nav_rules:'Rules', nav_teams:'My Teams',
+    pot:'Participants', nav_home:'Home', nav_rules:'Rules', nav_teams:'My Teams',
     nav_results:'Results', nav_leaderboard:'Leaderboard',
     countdown_label:'Registration closes in',
     days:'Days', hrs:'Hrs', min:'Min', sec:'Sec',
@@ -133,9 +132,10 @@ const LANGS = {
     step1_t:'Pick 7 teams',             step1_d:'1 TOP + 3 STRONG + 2 AVERAGE + 1 SURPRISE',
     step2_t:'Make award predictions',   step2_d:'Top Scorer, MVP, Best Young Player & Goalkeeper (+10 pts each)',
     step3_t:'Accumulate points',        step3_d:'Your teams earn points for goals, wins and advancing rounds',
-    step4_t:'Win the pot',              step4_d:'Most points at the end takes 75% of the prize',
+    step4_t:'Win the prize',            step4_d:'Most points at the end wins the 1st prize',
     prize1:'1st Prize', prize2:'2nd Prize', prize3:'3rd Prize',
-    entry_fee:'€10 per participant',
+    prize_tbd:'To be confirmed',
+    prize_tbd_note:'🎁 Prizes are pending confirmation · Stay tuned!',
     register_btn:'⚡ Register and pick my teams',
     reg_closed_msg:'🔒 Registration closed on June 7, 2026',
     team_selection:'📋 Team Selection', group_label:'Group',
@@ -151,9 +151,8 @@ const LANGS = {
     award_bonus_title:'🎖️ Award Predictions Bonus',
     award_bonus_desc:'Predict the 4 tournament awards when registering. Each correct prediction adds',
     award_bonus_max:'Maximum',
-    prize_title:'💰 Prize Distribution',
+    prize_title:'🏆 Prizes',
     winner:'Winner', second:'2nd Place', third:'3rd Place',
-    tie_note:'🎟️ Entry fee: €10 · In case of a tie, the prize is shared equally',
     format_title:'📅 Tournament Format',
     format:[
       {phase:'Group Stage',detail:'Match days 1, 2 and 3'},
@@ -184,11 +183,11 @@ const LANGS = {
     refresh:'↻ Refresh', no_results_title:'RESULTS WILL BE AVAILABLE ONCE THE TOURNAMENT BEGINS',
     no_results_date:'June 11, 2026',
     award_winners:'🏅 Award Winners', no_part_title:'NO PARTICIPANTS YET', no_part_sub:'Be the first to register',
-    pts:'pts', pot_footer:'Total pot', part_footer:'participants', entry_short:'€10/entry',
+    pts:'pts', pot_footer:'Participants', part_footer:'participants', entry_short:'',
     refresh_lb:'↻ Refresh leaderboard', page_of:'of',
   },
   pt: {
-    pot:'Prêmio', nav_home:'Início', nav_rules:'Regras', nav_teams:'Meus Times',
+    pot:'Participantes', nav_home:'Início', nav_rules:'Regras', nav_teams:'Meus Times',
     nav_results:'Resultados', nav_leaderboard:'Classificação',
     countdown_label:'Inscrições encerram em',
     days:'Dias', hrs:'Hrs', min:'Min', sec:'Seg',
@@ -197,9 +196,10 @@ const LANGS = {
     step1_t:'Escolha 7 times',          step1_d:'1 TOP + 3 STRONG + 2 AVERAGE + 1 SURPRISE',
     step2_t:'Faça previsões de prêmios',step2_d:'Artilheiro, MVP, Melhor Jovem e Goleiro (+10 pts cada)',
     step3_t:'Acumule pontos',           step3_d:'Seus times ganham pontos por gols, vitórias e fases avançadas',
-    step4_t:'Ganhe o prêmio',           step4_d:'Quem tiver mais pontos no final leva 75% do prêmio',
+    step4_t:'Ganhe o prêmio',           step4_d:'Quem tiver mais pontos no final ganha o 1º prêmio',
     prize1:'1º Prêmio', prize2:'2º Prêmio', prize3:'3º Prêmio',
-    entry_fee:'€10 por participante',
+    prize_tbd:'A confirmar',
+    prize_tbd_note:'🎁 Os prêmios estão pendentes de decisão · Em breve novidades!',
     register_btn:'⚡ Inscrever-me e escolher meus times',
     reg_closed_msg:'🔒 Inscrições encerradas em 7 de junho de 2026',
     team_selection:'📋 Seleção de Times', group_label:'Grupo',
@@ -215,9 +215,8 @@ const LANGS = {
     award_bonus_title:'🎖️ Bônus de Previsões de Prêmios',
     award_bonus_desc:'Preveja os 4 prêmios do torneio ao se inscrever. Cada previsão correta adiciona',
     award_bonus_max:'Máximo',
-    prize_title:'💰 Distribuição de Prêmios',
+    prize_title:'🏆 Prêmios',
     winner:'Vencedor', second:'2º Lugar', third:'3º Lugar',
-    tie_note:'🎟️ Inscrição: €10 · Em caso de empate, o prêmio é dividido igualmente',
     format_title:'📅 Formato do Torneio',
     format:[
       {phase:'Fase de Grupos',detail:'Rodadas 1, 2 e 3'},
@@ -248,12 +247,11 @@ const LANGS = {
     refresh:'↻ Atualizar', no_results_title:'OS RESULTADOS ESTARÃO DISPONÍVEIS QUANDO O TORNEIO COMEÇAR',
     no_results_date:'11 de junho de 2026',
     award_winners:'🏅 Vencedores de Prêmios', no_part_title:'SEM PARTICIPANTES AINDA', no_part_sub:'Seja o primeiro a se inscrever',
-    pts:'pts', pot_footer:'Prêmio total', part_footer:'participantes', entry_short:'€10/inscrição',
+    pts:'pts', pot_footer:'Participantes', part_footer:'participantes', entry_short:'',
     refresh_lb:'↻ Atualizar classificação', page_of:'de',
   },
 };
 
-// ─── STYLES ───────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -312,7 +310,7 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .premio-card{border-radius:10px;padding:14px;text-align:center;border:1px solid;transition:transform .18s,box-shadow .18s}
 .premio-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
 .premio-medal{font-size:28px;margin-bottom:6px}
-.premio-pct{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px}
+.premio-tbd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin:4px 0 2px}
 .premio-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
 .sel-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
 .sel-prog-item{border-radius:10px;padding:10px 12px;border:1px solid;text-align:center;transition:var(--tr)}
@@ -400,7 +398,7 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .podium-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--white);text-transform:uppercase;letter-spacing:1px;line-height:1.2}
 .podium-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;margin:4px 0}
 .podium-pts span{font-size:13px;color:var(--mut)}
-.podium-premio{font-size:13px;margin-top:4px;font-weight:600}
+.podium-premio{font-size:12px;margin-top:4px;font-weight:600;opacity:0.7;letter-spacing:0.5px}
 .podium-teams{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:8px}
 .podium-team-chip{font-size:10px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px}
 .clasif-row{display:flex;align-items:center;gap:14px;background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:12px 16px;margin-bottom:8px;transition:var(--tr);border-left:3px solid transparent}
@@ -421,7 +419,6 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .pin-input.err{border-color:var(--pink)}
 `;
 
-// ─── LANG SELECTOR ────────────────────────────────────────────────────────────
 function LangSelector({ lang, setLang }) {
   return(
     <div className="lang-sel" role="group" aria-label="Language selector">
@@ -435,7 +432,6 @@ function LangSelector({ lang, setLang }) {
   );
 }
 
-// ─── AWARD DROPDOWN ───────────────────────────────────────────────────────────
 function AwardSelect({ config, players, value, onChange, t }) {
   const [open,setOpen]=useState(false);
   const [q,setQ]=useState('');
@@ -473,7 +469,6 @@ function AwardSelect({ config, players, value, onChange, t }) {
   );
 }
 
-// ─── SKELETON ─────────────────────────────────────────────────────────────────
 function LoadingScreen() {
   return(
     <div className="page" style={{paddingTop:32}}>
@@ -492,7 +487,6 @@ function LoadingScreen() {
   );
 }
 
-// ─── COUNTDOWN ────────────────────────────────────────────────────────────────
 function useCountdown(target) {
   const calc=()=>{const diff=target-Date.now();if(diff<=0)return null;return{d:Math.floor(diff/86400000),h:Math.floor((diff%86400000)/3600000),m:Math.floor((diff%3600000)/60000),s:Math.floor((diff%60000)/1000)};};
   const [time,setTime]=useState(calc);
@@ -500,11 +494,15 @@ function useCountdown(target) {
   return time;
 }
 
-// ─── HOME ─────────────────────────────────────────────────────────────────────
 function HomePage({ participants, goTo, t }) {
-  const pot=participants.length*10;
   const open=isRegistrationOpen();
   const countdown=useCountdown(DEADLINE);
+  // Prize cards — TBD version
+  const prizeCards=[
+    {lbl:t.prize1,medal:'🥇',col:'var(--gold)'},
+    {lbl:t.prize2,medal:'🥈',col:'#b0b8cc'},
+    {lbl:t.prize3,medal:'🥉',col:'#9a7050'},
+  ];
   return(
     <div className="page">
       <div className="hero">
@@ -512,8 +510,8 @@ function HomePage({ participants, goTo, t }) {
         <div className="hero-sub">USA · Mexico · Canada &nbsp;|&nbsp; Jun 11 – Jul 19 2026</div>
         <div className="hero-grid">
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">{t.participants}</div></div>
-          <div className="hero-stat"><div className="hero-stat-val" style={{color:'var(--gold)'}}>€{pot}</div><div className="hero-stat-lbl">{t.total_pot}</div></div>
           <div className="hero-stat"><div className="hero-stat-val">7</div><div className="hero-stat-lbl">{t.teams_entry}</div></div>
+          <div className="hero-stat"><div className="hero-stat-val">🏆</div><div className="hero-stat-lbl">{t.prize_tbd}</div></div>
         </div>
         {open&&countdown&&(
           <div style={{marginTop:20,padding:'14px 16px',background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10}}>
@@ -540,18 +538,21 @@ function HomePage({ participants, goTo, t }) {
           ))}
         </div>
       </div>
+      {/* Prizes — TBD */}
       <div className="card" style={{background:'linear-gradient(135deg,#0e1e38,#091428)'}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,textAlign:'center'}}>
-          {[{lbl:t.prize1,pct:'75%',col:'var(--gold)',medal:'🥇',amt:Math.round(pot*0.75)},{lbl:t.prize2,pct:'20%',col:'#c0c8d8',medal:'🥈',amt:Math.round(pot*0.20)},{lbl:t.prize3,pct:'5%',col:'#a07040',medal:'🥉',amt:Math.round(pot*0.05)}].map(p=>(
+        <div className="sect-title" style={{marginBottom:12}}>{t.prize_title}</div>
+        <div className="premio-grid">
+          {prizeCards.map(p=>(
             <div key={p.lbl} className="premio-card" style={{background:`${p.col}10`,borderColor:`${p.col}40`}}>
-              <div style={{fontSize:24,marginBottom:6}}>{p.medal}</div>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:26,color:p.col}}>{p.pct}</div>
-              <div style={{fontSize:11,color:'var(--mut)',marginBottom:4}}>{p.lbl}</div>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:16,color:p.col}}>~€{p.amt}</div>
+              <div className="premio-medal">{p.medal}</div>
+              <div className="premio-tbd" style={{color:p.col}}>{t.prize_tbd}</div>
+              <div className="premio-lbl">{p.lbl}</div>
             </div>
           ))}
         </div>
-        <div style={{textAlign:'center',marginTop:14,fontSize:12,color:'var(--mut)'}}>{t.entry_fee}</div>
+        <div style={{marginTop:14,padding:'10px 14px',background:'rgba(78,94,120,0.2)',border:'1px solid rgba(78,94,120,0.35)',borderRadius:8,fontSize:12,color:'var(--mut)',textAlign:'center'}}>
+          {t.prize_tbd_note}
+        </div>
       </div>
       {open?<button className="btn-primary" onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
         :<div style={{textAlign:'center',padding:'14px 0',fontSize:13,color:'var(--mut)'}}>{t.reg_closed_msg}</div>}
@@ -559,7 +560,6 @@ function HomePage({ participants, goTo, t }) {
   );
 }
 
-// ─── RULES ────────────────────────────────────────────────────────────────────
 function RulesPage({ t }) {
   const scoring=[{icon:'⚽',lbl:t.sc_goal,pts:1,note:''},{icon:'🏆',lbl:t.sc_win,pts:3,note:t.sc_win_n},{icon:'🤝',lbl:t.sc_draw,pts:1,note:t.sc_draw_n},{icon:'➡️',lbl:t.sc_adv,pts:6,note:t.sc_adv_n},{icon:'🥇',lbl:t.sc_champ,pts:10,note:t.sc_champ_n},{icon:'👟',lbl:t.sc_top,pts:8,note:t.sc_top_n},{icon:'🛡️',lbl:t.sc_def,pts:6,note:t.sc_def_n}];
   return(
@@ -599,18 +599,21 @@ function RulesPage({ t }) {
           ))}
         </div>
       </div>
+      {/* Prizes — TBD in Rules too */}
       <div className="card">
         <div className="sect-title">{t.prize_title}</div>
         <div className="premio-grid">
-          {[{medal:'🥇',pos:t.winner,pct:75,col:'var(--gold)'},{medal:'🥈',pos:t.second,pct:20,col:'#b0b8cc'},{medal:'🥉',pos:t.third,pct:5,col:'#9a7050'}].map(p=>(
+          {[{medal:'🥇',pos:t.winner,col:'var(--gold)'},{medal:'🥈',pos:t.second,col:'#b0b8cc'},{medal:'🥉',pos:t.third,col:'#9a7050'}].map(p=>(
             <div className="premio-card" key={p.pos} style={{background:`${p.col}10`,borderColor:`${p.col}40`}}>
               <div className="premio-medal">{p.medal}</div>
-              <div className="premio-pct" style={{color:p.col}}>{p.pct}%</div>
+              <div className="premio-tbd" style={{color:p.col}}>{t.prize_tbd}</div>
               <div className="premio-lbl">{p.pos}</div>
             </div>
           ))}
         </div>
-        <div style={{marginTop:12,padding:'12px 14px',background:'rgba(245,183,49,0.06)',border:'1px solid rgba(245,183,49,0.15)',borderRadius:8,fontSize:13,color:'var(--mut)'}}>{t.tie_note}</div>
+        <div style={{marginTop:12,padding:'10px 14px',background:'rgba(78,94,120,0.2)',border:'1px solid rgba(78,94,120,0.35)',borderRadius:8,fontSize:12,color:'var(--mut)',textAlign:'center'}}>
+          {t.prize_tbd_note}
+        </div>
       </div>
       <div className="card">
         <div className="sect-title">{t.format_title}</div>
@@ -625,7 +628,6 @@ function RulesPage({ t }) {
   );
 }
 
-// ─── REGISTRATION ─────────────────────────────────────────────────────────────
 function RegistrationPage({ onSubmit, t }) {
   const [name,setName]=useState('');
   const [sel,setSel]=useState({g1:null,g2:[],g3:[],g4:null});
@@ -782,7 +784,6 @@ function RegistrationPage({ onSubmit, t }) {
   );
 }
 
-// ─── RESULTS ──────────────────────────────────────────────────────────────────
 const COLS=[{k:'j1',lbl:'MD1'},{k:'j2',lbl:'MD2'},{k:'j3',lbl:'MD3'},{k:'r32',lbl:'R32'},{k:'r16',lbl:'R16'},{k:'qf',lbl:'QF'},{k:'sf',lbl:'SF'},{k:'final',lbl:'FIN'}];
 
 function TeamTable({ rows, showIndex=true }) {
@@ -815,11 +816,9 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
   const participantRank=foundParticipant?(participantsSorted||[]).findIndex(p=>p.name===foundParticipant.name)+1:-1;
   const handleSearch=(e)=>{e.preventDefault();setSearched(true);};
   const handleClear=()=>{setQuery('');setSearched(false);};
-
   const rankColor=participantRank===1?'var(--gold)':participantRank===2?'#b0b8cc':participantRank===3?'#9a7050':'var(--blue)';
   const rankBg=participantRank===1?'rgba(245,183,49,0.04)':participantRank===2?'rgba(176,184,204,0.04)':participantRank===3?'rgba(154,112,80,0.04)':'rgba(90,159,255,0.04)';
   const rankBorder=participantRank===1?'rgba(245,183,49,0.4)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(90,159,255,0.25)';
-
   return(
     <div className="page">
       <div className="card">
@@ -879,29 +878,24 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
   );
 }
 
-// ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
   const [page,setPage]=useState(1);
   const topRef=useRef(null);
-
   useEffect(()=>{ topRef.current?.scrollIntoView({behavior:'instant'}); },[page]);
   const changePage=(n)=>{ setPage(n); };
-
-  const sorted     =[...participants].sort((a,b)=>b.total-a.total);
-  const pot        =participants.length*10;
-  const top3       =sorted.slice(0,3);
+  const sorted=[...participants].sort((a,b)=>b.total-a.total);
+  const pot=participants.length*10;
+  const top3=sorted.slice(0,3);
   const isFirstPage=page===1;
-  const showPodium =isFirstPage&&top3.length>=2;
-  const prizes     =[Math.round(pot*0.75),Math.round(pot*0.20),Math.round(pot*0.05)];
-  const medals     =['🥇','🥈','🥉'];
-  const podColors  =['var(--gold)','#b0b8cc','#9a7050'];
-  const podBg      =['rgba(245,183,49,0.08)','rgba(176,184,204,0.06)','rgba(154,112,80,0.06)'];
-  const hasWinners =Object.values(winnersMap).some(v=>v);
-
-  const pageStart  =(page-1)*PAGE_SIZE;
-  const pageRows   =sorted.slice(pageStart,pageStart+PAGE_SIZE);
-  const totalPages =Math.ceil(sorted.length/PAGE_SIZE);
-  const listRows   =isFirstPage&&showPodium?pageRows.slice(3):pageRows;
+  const showPodium=isFirstPage&&top3.length>=2;
+  const medals=['🥇','🥈','🥉'];
+  const podColors=['var(--gold)','#b0b8cc','#9a7050'];
+  const podBg=['rgba(245,183,49,0.08)','rgba(176,184,204,0.06)','rgba(154,112,80,0.06)'];
+  const hasWinners=Object.values(winnersMap).some(v=>v);
+  const pageStart=(page-1)*PAGE_SIZE;
+  const pageRows=sorted.slice(pageStart,pageStart+PAGE_SIZE);
+  const totalPages=Math.ceil(sorted.length/PAGE_SIZE);
+  const listRows=isFirstPage&&showPodium?pageRows.slice(3):pageRows;
 
   if(participants.length===0)return(
     <div className="page"><div className="card" style={{textAlign:'center',padding:'56px 20px'}}>
@@ -942,29 +936,23 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
           </div>
         </div>
       )}
-
       <div key={page} style={{animation:'fadeIn 0.2s ease'}}>
         {showPodium&&(
           <div className="podium">
             {[top3[1],top3[0],top3[2]].filter(Boolean).map((p,i)=>{
               const ri=i===0?1:i===1?0:2;
               return(
-                <div className="podium-card" key={p.name} style={{
-                  background:podBg[ri],borderColor:`${podColors[ri]}40`,
-                  order:ri===0?2:ri===1?1:3,
-                  paddingTop:ri===0?30:ri===1?22:16,
-                }}>
+                <div className="podium-card" key={p.name} style={{background:podBg[ri],borderColor:`${podColors[ri]}40`,order:ri===0?2:ri===1?1:3,paddingTop:ri===0?30:ri===1?22:16}}>
                   <div className="podium-medal">{medals[ri]}</div>
                   <div className="podium-name">{p.name}</div>
                   <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> {t.pts}</span></div>
-                  <div className="podium-premio" style={{color:podColors[ri]}}>€{prizes[ri]}</div>
+                  <div className="podium-premio" style={{color:podColors[ri]}}>{t.prize_tbd}</div>
                   <div className="podium-teams">{(p.teams||[]).map(tm=><span key={tm} className="podium-team-chip">{FLAGS[tm]||'🏳️'} {tm}</span>)}</div>
                 </div>
               );
             })}
           </div>
         )}
-
         {listRows.map((p,i)=>{
           const pos=pageStart+(isFirstPage&&showPodium?3:0)+i+1;
           return(
@@ -987,7 +975,6 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
           );
         })}
       </div>
-
       {totalPages>1&&(
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginTop:8,marginBottom:4,flexWrap:'wrap'}}>
           <button className="btn-ghost" onClick={()=>changePage(Math.max(1,page-1))} disabled={page===1} style={{minWidth:80}}>← Prev</button>
@@ -1002,10 +989,9 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
           <button className="btn-ghost" onClick={()=>changePage(Math.min(totalPages,page+1))} disabled={page===totalPages} style={{minWidth:80}}>Next →</button>
         </div>
       )}
-
       <div style={{textAlign:'center',padding:16,fontSize:12,color:'var(--mut)',marginTop:4}}>
         Pág. <strong style={{color:'var(--txt)'}}>{page}</strong> {t.page_of} <strong style={{color:'var(--txt)'}}>{totalPages}</strong>
-        &nbsp;·&nbsp; {sorted.length} {t.part_footer} &nbsp;·&nbsp; {t.pot_footer}: <strong style={{color:'var(--gold)'}}>€{pot}</strong>
+        &nbsp;·&nbsp; {sorted.length} {t.part_footer}
         <br/>
         <button className="btn-ghost" onClick={onRefresh} style={{marginTop:12}}>{t.refresh_lb}</button>
       </div>
@@ -1013,7 +999,6 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
   );
 }
 
-// ─── FOOTER PIN ───────────────────────────────────────────────────────────────
 function FooterPin({ onUnlock }) {
   const [show,setShow]=useState(false);
   const [pin,setPin]=useState('');
@@ -1033,7 +1018,6 @@ function FooterPin({ onUnlock }) {
   );
 }
 
-// ─── ADMIN ────────────────────────────────────────────────────────────────────
 function AdminPage({ onSync, winnersMap, onSaveWinners }) {
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
@@ -1066,7 +1050,6 @@ function AdminPage({ onSync, winnersMap, onSaveWinners }) {
   );
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab,setTab]=useState('inicio');
   const [participants,setParticipants]=useState([]);
@@ -1075,11 +1058,8 @@ export default function App() {
   const [loading,setLoading]=useState(true);
   const [adminMode,setAdminMode]=useState(false);
   const [lang,setLang]=useState(()=>{ try{return localStorage.getItem('lang')||'es';}catch{return 'es';} });
-
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
-
   const t=LANGS[lang];
-
   useEffect(()=>{loadData();},[]);
 
   async function loadData() {
@@ -1151,8 +1131,6 @@ export default function App() {
     await loadData();
   }
 
-  const pot=participantsWithTotals.length*10;
-
   if(loading)return(<><style>{CSS}</style><LoadingScreen/></>);
 
   return(
@@ -1163,7 +1141,10 @@ export default function App() {
           <LangSelector lang={lang} setLang={setLang}/>
           <span className="hdr-icon">⚽</span>
           <div><div className="hdr-name">World Cup Pool 2026</div><div className="hdr-sub">USA · Mexico · Canada</div></div>
-          <div className="hdr-bote"><div className="hdr-bote-lbl">{t.pot}</div><div className="hdr-bote-val">€{pot}</div></div>
+          <div className="hdr-bote">
+            <div className="hdr-bote-lbl">{t.participants}</div>
+            <div className="hdr-bote-val">{participantsWithTotals.length}</div>
+          </div>
         </div>
         <nav className="nav">
           {[{id:'inicio',l:t.nav_home},{id:'normas',l:t.nav_rules},{id:'seleccion',l:t.nav_teams},{id:'resultados',l:t.nav_results},{id:'clasificacion',l:t.nav_leaderboard},...(adminMode?[{id:'admin',l:'⚙️ Admin'}]:[])].map(nt=>(
