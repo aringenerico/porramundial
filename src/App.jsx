@@ -313,7 +313,7 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .nav-btn:hover{color:var(--txt)}
 .nav-btn.on{color:var(--gold);border-bottom-color:var(--gold)}
 .nav-btn:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;border-radius:4px}
-.page{padding:24px 20px;max-width:860px;margin:0 auto}
+.page{padding:24px 20px 90px;max-width:860px;margin:0 auto}
 .card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:20px;margin-bottom:16px;transition:border-color .2s}
 .sect-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:2px;text-transform:uppercase;color:var(--white);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .hero{background:linear-gradient(135deg,#0e1e38,#091428);border:1px solid var(--brd);border-radius:16px;padding:36px 28px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden}
@@ -443,13 +443,32 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .clasif-pts{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
 .clasif-pts span{font-size:12px;color:var(--mut)}
 .bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
-@media(max-width:480px){.page{padding:16px 14px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}}
+@media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
 .admin-divider{border:none;border-top:1px solid var(--brd);margin:20px 0}
 .pin-input{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:7px 12px;color:var(--white);font-size:14px;outline:none;width:140px;transition:border-color .2s}
 .pin-input:focus{border-color:var(--gold)}
 .pin-input.err{border-color:var(--pink)}
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(6,9,15,0.95);border-top:1px solid var(--brd);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:stretch;padding-bottom:env(safe-area-inset-bottom,0px)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--mut);padding:10px 4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:color .18s;min-height:56px;touch-action:manipulation}
+.bnav-btn:hover{color:var(--txt)}
+.bnav-btn.on{color:var(--gold)}
+.bnav-btn-icon{font-size:20px;line-height:1}
+.hdr-logout{background:none;border:1px solid rgba(78,94,120,0.4);border-radius:7px;padding:5px 10px;color:var(--mut);cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;transition:var(--tr);white-space:nowrap;touch-action:manipulation}
+.hdr-logout:hover{border-color:var(--brd2);color:var(--pink)}
+.auth-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px}
+.auth-card{background:var(--sur);border:1px solid var(--brd);border-radius:16px;padding:32px 28px;width:100%;max-width:400px}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo-icon{font-size:48px}
+.auth-logo-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:8px}
+.auth-logo-sub{font-size:11px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.auth-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:9px;padding:4px}
+.auth-tab{flex:1;background:none;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);padding:9px 6px;border-radius:7px;transition:var(--tr)}
+.auth-tab.on{background:var(--sur);color:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+.auth-label{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700}
+.auth-forgot{background:none;border:none;cursor:pointer;font-size:12px;color:var(--mut);text-decoration:underline;margin-top:4px;margin-bottom:12px;padding:0;transition:color .2s}
+.auth-forgot:hover{color:var(--txt)}
 `;
 
 function LangSelector({ lang, setLang }) {
@@ -1083,6 +1102,90 @@ function AdminPage({ onSync, winnersMap, onSaveWinners }) {
   );
 }
 
+function LoginPage({ lang, setLang }) {
+  const [mode,setMode]=useState('login'); // 'login' | 'register' | 'reset'
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  const [fullName,setFullName]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState('');
+  const [success,setSuccess]=useState('');
+
+  const handleLogin=async(e)=>{
+    e.preventDefault();setLoading(true);setError('');
+    const {error:err}=await supabase.auth.signInWithPassword({email,password});
+    if(err)setError(err.message);
+    setLoading(false);
+  };
+
+  const handleRegister=async(e)=>{
+    e.preventDefault();setLoading(true);setError('');setSuccess('');
+    const {error:err}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName||email}}});
+    if(err)setError(err.message);
+    else setSuccess('¡Cuenta creada! Revisa tu correo para confirmar tu dirección.');
+    setLoading(false);
+  };
+
+  const handleReset=async(e)=>{
+    e.preventDefault();setLoading(true);setError('');setSuccess('');
+    const {error:err}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+    if(err)setError(err.message);
+    else setSuccess('Te hemos enviado un correo con el enlace para restablecer tu contraseña.');
+    setLoading(false);
+  };
+
+  return(
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">
+          <div className="auth-logo-icon">⚽</div>
+          <div className="auth-logo-title">World Cup Pool 2026</div>
+          <div className="auth-logo-sub">USA · Mexico · Canada</div>
+        </div>
+        <div className="auth-tabs">
+          <button className={`auth-tab ${mode==='login'?'on':''}`} onClick={()=>{setMode('login');setError('');setSuccess('');}}>Entrar</button>
+          <button className={`auth-tab ${mode==='register'?'on':''}`} onClick={()=>{setMode('register');setError('');setSuccess('');}}>Registrarse</button>
+          {mode==='reset'&&<button className={`auth-tab on`}>Recuperar</button>}
+        </div>
+        {error&&<div className="error-box">⚠️ {error}</div>}
+        {success&&<div className="success-box" style={{padding:'12px 16px',marginBottom:16,textAlign:'left'}}>✅ {success}</div>}
+        {mode==='login'&&(
+          <form onSubmit={handleLogin}>
+            <label className="auth-label">Email</label>
+            <input className="inp" type="email" placeholder="tu@email.com" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+            <label className="auth-label">Contraseña</label>
+            <input className="inp" type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required autoComplete="current-password"/>
+            <button type="button" className="auth-forgot" onClick={()=>{setMode('reset');setError('');setSuccess('');}}>¿Olvidaste tu contraseña?</button>
+            <button className="btn-primary" type="submit" disabled={loading}>{loading?'⏳ Entrando…':'Entrar'}</button>
+          </form>
+        )}
+        {mode==='register'&&(
+          <form onSubmit={handleRegister}>
+            <label className="auth-label">Nombre (opcional)</label>
+            <input className="inp" type="text" placeholder="Tu nombre" value={fullName} onChange={e=>setFullName(e.target.value)} autoComplete="name"/>
+            <label className="auth-label">Email</label>
+            <input className="inp" type="email" placeholder="tu@email.com" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+            <label className="auth-label">Contraseña</label>
+            <input className="inp" type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={e=>setPassword(e.target.value)} required autoComplete="new-password" minLength={6}/>
+            <button className="btn-primary" type="submit" disabled={loading}>{loading?'⏳ Creando cuenta…':'Crear cuenta'}</button>
+          </form>
+        )}
+        {mode==='reset'&&(
+          <form onSubmit={handleReset}>
+            <label className="auth-label">Email</label>
+            <input className="inp" type="email" placeholder="tu@email.com" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+            <button className="btn-primary" type="submit" disabled={loading}>{loading?'⏳ Enviando…':'Enviar enlace'}</button>
+            <button type="button" className="auth-forgot" style={{display:'block',marginTop:12}} onClick={()=>{setMode('login');setError('');setSuccess('');}}>← Volver al inicio de sesión</button>
+          </form>
+        )}
+      </div>
+      <div style={{marginTop:12,display:'flex',gap:4,justifyContent:'center'}}>
+        <LangSelector lang={lang} setLang={setLang}/>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [tab,setTab]=useState('inicio');
   const [participants,setParticipants]=useState([]);
@@ -1091,8 +1194,16 @@ export default function App() {
   const [loading,setLoading]=useState(true);
   const [adminMode,setAdminMode]=useState(false);
   const [lang,setLang]=useState(()=>{ try{return localStorage.getItem('lang')||'es';}catch{return 'es';} });
+  const [session,setSession]=useState(undefined); // undefined = loading, null = no session
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
   const t=LANGS[lang];
+
+  useEffect(()=>{
+    supabase.auth.getSession().then(({data:{session:s}})=>setSession(s??null));
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_,s)=>setSession(s??null));
+    return()=>subscription.unsubscribe();
+  },[]);
+
   useEffect(()=>{loadData();},[]);
 
   async function loadData() {
@@ -1164,7 +1275,17 @@ export default function App() {
     await loadData();
   }
 
-  if(loading)return(<><style>{CSS}</style><LoadingScreen/></>);
+  if(session===undefined||loading)return(<><style>{CSS}</style><LoadingScreen/></>);
+  if(!session)return(<><style>{CSS}</style><LoginPage lang={lang} setLang={setLang}/></>);
+
+  const navItems=[
+    {id:'inicio',  icon:'🏠', l:t.nav_home},
+    {id:'normas',  icon:'📋', l:t.nav_rules},
+    {id:'seleccion',icon:'⚽',l:t.nav_teams},
+    {id:'resultados',icon:'🔍',l:t.nav_results},
+    {id:'clasificacion',icon:'🏆',l:t.nav_leaderboard},
+    ...(adminMode?[{id:'admin',icon:'⚙️',l:'Admin'}]:[]),
+  ];
 
   return(
     <>
@@ -1178,15 +1299,8 @@ export default function App() {
             <div className="hdr-bote-lbl">{t.participants}</div>
             <div className="hdr-bote-val">{participantsWithTotals.length}</div>
           </div>
+          <button className="hdr-logout" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión">🚪</button>
         </div>
-        <nav className="nav">
-          {[{id:'inicio',l:t.nav_home},{id:'normas',l:t.nav_rules},{id:'seleccion',l:t.nav_teams},{id:'resultados',l:t.nav_results},{id:'clasificacion',l:t.nav_leaderboard},...(adminMode?[{id:'admin',l:'⚙️ Admin'}]:[])].map(nt=>(
-            <button key={nt.id} className={`nav-btn ${tab===nt.id?'on':''}`}
-              onClick={()=>{setTab(nt.id);if(nt.id==='resultados'||nt.id==='clasificacion')loadData();}}>
-              {nt.l}
-            </button>
-          ))}
-        </nav>
       </div>
       {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t}/>}
       {tab==='normas'        &&<RulesPage        t={t}/>}
@@ -1195,6 +1309,15 @@ export default function App() {
       {tab==='clasificacion' &&<LeaderboardPage  participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData} t={t}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners}/>}
       <FooterPin onUnlock={()=>{setAdminMode(true);setTab('admin');}}/>
+      <nav className="bnav">
+        {navItems.map(nt=>(
+          <button key={nt.id} className={`bnav-btn ${tab===nt.id?'on':''}`}
+            onClick={()=>{setTab(nt.id);if(nt.id==='resultados'||nt.id==='clasificacion')loadData();}}>
+            <span className="bnav-btn-icon">{nt.icon}</span>
+            {nt.l}
+          </button>
+        ))}
+      </nav>
     </>
   );
 }
