@@ -10,6 +10,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const DEADLINE    = new Date('2026-06-07T23:59:59');
 const AWARD_BONUS = 10;
 const PAGE_SIZE   = 20;
+const norm = s => (s||'').trim().toLowerCase();
 const isRegistrationOpen = () => new Date() < DEADLINE;
 
 const GROUPS = {
@@ -632,6 +633,8 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .match-group-hdr{font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:12px 0 5px 2px}
 .match-row{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;border:1px solid var(--brd);border-left:3px solid var(--brd);margin-bottom:5px;background:var(--sur);transition:border-color .15s}
 .match-row.saved{border-left-color:var(--green)}
+.match-card{border-radius:8px;border:1px solid var(--brd);border-left:3px solid var(--brd);background:var(--sur);transition:border-color .15s}
+.match-card.saved{border-left-color:var(--green)}
 .match-team{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
 .match-team-home{justify-content:flex-end}
 .match-name{font-size:11px;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px}
@@ -642,6 +645,12 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .match-save-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--brd);background:var(--sur2);color:var(--mut);cursor:pointer;font-size:13px;flex-shrink:0;transition:var(--tr);display:flex;align-items:center;justify-content:center}
 .match-save-btn:not(:disabled):hover{border-color:var(--gold);color:var(--gold)}
 .match-save-btn.saved{border-color:rgba(74,222,128,0.4);color:var(--green);background:rgba(74,222,128,0.08)}
+.penalty-row{display:flex;align-items:center;gap:6px;padding:4px 10px 6px;margin-top:-4px;margin-bottom:5px;background:var(--sur);border:1px solid var(--brd);border-top:none;border-radius:0 0 8px 8px;border-left:3px solid var(--brd)}
+.penalty-row.saved-pen{border-left-color:var(--green)}
+.penalty-lbl{font-size:10px;color:var(--mut);white-space:nowrap;flex-shrink:0}
+.penalty-btn{flex:1;padding:3px 6px;border-radius:5px;border:1px solid var(--brd);background:var(--sur2);color:var(--mut);font-size:11px;font-weight:600;cursor:pointer;transition:var(--tr);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.penalty-btn:hover{border-color:var(--gold);color:var(--gold)}
+.penalty-btn.active{border-color:var(--green);color:var(--green);background:rgba(74,222,128,0.1)}
 .match-save-btn:disabled{opacity:0.35;cursor:default}
 .elim-form{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:14px;margin-bottom:14px}
 .pin-input{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:7px 12px;color:var(--white);font-size:14px;outline:none;width:140px;transition:border-color .2s}
@@ -1247,7 +1256,7 @@ function contribByTier(participant, resultsMap, winnersMap) {
   (participant.teams||[]).forEach(tm => {
     const k = TEAM_TIER[tm]; if (k) seg[k] += calcTotal(resultsMap[tm]||{});
   });
-  seg.bonus = AWARD_CONFIG.filter(a => winnersMap[a.key] && participant[a.col]===winnersMap[a.key]).length * AWARD_BONUS;
+  seg.bonus = AWARD_CONFIG.filter(a => winnersMap[a.key] && norm(participant[a.col])===norm(winnersMap[a.key])).length * AWARD_BONUS;
   return seg;
 }
 
@@ -1364,7 +1373,7 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
   const PickChips=({p})=>(
     <div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:5}}>
       {AWARD_CONFIG.filter(a=>p[a.col]).map(a=>{
-        const correct=winnersMap[a.key]&&p[a.col]===winnersMap[a.key];
+        const correct=winnersMap[a.key]&&norm(p[a.col])===norm(winnersMap[a.key]);
         return(<span key={a.key} style={{display:'inline-flex',alignItems:'center',gap:4,fontSize:11,padding:'2px 8px',borderRadius:5,background:correct?'rgba(34,212,142,0.12)':'rgba(255,255,255,0.05)',border:correct?'1px solid rgba(34,212,142,0.35)':'1px solid var(--brd)',color:correct?'var(--green)':'var(--mut)'}}>
           <Icon name={a.icon} size={11} color="currentColor"/> {p[a.col]}{correct&&' ✓'}
         </span>);
@@ -1373,7 +1382,7 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
   );
 
   const BonusBadge=({p})=>{
-    const b=AWARD_CONFIG.filter(a=>winnersMap[a.key]&&p[a.col]===winnersMap[a.key]).length*AWARD_BONUS;
+    const b=AWARD_CONFIG.filter(a=>winnersMap[a.key]&&norm(p[a.col])===norm(winnersMap[a.key])).length*AWARD_BONUS;
     return b>0?<span className="bonus-badge">+{b} BONUS</span>:null;
   };
 
@@ -1494,43 +1503,78 @@ function FooterPin({ onUnlock }) {
 function MatchRow({ home, away, round, saved, onSave }) {
   const [hg, setHg] = useState(saved?.home_goals?.toString() ?? '');
   const [ag, setAg] = useState(saved?.away_goals?.toString() ?? '');
+  const [pw, setPw] = useState(saved?.penalty_winner ?? '');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(!!saved);
   const [err, setErr] = useState('');
+
+  const isKnockout = !['j1','j2','j3'].includes(round);
+
   useEffect(() => {
     setHg(saved?.home_goals?.toString() ?? '');
     setAg(saved?.away_goals?.toString() ?? '');
+    setPw(saved?.penalty_winner ?? '');
     setDone(!!saved);
-  }, [saved?.id, saved?.home_goals, saved?.away_goals]);
-  const isDirty = hg !== (saved?.home_goals?.toString() ?? '') || ag !== (saved?.away_goals?.toString() ?? '');
-  const canSave = hg !== '' && ag !== '';
+  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner]);
+
+  const isDirty = hg !== (saved?.home_goals?.toString() ?? '')
+    || ag !== (saved?.away_goals?.toString() ?? '')
+    || pw !== (saved?.penalty_winner ?? '');
+  const canSave = hg !== '' && ag !== ''
+    && !(isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag) && !pw);
+
+  const resetScore = () => { setDone(false); setErr(''); setPw(''); };
   const save = async () => {
+    // Hard guard — never save a knockout draw without a penalty winner
+    if (isKnockout && parseInt(hg) === parseInt(ag) && !pw) {
+      setErr('Empate en eliminatoria: selecciona el ganador por penaltis ↓');
+      return;
+    }
     if (!canSave || busy) return;
     setBusy(true); setErr('');
-    const result = await onSave({ home_team:home, away_team:away, home_goals:parseInt(hg), away_goals:parseInt(ag), round_col:round });
+    const result = await onSave({
+      home_team:home, away_team:away,
+      home_goals:parseInt(hg), away_goals:parseInt(ag),
+      round_col:round,
+      penalty_winner: (isKnockout && parseInt(hg)===parseInt(ag)) ? (pw||null) : null,
+    });
     if (result === true) setDone(true);
     else if (typeof result === 'string') setErr(result);
     setBusy(false);
   };
+  const penaltyNeeded = isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
   return (
-    <div className={`match-row${done && !isDirty ? ' saved' : ''}`}>
-      <div className="match-team match-team-home">
-        <span className="match-name">{home}</span>
-        <FlagChip team={home} size={20}/>
+    <div className={`match-card${done && !isDirty && (!penaltyNeeded||pw) ? ' saved' : ''}`} style={{marginBottom:6}}>
+      <div style={{display:'flex',alignItems:'center',gap:6,padding:'7px 10px'}}>
+        <div className="match-team match-team-home">
+          <span className="match-name">{home}</span>
+          <FlagChip team={home} size={20}/>
+        </div>
+        <div className="match-score">
+          <input className="score-inp" value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/,''));resetScore();}} maxLength={2} inputMode="numeric" placeholder="–"/>
+          <span className="score-sep">–</span>
+          <input className="score-inp" value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/,''));resetScore();}} maxLength={2} inputMode="numeric" placeholder="–"/>
+        </div>
+        <div className="match-team">
+          <FlagChip team={away} size={20}/>
+          <span className="match-name">{away}</span>
+        </div>
+        <button className={`match-save-btn${done && !isDirty && (!penaltyNeeded||pw) ? ' saved' : ''}`} onClick={save} disabled={busy} style={{opacity:(penaltyNeeded&&!pw)?0.4:1,cursor:(penaltyNeeded&&!pw)?'not-allowed':'pointer'}}>
+          {busy ? '⏳' : (done && !isDirty && (!penaltyNeeded||pw)) ? '✓' : '💾'}
+        </button>
       </div>
-      <div className="match-score">
-        <input className="score-inp" value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/,''));setDone(false);setErr('');}} maxLength={2} inputMode="numeric" placeholder="–"/>
-        <span className="score-sep">–</span>
-        <input className="score-inp" value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/,''));setDone(false);setErr('');}} maxLength={2} inputMode="numeric" placeholder="–"/>
-      </div>
-      <div className="match-team">
-        <FlagChip team={away} size={20}/>
-        <span className="match-name">{away}</span>
-      </div>
-      <button className={`match-save-btn${done && !isDirty ? ' saved' : ''}`} onClick={save} disabled={!canSave || busy}>
-        {busy ? '⏳' : done && !isDirty ? '✓' : '💾'}
-      </button>
-      {err && <div style={{gridColumn:'1/-1',fontSize:11,color:'var(--red,#e55)',marginTop:2}}>{err}</div>}
+      {penaltyNeeded && (
+        <div style={{display:'flex',alignItems:'center',gap:6,padding:'0 10px 8px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+          <span style={{fontSize:10,color:'var(--mut)',whiteSpace:'nowrap',flexShrink:0}}>🥅 Penaltis:</span>
+          <button type="button" className={`penalty-btn${pw===home?' active':''}`} onClick={()=>{setPw(home);setDone(false);setErr('');}}>
+            {home}
+          </button>
+          <button type="button" className={`penalty-btn${pw===away?' active':''}`} onClick={()=>{setPw(away);setDone(false);setErr('');}}>
+            {away}
+          </button>
+        </div>
+      )}
+      {err && <div style={{fontSize:11,color:'var(--gold)',padding:'0 10px 6px'}}>{err}</div>}
     </div>
   );
 }
@@ -1589,7 +1633,11 @@ function resolveSlot(slot, allMatches) {
       ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
     );
     if(!sv)return{team:null,label:`W(${rnd.toUpperCase()}${n})`,ready:false};
-    return{team:sv.home_goals>=sv.away_goals?sv.home_team:sv.away_team,label:`W(${rnd.toUpperCase()}${n})`,ready:true};
+    const winner = sv.home_goals > sv.away_goals ? sv.home_team
+                 : sv.home_goals < sv.away_goals ? sv.away_team
+                 : sv.penalty_winner || null;
+    if(!winner)return{team:null,label:`W(${rnd.toUpperCase()}${n}) — falta ganador penaltis`,ready:false};
+    return{team:winner,label:`W(${rnd.toUpperCase()}${n})`,ready:true};
   }
   return{team:null,label:slot,ready:false};
 }
@@ -1827,7 +1875,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
 
   const teamTotal=rows.reduce((s,r)=>s+r._total,0);
   const hasWinners=Object.values(winnersMap).some(v=>v);
-  const bonusPts=AWARD_CONFIG.filter(a=>winnersMap[a.key]&&myParticipant[a.col]===winnersMap[a.key]).length*AWARD_BONUS;
+  const bonusPts=AWARD_CONFIG.filter(a=>winnersMap[a.key]&&norm(myParticipant[a.col])===norm(winnersMap[a.key])).length*AWARD_BONUS;
   const grandTotal=teamTotal+bonusPts;
   const rank=(participantsSorted||[]).findIndex(p=>p.name===myParticipant.name)+1;
   const leaderTotal=(participantsSorted||[])[0]?.total??0;
@@ -1921,7 +1969,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
         <div className="sect-title" style={{color:'var(--gold)'}}>Tus predicciones</div>
         <div className="award-grid">
           {AWARD_CONFIG.map(a=>{
-            const correct=hasWinners&&winnersMap[a.key]&&myParticipant[a.col]===winnersMap[a.key];
+            const correct=hasWinners&&winnersMap[a.key]&&norm(myParticipant[a.col])===norm(winnersMap[a.key]);
             const pending=!hasWinners||!winnersMap[a.key];
             return(
               <div key={a.key} className={`award-pick ${correct?'award-correct':''}`} style={{border:pending?'1px solid var(--brd)':correct?'1px solid rgba(34,212,142,0.5)':'1px solid rgba(255,107,138,0.4)',background:pending?'var(--sur2)':correct?'rgba(34,212,142,0.08)':'rgba(255,107,138,0.06)'}}>
@@ -2086,7 +2134,7 @@ export default function App() {
     setLoading(false);
   }
 
-  const calcBonus=(p)=>AWARD_CONFIG.filter(a=>winnersMap[a.key]&&p[a.col]===winnersMap[a.key]).length*AWARD_BONUS;
+  const calcBonus=(p)=>AWARD_CONFIG.filter(a=>winnersMap[a.key]&&norm(p[a.col])===norm(winnersMap[a.key])).length*AWARD_BONUS;
   const calcTeamPts=(teams)=>(teams||[]).reduce((sum,team)=>sum+calcTotal(resultsMap[team]||{}),0);
   const participantsWithTotals=participants.map(p=>({...p,total:calcTeamPts(p.teams)+calcBonus(p)}));
   const participantsSorted=participantsWithTotals.slice().sort((a,b)=>b.total-a.total);
@@ -2118,7 +2166,7 @@ export default function App() {
     return null;
   }
 
-  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col}) {
+  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner}) {
     // Delete any existing entry for this pair+round (index is on least/greatest so either order)
     const {data:existing}=await supabase.from('matches').select('id,home_team,away_team')
       .eq('round_col',round_col)
@@ -2127,7 +2175,9 @@ export default function App() {
       const ids=existing.map(r=>r.id);
       await supabase.from('matches').delete().in('id',ids);
     }
-    const {error}=await supabase.from('matches').insert({home_team,away_team,home_goals,away_goals,round_col,source:'manual'});
+    const row={home_team,away_team,home_goals,away_goals,round_col,source:'manual'};
+    if(penalty_winner)row.penalty_winner=penalty_winner;
+    const {error}=await supabase.from('matches').insert(row);
     if(error){console.error('handleSaveMatch insert error:',error);return 'Error al guardar: '+error.message;}
     const recalcErr=await recalcAndSaveResults();
     if(recalcErr)return 'Guardado pero recálculo falló: '+recalcErr;

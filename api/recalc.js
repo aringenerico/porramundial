@@ -59,8 +59,11 @@ function calcMatchPts(allMats) {
     else { pts[home][col] += 1; pts[away][col] += 1; }
     // Knockout advance bonus (+6 per round, both teams just for reaching it)
     if (!['j1','j2','j3'].includes(col)) { pts[home][col] += 6; pts[away][col] += 6; }
-    // Champion bonus
-    if (col === 'final') { const w = hg >= ag ? home : away; pts[w][col] += 10; }
+    // Champion bonus (+6 for winning the final)
+    if (col === 'final') {
+      const w = hg > ag ? home : hg < ag ? away : (m.penalty_winner || home);
+      pts[w][col] += 6;
+    }
   }
 
   // --- Group stage qualification bonus: +6 to j3 for teams advancing ---
