@@ -277,14 +277,15 @@ const LANGS = {
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0a1628;--sur:#132040;--sur2:#1a2d52;--sur3:#0e1d3a;--brd:rgba(255,255,255,0.08);--brd2:rgba(255,255,255,0.16);--gold:#F5B731;--gold2:#c98e15;--gold-glow:rgba(245,183,49,0.18);--green:#4ADE80;--blue:#60AAFF;--pink:#FF4D6D;--txt:#f8fafc;--mut:#94A3B8;--white:#f8fafc;--r:16px;--tr:all .18s ease}
+:root{--bg:#0a1628;--sur:#132040;--sur2:#1a2d52;--sur3:#0e1d3a;--brd:rgba(255,255,255,0.08);--brd2:rgba(255,255,255,0.16);--gold:#F5B731;--gold2:#c98e15;--gold-glow:rgba(245,183,49,0.18);--green:#4ADE80;--blue:#60AAFF;--pink:#FF4D6D;--txt:#f8fafc;--mut:#94A3B8;--white:#f8fafc;--r:16px;--tr:all .18s ease;--f-mono:'Geist Mono',ui-monospace,'SF Mono',monospace}
 html{scroll-behavior:smooth}
 html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .skeleton{background:linear-gradient(90deg,var(--sur) 25%,var(--sur2) 50%,var(--sur) 75%);background-size:200% 100%;animation:shimmer 1.6s ease-in-out infinite;border-radius:8px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-0.01em}
 @media(prefers-reduced-motion:reduce){.skeleton{animation:none;background:var(--sur2)}*,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
 .hdr{background:linear-gradient(180deg,#0a1628 0%,#080e1c 100%);border-bottom:1px solid var(--brd);padding:0 20px;position:sticky;top:0;z-index:50}
 .hdr-top{display:flex;align-items:center;gap:10px;padding:16px 0 12px}
@@ -294,7 +295,7 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .hdr-bote{margin-left:auto;background:rgba(245,183,49,0.1);border:1px solid rgba(245,183,49,0.25);border-radius:8px;padding:6px 14px;text-align:right;transition:background .2s}
 .hdr-bote:hover{background:rgba(245,183,49,0.16)}
 .hdr-bote-lbl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
-.hdr-bote-val{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:20px;color:var(--gold)}
+.hdr-bote-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:20px;color:var(--gold)}
 .lang-sel{display:flex;gap:3px;align-items:center;flex-shrink:0}
 .lang-btn{background:none;border:1px solid transparent;border-radius:6px;padding:4px 7px;cursor:pointer;font-size:11px;color:var(--mut);font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;letter-spacing:0.5px;transition:var(--tr);display:flex;align-items:center;gap:3px;min-height:30px;touch-action:manipulation;white-space:nowrap}
 .lang-btn:hover{color:var(--txt);border-color:var(--brd)}
@@ -318,13 +319,13 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
 .hero-stat{background:rgba(255,255,255,0.04);border:1px solid var(--brd);border-radius:10px;padding:14px 10px;transition:var(--tr)}
 .hero-stat:hover{border-color:var(--brd2);background:rgba(255,255,255,0.07)}
-.hero-stat-val{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:28px;color:var(--white)}
+.hero-stat-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:28px;color:var(--white);text-shadow:0 0 20px rgba(245,183,49,0.2)}
 .hero-stat-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
 .scoring-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .scoring-item{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:var(--tr)}
 .scoring-item:hover{border-color:var(--brd2)}
 .scoring-icon{font-size:22px;width:30px;text-align:center}
-.scoring-pts{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:22px;color:var(--gold);margin-left:auto;white-space:nowrap}
+.scoring-pts{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:22px;color:var(--gold);margin-left:auto;white-space:nowrap}
 .scoring-lbl{font-size:13px;color:var(--txt);font-weight:600}
 .scoring-note{font-size:11px;color:var(--mut)}
 .grupo-strip{display:flex;align-items:center;gap:10px;background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:var(--tr)}
@@ -417,27 +418,27 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .res-table tr:last-child td{border-bottom:none}
 .res-table tr:hover td{background:rgba(255,255,255,0.02)}
 .res-team{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--white)}
-.res-pts{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:15px}
+.res-pts{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px}
 .res-zero{color:var(--mut)}
-.res-total{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:16px;color:var(--gold)}
+.res-total{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:16px;color:var(--gold)}
 .podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:20px;align-items:end}
 .podium-card{border-radius:12px;border:1px solid;padding:16px 12px;text-align:center}
 .podium-medal{margin-bottom:4px}
 .podium-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:18px;color:var(--white);text-transform:uppercase;letter-spacing:1px;line-height:1.2}
-.podium-pts{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:28px;margin:4px 0}
+.podium-pts{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:28px;margin:4px 0;text-shadow:0 0 20px rgba(245,183,49,0.25)}
 .podium-pts span{font-size:13px;color:var(--mut)}
 .podium-premio{font-size:12px;margin-top:4px;font-weight:600;opacity:0.7;letter-spacing:0.5px}
 .podium-teams{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:8px}
 .podium-team-chip{font-size:10px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px}
 .clasif-row{display:flex;align-items:center;gap:14px;background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:12px 16px;margin-bottom:8px;transition:var(--tr);border-left:3px solid transparent}
 .clasif-row:hover{border-color:var(--brd2);background:var(--sur3)}
-.clasif-pos{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:14px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--sur2);border:1px solid var(--brd);color:var(--mut);flex-shrink:0}
+.clasif-pos{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--sur2);border:1px solid var(--brd);color:var(--mut);flex-shrink:0}
 .clasif-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:17px;color:var(--white);text-transform:uppercase;letter-spacing:1px}
 .clasif-teams-mini{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
 .clasif-team-chip{font-size:11px;color:var(--mut)}
-.clasif-pts{margin-left:auto;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
+.clasif-pts{margin-left:auto;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
 .clasif-pts span{font-size:12px;color:var(--mut)}
-.bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
+.bonus-badge{display:inline-block;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);color:var(--green);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:0.5px}
 @media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
@@ -571,12 +572,12 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`,marginBottom:16}}>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
             <div style={{background:rankBg,border:`1px solid ${rankBrd}`,borderRadius:12,padding:'10px 16px',textAlign:'center',flexShrink:0}}>
-              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:32,color:rankCol,lineHeight:1}}>#{myRank||'—'}</div>
+              <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:32,color:rankCol,lineHeight:1}}>#{myRank||'—'}</div>
               <div style={{fontSize:10,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginTop:2}}>Posición</div>
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:20,color:'var(--white)',letterSpacing:1,textTransform:'uppercase',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{myParticipant.name}</div>
-              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:24,color:rankCol,lineHeight:1.2}}>{myTotal} <span style={{fontSize:13,color:'var(--mut)',fontWeight:400}}>pts</span></div>
+              <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:24,color:rankCol,lineHeight:1.2}}>{myTotal} <span style={{fontSize:13,color:'var(--mut)',fontWeight:400}}>pts</span></div>
               {myRank>1&&leaderTotal>0&&<div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>+{leaderTotal-myTotal} pts para el 1º</div>}
               {myRank===1&&<div style={{fontSize:12,color:'var(--gold)',marginTop:2}}>¡Vas primero!</div>}
             </div>
@@ -607,7 +608,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             <div style={{display:'flex',justifyContent:'center',gap:8}}>
               {[{v:countdown.d,l:t.days},{v:countdown.h,l:t.hrs},{v:countdown.m,l:t.min},{v:countdown.s,l:t.sec}].map(({v,l})=>(
                 <div key={l} style={{textAlign:'center',minWidth:48,background:'rgba(0,0,0,0.3)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:8,padding:'8px 4px'}}>
-                  <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:26,color:'var(--gold)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
+                  <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:26,color:'var(--gold)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
                   <div style={{fontSize:9,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginTop:3}}>{l}</div>
                 </div>
               ))}
@@ -638,7 +639,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             <div key={p.lbl} className="premio-card" style={{background:`${p.col}10`,borderColor:`${p.col}40`}}>
               <div className="premio-medal" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
                 {p.rank===1&&<Icon name="crown" size={16} color={p.col}/>}
-                <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:20,color:p.col,lineHeight:1}}>{p.rank}</span>
+                <span style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:20,color:p.col,lineHeight:1}}>{p.rank}</span>
               </div>
               <div className="premio-tbd" style={{color:p.col}}>{p.lbl}</div>
               <div className="premio-price" style={{color:p.col}}>{p.price}</div>
@@ -703,7 +704,7 @@ function RulesPage({ t }) {
             <div className="premio-card" key={p.pos} style={{background:`${p.col}10`,borderColor:`${p.col}40`}}>
               <div className="premio-medal" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
                 {p.rank===1&&<Icon name="crown" size={18} color={p.col}/>}
-                <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:22,color:p.col,lineHeight:1}}>{p.rank}</span>
+                <span style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:22,color:p.col,lineHeight:1}}>{p.rank}</span>
               </div>
               <div className="premio-tbd" style={{color:p.col}}>{p.pos}</div>
               <div className="premio-price" style={{color:p.col}}>{p.price}</div>
@@ -895,7 +896,7 @@ function TeamTable({ rows, showIndex=true }) {
         <tbody>
           {rows.map((r,i)=>(
             <tr key={r.team}>
-              <td><div className="res-team">{showIndex&&<span style={{width:22,textAlign:'center',fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:13,color:'var(--mut)'}}>{i+1}</span>}<FlagChip team={r.team} size={18}/><span>{r.team}</span></div></td>
+              <td><div className="res-team">{showIndex&&<span style={{width:22,textAlign:'center',fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:13,color:'var(--mut)'}}>{i+1}</span>}<FlagChip team={r.team} size={18}/><span>{r.team}</span></div></td>
               {COLS.map(c=><td key={c.k} className={r[c.k]?'res-pts':'res-zero'}>{r[c.k]||'—'}</td>)}
               <td className="res-total">{r._total||'—'}</td>
             </tr>
@@ -970,11 +971,11 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
               {participantRank>0&&(
                 <div style={{background:rankBg,border:`1px solid ${rankBorder}`,borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
                   <span style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>{t.rank_label}</span>
-                  <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:22,color:rankColor,lineHeight:1}}>#{participantRank}</span>
+                  <span style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:22,color:rankColor,lineHeight:1}}>#{participantRank}</span>
                 </div>
               )}
               <div>
-                <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:32,color:'var(--white)',lineHeight:1}}>{participantTotal}</div>
+                <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:32,color:'var(--white)',lineHeight:1}}>{participantTotal}</div>
                 <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>{t.total_pts}</div>
               </div>
             </div>
@@ -1073,7 +1074,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
                 <div className="podium-card" key={p.name} style={{background:podBg[ri],borderColor:`${podColors[ri]}40`,order:ri===0?2:ri===1?1:3,paddingTop:ri===0?30:ri===1?22:16}}>
                   <div className="podium-medal" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,marginBottom:6}}>
                     {ri===0&&<Icon name="crown" size={20} color={podColors[0]}/>}
-                    <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:26,color:podColors[ri],lineHeight:1}}>{ri+1}</span>
+                    <span style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:26,color:podColors[ri],lineHeight:1}}>{ri+1}</span>
                   </div>
                   <div className="podium-name">{p.name}</div>
                   <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> {t.pts}</span></div>
@@ -1112,7 +1113,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
           <div style={{display:'flex',gap:4}}>
             {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
               <button key={n} onClick={()=>changePage(n)}
-                style={{width:36,height:36,borderRadius:8,border:`1px solid ${n===page?'var(--gold)':'var(--brd)'}`,background:n===page?'rgba(245,183,49,0.15)':'var(--sur2)',color:n===page?'var(--gold)':'var(--mut)',fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:13,cursor:'pointer',transition:'var(--tr)'}}>
+                style={{width:36,height:36,borderRadius:8,border:`1px solid ${n===page?'var(--gold)':'var(--brd)'}`,background:n===page?'rgba(245,183,49,0.15)':'var(--sur2)',color:n===page?'var(--gold)':'var(--mut)',fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:13,cursor:'pointer',transition:'var(--tr)'}}>
                 {n}
               </button>
             ))}
@@ -1212,12 +1213,12 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
       <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`}}>
         <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
           <div style={{textAlign:'center',flexShrink:0}}>
-            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:56,color:rankCol,lineHeight:1}}>#{rank||'—'}</div>
+            <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:56,color:rankCol,lineHeight:1}}>#{rank||'—'}</div>
             <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>de {totalPlayers}</div>
           </div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:24,color:'var(--white)',letterSpacing:2,textTransform:'uppercase',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{myParticipant.name}</div>
-            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
+            <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
             {rank>1&&leaderTotal>0&&<div style={{fontSize:13,color:'var(--mut)',marginTop:2}}>+{leaderTotal-grandTotal} pts para el 1º</div>}
             {rank===1&&<div style={{fontSize:13,color:'var(--gold)',marginTop:2}}>¡Vas primero! 🥇</div>}
           </div>
@@ -1240,7 +1241,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
         {rows.length>0&&(
           <div style={{display:'flex',justifyContent:'flex-end',paddingTop:10,borderTop:'1px solid var(--brd)',marginTop:4}}>
             <span style={{fontSize:13,color:'var(--mut)',marginRight:8}}>Total equipos:</span>
-            <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
+            <span style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
           </div>
         )}
       </div>
