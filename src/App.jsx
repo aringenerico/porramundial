@@ -283,11 +283,12 @@ const LANGS = {
 };
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#06090f;--sur:#0c1220;--sur2:#111827;--sur3:#161f30;--brd:#1a2438;--brd2:#243050;--gold:#F5B731;--gold2:#c7921b;--green:#22d48e;--blue:#5a9fff;--pink:#ff6b8a;--txt:#c8d0e0;--mut:#4e5e78;--white:#eef2ff;--r:12px;--tr:all .18s ease}
+:root{--bg:#0a1628;--sur:#132040;--sur2:#1a2d52;--sur3:#0e1d3a;--brd:rgba(255,255,255,0.08);--brd2:rgba(255,255,255,0.16);--gold:#F5B731;--gold2:#c98e15;--gold-glow:rgba(245,183,49,0.18);--green:#4ADE80;--blue:#60AAFF;--pink:#FF4D6D;--txt:#f8fafc;--mut:#94A3B8;--white:#f8fafc;--r:16px;--tr:all .18s ease}
 html{scroll-behavior:smooth}
-html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .skeleton{background:linear-gradient(90deg,var(--sur) 25%,var(--sur2) 50%,var(--sur) 75%);background-size:200% 100%;animation:shimmer 1.6s ease-in-out infinite;border-radius:8px}
@@ -295,71 +296,72 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .hdr{background:linear-gradient(180deg,#0a1628 0%,#080e1c 100%);border-bottom:1px solid var(--brd);padding:0 20px;position:sticky;top:0;z-index:50}
 .hdr-top{display:flex;align-items:center;gap:10px;padding:16px 0 12px}
 .hdr-icon{font-size:30px}
-.hdr-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);line-height:1}
+.hdr-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:26px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);line-height:1}
 .hdr-sub{font-size:11px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
 .hdr-bote{margin-left:auto;background:rgba(245,183,49,0.1);border:1px solid rgba(245,183,49,0.25);border-radius:8px;padding:6px 14px;text-align:right;transition:background .2s}
 .hdr-bote:hover{background:rgba(245,183,49,0.16)}
 .hdr-bote-lbl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
-.hdr-bote-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--gold)}
+.hdr-bote-val{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:20px;color:var(--gold)}
 .lang-sel{display:flex;gap:3px;align-items:center;flex-shrink:0}
-.lang-btn{background:none;border:1px solid transparent;border-radius:6px;padding:4px 7px;cursor:pointer;font-size:11px;color:var(--mut);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;transition:var(--tr);display:flex;align-items:center;gap:3px;min-height:30px;touch-action:manipulation;white-space:nowrap}
+.lang-btn{background:none;border:1px solid transparent;border-radius:6px;padding:4px 7px;cursor:pointer;font-size:11px;color:var(--mut);font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;letter-spacing:0.5px;transition:var(--tr);display:flex;align-items:center;gap:3px;min-height:30px;touch-action:manipulation;white-space:nowrap}
 .lang-btn:hover{color:var(--txt);border-color:var(--brd)}
 .lang-btn.active{color:var(--gold);border-color:rgba(245,183,49,0.45);background:rgba(245,183,49,0.08)}
 .lang-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:5px}
 .app-footer{text-align:center;padding:32px 20px 24px;font-size:11px;color:var(--mut);letter-spacing:1px;border-top:1px solid var(--brd);margin-top:8px}
 .nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
-.nav-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--mut);padding:10px 16px;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s;min-height:44px;touch-action:manipulation}
+.nav-btn{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--mut);padding:10px 16px;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s;min-height:44px;touch-action:manipulation}
 .nav-btn:hover{color:var(--txt)}
 .nav-btn.on{color:var(--gold);border-bottom-color:var(--gold)}
 .nav-btn:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;border-radius:4px}
 .page{padding:24px 20px 90px;max-width:860px;margin:0 auto}
 .card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:20px;margin-bottom:16px;transition:border-color .2s}
-.sect-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:2px;text-transform:uppercase;color:var(--white);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sect-title{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:18px;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sect-title::before{content:'';width:3px;height:16px;background:var(--gold);border-radius:2px;flex-shrink:0;box-shadow:0 0 8px var(--gold-glow)}
 .hero{background:linear-gradient(135deg,#0e1e38,#091428);border:1px solid var(--brd);border-radius:16px;padding:36px 28px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden}
-.hero::before{content:'⚽';font-size:200px;position:absolute;top:-40px;right:-40px;opacity:0.04;pointer-events:none}
-.hero-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:48px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);text-shadow:0 0 40px rgba(245,183,49,0.3);line-height:1}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,var(--gold-glow) 0%,transparent 70%);pointer-events:none}
+.hero-title{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:48px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);text-shadow:0 0 40px rgba(245,183,49,0.3);line-height:1}
 .hero-sub{font-size:14px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-top:6px}
 .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
 .hero-stat{background:rgba(255,255,255,0.04);border:1px solid var(--brd);border-radius:10px;padding:14px 10px;transition:var(--tr)}
 .hero-stat:hover{border-color:var(--brd2);background:rgba(255,255,255,0.07)}
-.hero-stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;color:var(--white)}
+.hero-stat-val{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:28px;color:var(--white)}
 .hero-stat-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
 .scoring-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .scoring-item{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:var(--tr)}
 .scoring-item:hover{border-color:var(--brd2)}
 .scoring-icon{font-size:22px;width:30px;text-align:center}
-.scoring-pts{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--gold);margin-left:auto;white-space:nowrap}
+.scoring-pts{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:22px;color:var(--gold);margin-left:auto;white-space:nowrap}
 .scoring-lbl{font-size:13px;color:var(--txt);font-weight:600}
 .scoring-note{font-size:11px;color:var(--mut)}
 .grupo-strip{display:flex;align-items:center;gap:10px;background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:var(--tr)}
 .grupo-strip:hover{border-color:var(--brd2)}
-.grupo-badge{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;padding:3px 10px;border-radius:5px;text-transform:uppercase;min-width:80px;text-align:center}
+.grupo-badge{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;padding:3px 10px;border-radius:5px;text-transform:uppercase;min-width:80px;text-align:center}
 .grupo-pick{font-size:12px;color:var(--mut);margin-left:auto}
 .premio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .premio-card{border-radius:10px;padding:14px;text-align:center;border:1px solid;transition:transform .18s,box-shadow .18s}
 .premio-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
 .premio-medal{font-size:28px;margin-bottom:6px}
-.premio-tbd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin:4px 0 2px}
+.premio-tbd{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin:4px 0 2px}
 .premio-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
-.premio-price{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin:4px 0 2px}
+.premio-price{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:20px;margin:4px 0 2px}
 .premio-link{font-size:11px;color:var(--mut);text-decoration:none;letter-spacing:0.5px;transition:color .2s}
 .premio-link:hover{color:var(--gold)}
 .sel-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
 .sel-prog-item{border-radius:10px;padding:10px 12px;border:1px solid;text-align:center;transition:var(--tr)}
-.sel-prog-g{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase}
-.sel-prog-count{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;line-height:1.1}
+.sel-prog-g{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.sel-prog-count{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:28px;line-height:1.1}
 .step-indicator{display:flex;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid var(--brd)}
-.step-item{flex:1;padding:9px 6px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);background:var(--sur2);border-right:1px solid var(--brd);transition:var(--tr)}
+.step-item{flex:1;padding:9px 6px;text-align:center;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);background:var(--sur2);border-right:1px solid var(--brd);transition:var(--tr)}
 .step-item:last-child{border-right:none}
 .step-item.done{background:rgba(34,212,142,0.08);color:var(--green)}
 .step-item.active{background:rgba(245,183,49,0.1);color:var(--gold)}
 .group-section{margin-bottom:20px}
 .group-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.group-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;text-transform:uppercase}
+.group-title{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;text-transform:uppercase}
 .group-limit{font-size:12px;color:var(--mut)}
 .teams-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.team-btn{display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:10px;cursor:pointer;transition:var(--tr);text-align:left;font-family:'Barlow',sans-serif;font-size:13px;color:var(--txt);min-height:44px;touch-action:manipulation}
+.team-btn{display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:10px;cursor:pointer;transition:var(--tr);text-align:left;font-family:'Geist','Inter',system-ui,sans-serif;font-size:13px;color:var(--txt);min-height:44px;touch-action:manipulation}
 .team-btn:hover:not(.dis){border-color:rgba(255,255,255,0.2);color:var(--white);background:var(--sur3)}
 .team-btn:active:not(.dis){transform:scale(0.97)}
 .team-btn:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
@@ -367,16 +369,16 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .team-btn.dis{opacity:0.3;cursor:not-allowed}
 .team-flag{font-size:16px;flex-shrink:0}
 .sel-summary{background:rgba(245,183,49,0.06);border:1px solid rgba(245,183,49,0.2);border-radius:var(--r);padding:16px 18px;margin-top:4px}
-.sum-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.sum-title{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
 .sum-teams{display:flex;flex-wrap:wrap;gap:6px}
 .sum-chip{display:inline-flex;align-items:center;gap:5px;background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:4px 10px;font-size:12px}
-.inp{width:100%;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:11px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:16px;outline:none;transition:border-color .2s;margin-bottom:10px;min-height:44px}
+.inp{width:100%;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:11px 14px;color:var(--white);font-family:'Geist','Inter',system-ui,sans-serif;font-size:16px;outline:none;transition:border-color .2s;margin-bottom:10px;min-height:44px}
 .inp:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,183,49,0.12)}
 .inp::placeholder{color:var(--mut);font-size:14px}
 .award-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px}
 .award-item{position:relative}
-.award-item label{display:flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
-.award-trigger{width:100%;display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:10px 12px;cursor:pointer;transition:var(--tr);font-family:'Barlow',sans-serif;font-size:13px;color:var(--mut);min-height:44px;text-align:left;touch-action:manipulation}
+.award-item label{display:flex;align-items:center;gap:6px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.award-trigger{width:100%;display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;padding:10px 12px;cursor:pointer;transition:var(--tr);font-family:'Geist','Inter',system-ui,sans-serif;font-size:13px;color:var(--mut);min-height:44px;text-align:left;touch-action:manipulation}
 .award-trigger:hover{border-color:var(--brd2);color:var(--txt)}
 .award-trigger:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 .award-trigger.filled{border-color:rgba(245,183,49,0.45);color:var(--white)}
@@ -386,28 +388,28 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .award-chevron{font-size:10px;color:var(--mut);transition:transform .2s;flex-shrink:0}
 .award-chevron.up{transform:rotate(180deg)}
 .award-dropdown{position:absolute;top:calc(100% + 6px);left:0;min-width:100%;width:max-content;max-width:320px;background:var(--sur);border:1px solid var(--gold);border-radius:10px;z-index:200;box-shadow:0 16px 40px rgba(0,0,0,0.7);overflow:hidden}
-.award-search{width:100%;background:var(--sur2);border:none;border-bottom:1px solid var(--brd);padding:10px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;outline:none}
+.award-search{width:100%;background:var(--sur2);border:none;border-bottom:1px solid var(--brd);padding:10px 14px;color:var(--white);font-family:'Geist','Inter',system-ui,sans-serif;font-size:13px;outline:none}
 .award-search::placeholder{color:var(--mut)}
 .award-list{max-height:210px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--brd) transparent}
 .award-list::-webkit-scrollbar{width:4px}
 .award-list::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
-.award-opt{display:flex;align-items:center;justify-content:space-between;width:100%;padding:9px 14px;background:none;border:none;border-bottom:1px solid rgba(26,36,56,0.5);color:var(--txt);font-family:'Barlow',sans-serif;font-size:13px;cursor:pointer;transition:background .1s;text-align:left;min-height:40px;gap:8px}
+.award-opt{display:flex;align-items:center;justify-content:space-between;width:100%;padding:9px 14px;background:none;border:none;border-bottom:1px solid rgba(26,36,56,0.5);color:var(--txt);font-family:'Geist','Inter',system-ui,sans-serif;font-size:13px;cursor:pointer;transition:background .1s;text-align:left;min-height:40px;gap:8px}
 .award-opt:last-child{border-bottom:none}
 .award-opt:hover{background:var(--sur2);color:var(--white)}
 .award-opt.active{color:var(--gold);background:rgba(245,183,49,0.07)}
 .award-opt-team{font-size:11px;color:var(--mut);white-space:nowrap;flex-shrink:0}
 .award-empty{padding:16px;text-align:center;color:var(--mut);font-size:13px}
 .award-pick{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px}
-.award-pick-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700}
+.award-pick-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700}
 .award-pick-val{font-size:13px;color:var(--white);font-weight:600}
 .award-correct{border-color:rgba(34,212,142,0.5);background:rgba(34,212,142,0.08)}
 .award-correct .award-pick-val{color:var(--green)}
-.btn-primary{width:100%;padding:14px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;text-transform:uppercase;background:var(--gold);color:#080c14;border:none;border-radius:9px;cursor:pointer;transition:opacity .2s,transform .15s;min-height:48px;touch-action:manipulation}
+.btn-primary{width:100%;padding:14px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;text-transform:uppercase;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080c14;border:none;border-radius:12px;cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;min-height:48px;touch-action:manipulation;box-shadow:0 6px 20px var(--gold-glow)}
 .btn-primary:hover:not(:disabled){opacity:0.9}
 .btn-primary:active:not(:disabled){transform:scale(0.98)}
 .btn-primary:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .btn-primary:disabled{opacity:0.35;cursor:not-allowed}
-.btn-ghost{background:var(--sur2);border:1px solid var(--brd);border-radius:7px;padding:7px 14px;color:var(--mut);cursor:pointer;font-size:12px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;transition:var(--tr);min-height:36px;white-space:nowrap;touch-action:manipulation}
+.btn-ghost{background:var(--sur2);border:1px solid var(--brd);border-radius:7px;padding:7px 14px;color:var(--mut);cursor:pointer;font-size:12px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;letter-spacing:1px;transition:var(--tr);min-height:36px;white-space:nowrap;touch-action:manipulation}
 .btn-ghost:hover{border-color:var(--brd2);color:var(--txt)}
 .btn-ghost:active{transform:scale(0.97)}
 .btn-ghost:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -415,34 +417,34 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .error-box{background:rgba(255,107,138,0.08);border:1px solid rgba(255,107,138,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#ff6b8a}
 .closed-box{background:rgba(78,94,120,0.15);border:1px solid rgba(78,94,120,0.4);border-radius:var(--r);padding:48px 20px;text-align:center}
 .res-table{width:100%;border-collapse:collapse;font-size:13px}
-.res-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);padding:6px 10px;text-align:center;border-bottom:1px solid var(--brd)}
+.res-table th{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);padding:6px 10px;text-align:center;border-bottom:1px solid var(--brd)}
 .res-table th:first-child{text-align:left}
 .res-table td{padding:10px;text-align:center;border-bottom:1px solid rgba(30,41,64,0.5)}
 .res-table td:first-child{text-align:left}
 .res-table tr:last-child td{border-bottom:none}
 .res-table tr:hover td{background:rgba(255,255,255,0.02)}
 .res-team{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--white)}
-.res-pts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px}
+.res-pts{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:15px}
 .res-zero{color:var(--mut)}
-.res-total{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--gold)}
+.res-total{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:16px;color:var(--gold)}
 .podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:20px;align-items:end}
 .podium-card{border-radius:12px;border:1px solid;padding:16px 12px;text-align:center}
 .podium-medal{font-size:32px;margin-bottom:8px}
-.podium-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--white);text-transform:uppercase;letter-spacing:1px;line-height:1.2}
-.podium-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;margin:4px 0}
+.podium-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:18px;color:var(--white);text-transform:uppercase;letter-spacing:1px;line-height:1.2}
+.podium-pts{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:28px;margin:4px 0}
 .podium-pts span{font-size:13px;color:var(--mut)}
 .podium-premio{font-size:12px;margin-top:4px;font-weight:600;opacity:0.7;letter-spacing:0.5px}
 .podium-teams{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:8px}
 .podium-team-chip{font-size:10px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px}
 .clasif-row{display:flex;align-items:center;gap:14px;background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:12px 16px;margin-bottom:8px;transition:var(--tr);border-left:3px solid transparent}
 .clasif-row:hover{border-color:var(--brd2);background:var(--sur3)}
-.clasif-pos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--sur2);border:1px solid var(--brd);color:var(--mut);flex-shrink:0}
-.clasif-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;color:var(--white);text-transform:uppercase;letter-spacing:1px}
+.clasif-pos{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:14px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--sur2);border:1px solid var(--brd);color:var(--mut);flex-shrink:0}
+.clasif-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:17px;color:var(--white);text-transform:uppercase;letter-spacing:1px}
 .clasif-teams-mini{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
 .clasif-team-chip{font-size:11px;color:var(--mut)}
-.clasif-pts{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
+.clasif-pts{margin-left:auto;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
 .clasif-pts span{font-size:12px;color:var(--mut)}
-.bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
+.bonus-badge{display:inline-block;background:rgba(34,212,142,0.15);border:1px solid rgba(34,212,142,0.35);color:var(--green);font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:1px}
 @media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
@@ -450,23 +452,28 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .pin-input{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:7px 12px;color:var(--white);font-size:14px;outline:none;width:140px;transition:border-color .2s}
 .pin-input:focus{border-color:var(--gold)}
 .pin-input.err{border-color:var(--pink)}
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(6,9,15,0.95);border-top:1px solid var(--brd);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:stretch;padding-bottom:env(safe-area-inset-bottom,0px)}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--mut);padding:10px 4px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:color .18s;min-height:56px;touch-action:manipulation}
+.search-drop{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--sur);border:1px solid var(--gold);border-radius:12px;z-index:100;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
+.search-drop-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid var(--brd);color:var(--txt);font-size:13px;cursor:pointer;transition:background .1s;text-align:left;min-height:44px;gap:8px}
+.search-drop-item:last-child{border-bottom:none}
+.search-drop-item:hover{background:var(--sur2)}
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(10,22,40,0.96);border-top:1px solid var(--brd);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:stretch;padding-bottom:env(safe-area-inset-bottom,0px)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--mut);padding:10px 4px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;transition:color .18s;min-height:56px;touch-action:manipulation;position:relative}
 .bnav-btn:hover{color:var(--txt)}
 .bnav-btn.on{color:var(--gold)}
+.bnav-btn.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:3px;border-radius:3px;background:var(--gold);box-shadow:0 0 12px var(--gold-glow)}
 .bnav-btn-icon{font-size:20px;line-height:1}
-.hdr-logout{background:none;border:1px solid rgba(78,94,120,0.4);border-radius:7px;padding:5px 10px;color:var(--mut);cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;transition:var(--tr);white-space:nowrap;touch-action:manipulation}
+.hdr-logout{background:none;border:1px solid rgba(78,94,120,0.4);border-radius:7px;padding:5px 10px;color:var(--mut);cursor:pointer;font-size:11px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;letter-spacing:1px;transition:var(--tr);white-space:nowrap;touch-action:manipulation}
 .hdr-logout:hover{border-color:var(--brd2);color:var(--pink)}
 .auth-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px}
 .auth-card{background:var(--sur);border:1px solid var(--brd);border-radius:16px;padding:32px 28px;width:100%;max-width:400px}
 .auth-logo{text-align:center;margin-bottom:24px}
 .auth-logo-icon{font-size:48px}
-.auth-logo-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:8px}
+.auth-logo-title{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:8px}
 .auth-logo-sub{font-size:11px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
 .auth-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:9px;padding:4px}
-.auth-tab{flex:1;background:none;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);padding:9px 6px;border-radius:7px;transition:var(--tr)}
+.auth-tab{flex:1;background:none;border:none;cursor:pointer;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);padding:9px 6px;border-radius:7px;transition:var(--tr)}
 .auth-tab.on{background:var(--sur);color:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,0.4)}
-.auth-label{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700}
+.auth-label{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700}
 .auth-forgot{background:none;border:none;cursor:pointer;font-size:12px;color:var(--mut);text-decoration:underline;margin-top:4px;margin-bottom:12px;padding:0;transition:color .2s}
 .auth-forgot:hover{color:var(--txt)}
 `;
@@ -569,12 +576,12 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`,marginBottom:16}}>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
             <div style={{background:rankBg,border:`1px solid ${rankBrd}`,borderRadius:12,padding:'10px 16px',textAlign:'center',flexShrink:0}}>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:32,color:rankCol,lineHeight:1}}>#{myRank||'—'}</div>
+              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:32,color:rankCol,lineHeight:1}}>#{myRank||'—'}</div>
               <div style={{fontSize:10,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginTop:2}}>Posición</div>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:20,color:'var(--white)',letterSpacing:1,textTransform:'uppercase',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{myParticipant.name}</div>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:24,color:rankCol,lineHeight:1.2}}>{myTotal} <span style={{fontSize:13,color:'var(--mut)',fontWeight:400}}>pts</span></div>
+              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:20,color:'var(--white)',letterSpacing:1,textTransform:'uppercase',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{myParticipant.name}</div>
+              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:24,color:rankCol,lineHeight:1.2}}>{myTotal} <span style={{fontSize:13,color:'var(--mut)',fontWeight:400}}>pts</span></div>
               {myRank>1&&leaderTotal>0&&<div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>+{leaderTotal-myTotal} pts para el 1º</div>}
               {myRank===1&&<div style={{fontSize:12,color:'var(--gold)',marginTop:2}}>¡Vas primero! 🥇</div>}
             </div>
@@ -605,7 +612,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             <div style={{display:'flex',justifyContent:'center',gap:8}}>
               {[{v:countdown.d,l:t.days},{v:countdown.h,l:t.hrs},{v:countdown.m,l:t.min},{v:countdown.s,l:t.sec}].map(({v,l})=>(
                 <div key={l} style={{textAlign:'center',minWidth:48,background:'rgba(0,0,0,0.3)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:8,padding:'8px 4px'}}>
-                  <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:26,color:'var(--gold)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
+                  <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:26,color:'var(--gold)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
                   <div style={{fontSize:9,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginTop:3}}>{l}</div>
                 </div>
               ))}
@@ -618,7 +625,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         <div style={{display:'grid',gap:10}}>
           {[{n:'1',tt:t.step1_t,d:t.step1_d},{n:'2',tt:t.step2_t,d:t.step2_d},{n:'3',tt:t.step3_t,d:t.step3_d},{n:'4',tt:t.step4_t,d:t.step4_d}].map(s=>(
             <div key={s.n} style={{display:'flex',gap:14,alignItems:'flex-start',background:'var(--sur2)',border:'1px solid var(--brd)',borderRadius:10,padding:14}}>
-              <div style={{background:'var(--gold)',color:'#080c14',width:30,height:30,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:16,flexShrink:0}}>{s.n}</div>
+              <div style={{background:'var(--gold)',color:'#080c14',width:30,height:30,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:16,flexShrink:0}}>{s.n}</div>
               <div><div style={{fontWeight:600,color:'var(--white)',marginBottom:2,fontSize:15}}>{s.tt}</div><div style={{fontSize:13,color:'var(--mut)'}}>{s.d}</div></div>
             </div>
           ))}
@@ -740,7 +747,7 @@ function RegistrationPage({ onSubmit, userId, t }) {
   if(!isRegistrationOpen())return(
     <div className="page"><div className="closed-box">
       <div style={{fontSize:52,marginBottom:16}}>🔒</div>
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:24,color:'var(--white)',letterSpacing:2,marginBottom:8}}>{t.reg_closed_title}</div>
+      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:24,color:'var(--white)',letterSpacing:2,marginBottom:8}}>{t.reg_closed_title}</div>
       <div style={{fontSize:14,color:'var(--mut)'}}>{t.reg_closed_date} <strong style={{color:'var(--txt)'}}>{t.reg_closed_end}</strong></div>
     </div></div>
   );
@@ -776,14 +783,14 @@ function RegistrationPage({ onSubmit, userId, t }) {
   if(done)return(
     <div className="page"><div className="success-box">
       <div style={{fontSize:52,marginBottom:14}}>✅</div>
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:24,color:'var(--green)',letterSpacing:1}}>{t.reg_ok_title}</div>
+      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:24,color:'var(--green)',letterSpacing:1}}>{t.reg_ok_title}</div>
       <div style={{fontSize:14,color:'var(--mut)',marginTop:6,marginBottom:16}}>{t.reg_ok_sub}</div>
       <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>
         {allTeams().map(tt=><span key={tt} className="sum-chip">{FLAGS[tt]||'🏳️'} {tt}</span>)}
       </div>
       {Object.values(picks).some(Boolean)&&(
         <div style={{marginTop:16,padding:14,background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10,textAlign:'left'}}>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:13,color:'var(--gold)',letterSpacing:1,marginBottom:10}}>{t.your_award_preds}</div>
+          <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:13,color:'var(--gold)',letterSpacing:1,marginBottom:10}}>{t.your_award_preds}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             {AWARD_CONFIG.filter(a=>picks[a.key]).map(a=>(
               <div key={a.key} style={{fontSize:12,color:'var(--txt)'}}>
@@ -854,13 +861,16 @@ function RegistrationPage({ onSubmit, userId, t }) {
       <div className="card" style={{marginTop:16,border:'1px solid rgba(245,183,49,0.25)',background:'linear-gradient(135deg,#0e1e38,#091428)'}}>
         <div className="sect-title" style={{color:'var(--gold)'}}>
           {t.award_preds}
-          <span style={{fontSize:12,color:'var(--mut)',fontFamily:"'Barlow',sans-serif",fontWeight:400,letterSpacing:0,textTransform:'none',marginLeft:4}}>{t.pts_each} · {AWARD_CONFIG.filter(a=>picks[a.key]).length}/4 {t.x_selected}</span>
+          <span style={{fontSize:12,color:'var(--mut)',fontFamily:"'Geist','Inter',system-ui,sans-serif",fontWeight:400,letterSpacing:0,textTransform:'none',marginLeft:4}}>{t.pts_each} · {AWARD_CONFIG.filter(a=>picks[a.key]).length}/4 {t.x_selected}</span>
         </div>
         <div className="award-grid">
           {AWARD_CONFIG.map(a=>(
             <div className="award-item" key={a.key}>
               <label><span style={{fontSize:16}}>{a.icon}</span>{a.label}{picks[a.key]&&<span style={{marginLeft:'auto',color:'var(--gold)',fontSize:12}}>✓</span>}</label>
-              <AwardSelect config={a} players={players[a.key]} value={picks[a.key]} onChange={val=>setPicks(p=>({...p,[a.key]:val}))} t={t}/>
+              {(players[a.key]||[]).length>0
+                ?<AwardSelect config={a} players={players[a.key]} value={picks[a.key]} onChange={val=>setPicks(p=>({...p,[a.key]:val}))} t={t}/>
+                :<input className="inp" style={{marginBottom:0}} placeholder="Nombre del jugador..." value={picks[a.key]||''} onChange={e=>setPicks(p=>({...p,[a.key]:e.target.value}))}/>
+              }
             </div>
           ))}
         </div>
@@ -884,7 +894,7 @@ function TeamTable({ rows, showIndex=true }) {
         <tbody>
           {rows.map((r,i)=>(
             <tr key={r.team}>
-              <td><div className="res-team">{showIndex&&<span style={{width:22,textAlign:'center',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:13,color:'var(--mut)'}}>{i+1}</span>}<span>{FLAGS[r.team]||'🏳️'}</span><span>{r.team}</span></div></td>
+              <td><div className="res-team">{showIndex&&<span style={{width:22,textAlign:'center',fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:13,color:'var(--mut)'}}>{i+1}</span>}<span>{FLAGS[r.team]||'🏳️'}</span><span>{r.team}</span></div></td>
               {COLS.map(c=><td key={c.k} className={r[c.k]?'res-pts':'res-zero'}>{r[c.k]||'—'}</td>)}
               <td className="res-total">{r._total||'—'}</td>
             </tr>
@@ -897,45 +907,73 @@ function TeamTable({ rows, showIndex=true }) {
 
 function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, t }) {
   const [query,setQuery]=useState('');
-  const [searched,setSearched]=useState(false);
+  const [showDrop,setShowDrop]=useState(false);
+  const [selected,setSelected]=useState(null);
+  const wrapRef=useRef(null);
   const allSorted=Object.values(resultsMap).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total);
-  const foundParticipant=searched&&query.trim()?participants.find(p=>p.name.toLowerCase()===query.trim().toLowerCase()):null;
-  const notFound=searched&&query.trim()&&!foundParticipant;
+  const suggestions=query.trim().length>=1
+    ?participants.filter(p=>p.name.toLowerCase().includes(query.trim().toLowerCase())).slice(0,8)
+    :[];
+  useEffect(()=>{
+    const h=(e)=>{if(wrapRef.current&&!wrapRef.current.contains(e.target))setShowDrop(false);};
+    document.addEventListener('mousedown',h);
+    return()=>document.removeEventListener('mousedown',h);
+  },[]);
+  const pick=(p)=>{setSelected(p);setQuery(p.name);setShowDrop(false);};
+  const clear=()=>{setQuery('');setSelected(null);setShowDrop(false);};
+  const foundParticipant=selected;
   const participantRows=foundParticipant?(foundParticipant.teams||[]).map(tm=>({...(resultsMap[tm]||{team:tm,j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0})})).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total):[];
   const participantTotal=participantRows.reduce((s,r)=>s+r._total,0);
   const participantRank=foundParticipant?(participantsSorted||[]).findIndex(p=>p.name===foundParticipant.name)+1:-1;
-  const handleSearch=(e)=>{e.preventDefault();setSearched(true);};
-  const handleClear=()=>{setQuery('');setSearched(false);};
   const rankColor=participantRank===1?'var(--gold)':participantRank===2?'#b0b8cc':participantRank===3?'#9a7050':'var(--blue)';
-  const rankBg=participantRank===1?'rgba(245,183,49,0.04)':participantRank===2?'rgba(176,184,204,0.04)':participantRank===3?'rgba(154,112,80,0.04)':'rgba(90,159,255,0.04)';
-  const rankBorder=participantRank===1?'rgba(245,183,49,0.4)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(90,159,255,0.25)';
+  const rankBg=participantRank===1?'rgba(245,183,49,0.07)':participantRank===2?'rgba(176,184,204,0.06)':participantRank===3?'rgba(154,112,80,0.06)':'rgba(96,170,255,0.07)';
+  const rankBorder=participantRank===1?'rgba(245,183,49,0.4)':participantRank===2?'rgba(176,184,204,0.30)':participantRank===3?'rgba(154,112,80,0.32)':'rgba(96,170,255,0.25)';
   return(
     <div className="page">
       <div className="card">
         <div className="sect-title" style={{marginBottom:12}}>{t.search_title}</div>
-        <form onSubmit={handleSearch} style={{display:'flex',gap:8}}>
-          <input className="inp" style={{marginBottom:0,flex:1}} placeholder={t.search_ph} value={query} onChange={e=>{setQuery(e.target.value);setSearched(false);}} autoComplete="off"/>
-          <button type="submit" style={{background:'var(--gold)',border:'none',borderRadius:8,padding:'0 18px',color:'#080c14',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:13,letterSpacing:1,cursor:'pointer',whiteSpace:'nowrap',minHeight:44}}>{t.search_btn}</button>
-          {searched&&<button type="button" className="btn-ghost" onClick={handleClear}>✕</button>}
-        </form>
-        {notFound&&<div className="error-box" style={{marginTop:10,marginBottom:0}}>⚠️ {t.not_found_pre} "<strong>{query}</strong>". {t.not_found_post}</div>}
+        <div ref={wrapRef} style={{position:'relative'}}>
+          <div style={{display:'flex',gap:8}}>
+            <input className="inp" style={{marginBottom:0,flex:1}}
+              placeholder={t.search_ph} value={query}
+              onChange={e=>{setQuery(e.target.value);setSelected(null);setShowDrop(true);}}
+              onFocus={()=>query.trim()&&setShowDrop(true)}
+              autoComplete="off"/>
+            {query&&<button type="button" className="btn-ghost" style={{minHeight:44}} onClick={clear}>✕</button>}
+          </div>
+          {showDrop&&suggestions.length>0&&(
+            <div className="search-drop">
+              {suggestions.map(p=>(
+                <button key={p.id||p.name} type="button" className="search-drop-item" onClick={()=>pick(p)}>
+                  <span style={{fontWeight:600,color:'var(--txt)'}}>{p.name}</span>
+                  <span style={{fontSize:11,color:'var(--mut)'}}>{(p.teams||[]).length} eq · #{(participantsSorted||[]).findIndex(s=>s.name===p.name)+1||'—'}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {showDrop&&query.trim()&&suggestions.length===0&&(
+            <div className="search-drop">
+              <div style={{padding:'12px 14px',fontSize:13,color:'var(--mut)'}}>Sin resultados para "{query}"</div>
+            </div>
+          )}
+        </div>
       </div>
       {foundParticipant&&(
         <div className="card" style={{border:`1px solid ${rankBorder}`,background:rankBg}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}}>
             <div>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:'var(--white)',letterSpacing:2,textTransform:'uppercase'}}>{foundParticipant.name}</div>
+              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:22,color:'var(--white)',letterSpacing:2,textTransform:'uppercase'}}>{foundParticipant.name}</div>
               <div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>{(foundParticipant.teams||[]).length} {t.teams_selected}</div>
             </div>
             <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
               {participantRank>0&&(
                 <div style={{background:rankBg,border:`1px solid ${rankBorder}`,borderRadius:8,padding:'4px 12px',display:'flex',alignItems:'center',gap:6}}>
                   <span style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>{t.rank_label}</span>
-                  <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:22,color:rankColor,lineHeight:1}}>#{participantRank}</span>
+                  <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:22,color:rankColor,lineHeight:1}}>#{participantRank}</span>
                 </div>
               )}
               <div>
-                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:32,color:'var(--white)',lineHeight:1}}>{participantTotal}</div>
+                <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:32,color:'var(--white)',lineHeight:1}}>{participantTotal}</div>
                 <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>{t.total_pts}</div>
               </div>
             </div>
@@ -943,7 +981,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
           <TeamTable rows={participantRows} showIndex={false}/>
           {AWARD_CONFIG.some(a=>foundParticipant[a.col])&&(
             <div style={{marginTop:14,paddingTop:14,borderTop:'1px solid var(--brd)'}}>
-              <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginBottom:8,fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700}}>{t.award_preds_label}</div>
+              <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginBottom:8,fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700}}>{t.award_preds_label}</div>
               <div style={{display:'flex',flexWrap:'wrap',gap:6}}>{AWARD_CONFIG.filter(a=>foundParticipant[a.col]).map(a=><span key={a.key} className="sum-chip">{a.icon} {foundParticipant[a.col]}</span>)}</div>
             </div>
           )}
@@ -958,7 +996,7 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
           {allSorted.length===0?(
             <div style={{textAlign:'center',padding:'48px 0'}}>
               <div style={{fontSize:48,marginBottom:12}}>⏳</div>
-              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:16,color:'var(--mut)',letterSpacing:1}}>{t.no_results_title}</div>
+              <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:16,color:'var(--mut)',letterSpacing:1}}>{t.no_results_title}</div>
               <div style={{fontSize:12,color:'var(--mut)',marginTop:8}}>{t.no_results_date}</div>
             </div>
           ):<TeamTable rows={allSorted}/>}
@@ -990,7 +1028,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
   if(participants.length===0)return(
     <div className="page"><div className="card" style={{textAlign:'center',padding:'56px 20px'}}>
       <div style={{fontSize:52,marginBottom:14}}>👥</div>
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>{t.no_part_title}</div>
+      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>{t.no_part_title}</div>
       <div style={{fontSize:13,color:'var(--mut)',marginTop:8}}>{t.no_part_sub}</div>
     </div></div>
   );
@@ -1071,7 +1109,7 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
           <div style={{display:'flex',gap:4}}>
             {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
               <button key={n} onClick={()=>changePage(n)}
-                style={{width:36,height:36,borderRadius:8,border:`1px solid ${n===page?'var(--gold)':'var(--brd)'}`,background:n===page?'rgba(245,183,49,0.15)':'var(--sur2)',color:n===page?'var(--gold)':'var(--mut)',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:13,cursor:'pointer',transition:'var(--tr)'}}>
+                style={{width:36,height:36,borderRadius:8,border:`1px solid ${n===page?'var(--gold)':'var(--brd)'}`,background:n===page?'rgba(245,183,49,0.15)':'var(--sur2)',color:n===page?'var(--gold)':'var(--mut)',fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:13,cursor:'pointer',transition:'var(--tr)'}}>
                 {n}
               </button>
             ))}
@@ -1124,12 +1162,12 @@ function AdminPage({ onSync, winnersMap, onSaveWinners }) {
         <button className="btn-primary" onClick={sync} disabled={syncing}>{syncing?'⏳ Syncing…':'🔄 Sync Results from API'}</button>
         {log&&<div className="admin-log">{log}</div>}
         <hr className="admin-divider"/>
-        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:14}}>🏅 Award Winners</div>
+        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:14}}>🏅 Award Winners</div>
         <div style={{fontSize:13,color:'var(--mut)',marginBottom:14}}>Fill these in when the tournament ends. Each participant who predicted correctly earns +10 pts.</div>
         <div className="award-grid">
           {[{k:'top_scorer',label:'⚽ Top Scorer'},{k:'mvp',label:'🏆 Tournament MVP'},{k:'young',label:'🌟 Best Young Player'},{k:'goalkeeper',label:'🧤 Best Goalkeeper'}].map(a=>(
             <div key={a.k}>
-              <label style={{display:'block',fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginBottom:5,fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700}}>{a.label}</label>
+              <label style={{display:'block',fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginBottom:5,fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700}}>{a.label}</label>
               <input className="inp" style={{marginBottom:0}} placeholder="Player name…" value={winners[a.k]} onChange={e=>setWinners(w=>({...w,[a.k]:e.target.value}))}/>
             </div>
           ))}
@@ -1144,7 +1182,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
   if(!myParticipant)return(
     <div className="page"><div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
       <div style={{fontSize:52,marginBottom:14}}>📋</div>
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>AÚN NO ESTÁS INSCRITO</div>
+      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>AÚN NO ESTÁS INSCRITO</div>
       <div style={{fontSize:13,color:'var(--mut)',marginTop:8,marginBottom:20}}>Regístrate para ver tus resultados aquí.</div>
       <button className="btn-primary" style={{maxWidth:260,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
     </div></div>
@@ -1171,12 +1209,12 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
       <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`}}>
         <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
           <div style={{textAlign:'center',flexShrink:0}}>
-            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:56,color:rankCol,lineHeight:1}}>#{rank||'—'}</div>
+            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:56,color:rankCol,lineHeight:1}}>#{rank||'—'}</div>
             <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>de {totalPlayers}</div>
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:24,color:'var(--white)',letterSpacing:2,textTransform:'uppercase',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{myParticipant.name}</div>
-            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
+            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:24,color:'var(--white)',letterSpacing:2,textTransform:'uppercase',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{myParticipant.name}</div>
+            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
             {rank>1&&leaderTotal>0&&<div style={{fontSize:13,color:'var(--mut)',marginTop:2}}>+{leaderTotal-grandTotal} pts para el 1º</div>}
             {rank===1&&<div style={{fontSize:13,color:'var(--gold)',marginTop:2}}>¡Vas primero! 🥇</div>}
           </div>
@@ -1199,7 +1237,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
         {rows.length>0&&(
           <div style={{display:'flex',justifyContent:'flex-end',paddingTop:10,borderTop:'1px solid var(--brd)',marginTop:4}}>
             <span style={{fontSize:13,color:'var(--mut)',marginRight:8}}>Total equipos:</span>
-            <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
+            <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
           </div>
         )}
       </div>
