@@ -2062,8 +2062,26 @@ export default function App() {
     ]);
     setParticipants(parts||[]);
     const map={};(res||[]).forEach(r=>{map[r.team]=r;});setResultsMap(map);
-    const row=winners?.[0]||{};
-    setWinnersMap({top_scorer:row.top_scorer||'',mvp:row.mvp||'',best_young:row.young||'',best_goalkeeper:row.goalkeeper||''});
+    // award_winners: supports both multi-row {category,<winner_col>} and legacy single-row {top_scorer,mvp,...}
+    const wRows=winners||[];
+    let wm={top_scorer:'',mvp:'',best_young:'',best_goalkeeper:''};
+    if(wRows.length&&wRows[0].category!==undefined){
+      // Multi-row format: one row per award category
+      const SKIP=new Set(['category','id','created_at','updated_at']);
+      const getVal=r=>{const k=Object.keys(r).find(c=>!SKIP.has(c));return k?r[k]:'';};
+      const bycat={};wRows.forEach(r=>{bycat[r.category]=getVal(r);});
+      wm={
+        top_scorer:bycat.top_scorer||'',
+        mvp:bycat.mvp||'',
+        best_young:bycat.young||bycat.best_young||'',
+        best_goalkeeper:bycat.goalkeeper||bycat.best_goalkeeper||'',
+      };
+    }else if(wRows.length){
+      // Legacy single-row format
+      const row=wRows[0];
+      wm={top_scorer:row.top_scorer||'',mvp:row.mvp||'',best_young:row.young||'',best_goalkeeper:row.goalkeeper||''};
+    }
+    setWinnersMap(wm);
     setMatches(mats||[]);
     setLoading(false);
   }
