@@ -1444,6 +1444,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
   const [ag, setAg] = useState(saved?.away_goals?.toString() ?? '');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(!!saved);
+  const [err, setErr] = useState('');
   useEffect(() => {
     setHg(saved?.home_goals?.toString() ?? '');
     setAg(saved?.away_goals?.toString() ?? '');
@@ -1453,9 +1454,10 @@ function MatchRow({ home, away, round, saved, onSave }) {
   const canSave = hg !== '' && ag !== '';
   const save = async () => {
     if (!canSave || busy) return;
-    setBusy(true);
-    const ok = await onSave({ home_team:home, away_team:away, home_goals:parseInt(hg), away_goals:parseInt(ag), round_col:round });
-    if (ok) setDone(true);
+    setBusy(true); setErr('');
+    const result = await onSave({ home_team:home, away_team:away, home_goals:parseInt(hg), away_goals:parseInt(ag), round_col:round });
+    if (result === true) setDone(true);
+    else if (typeof result === 'string') setErr(result);
     setBusy(false);
   };
   return (
@@ -1465,9 +1467,9 @@ function MatchRow({ home, away, round, saved, onSave }) {
         <FlagChip team={home} size={20}/>
       </div>
       <div className="match-score">
-        <input className="score-inp" value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/,''));setDone(false);}} maxLength={2} inputMode="numeric" placeholder="–"/>
+        <input className="score-inp" value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/,''));setDone(false);setErr('');}} maxLength={2} inputMode="numeric" placeholder="–"/>
         <span className="score-sep">–</span>
-        <input className="score-inp" value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/,''));setDone(false);}} maxLength={2} inputMode="numeric" placeholder="–"/>
+        <input className="score-inp" value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/,''));setDone(false);setErr('');}} maxLength={2} inputMode="numeric" placeholder="–"/>
       </div>
       <div className="match-team">
         <FlagChip team={away} size={20}/>
@@ -1476,6 +1478,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
       <button className={`match-save-btn${done && !isDirty ? ' saved' : ''}`} onClick={save} disabled={!canSave || busy}>
         {busy ? '⏳' : done && !isDirty ? '✓' : '💾'}
       </button>
+      {err && <div style={{gridColumn:'1/-1',fontSize:11,color:'var(--red,#e55)',marginTop:2}}>{err}</div>}
     </div>
   );
 }
@@ -1908,30 +1911,24 @@ export default function App() {
 
   async function recalcAndSaveResults() {
     const r=await fetch('/api/recalc',{method:'POST'});
-    if(!r.ok){const b=await r.json().catch(()=>({}));console.error('recalc error:',b);}
+    const b=await r.json().catch(()=>({}));
+    if(!r.ok){console.error('recalc error:',b);return b?.error||'unknown error';}
+    return null;
   }
 
   async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col}) {
-    const a=home_team<away_team?home_team:away_team;
-    const b=home_team<away_team?away_team:home_team;
-    const {data:existing}=await supabase.from('matches').select('id')
+    // Delete any existing entry for this pair+round (index is on least/greatest so either order)
+    const {data:existing}=await supabase.from('matches').select('id,home_team,away_team')
       .eq('round_col',round_col)
-      .filter('home_team','in',`("${a}","${b}")`)
-      .filter('away_team','in',`("${a}","${b}")`);
-    // Use upsert via unique index: (least(home,away), greatest(home,away), round_col)
-    const {error}=await supabase.from('matches').upsert(
-      {home_team,away_team,home_goals,away_goals,round_col,source:'manual'},
-      {onConflict:'home_team,away_team,round_col',ignoreDuplicates:false}
-    );
-    if(error){
-      // unique index is on sorted pair; try deleting and reinserting if teams are flipped
-      const {data:flip}=await supabase.from('matches').select('id,home_team,away_team')
-        .eq('round_col',round_col).or(`and(home_team.eq.${away_team},away_team.eq.${home_team})`);
-      if(flip?.length){await supabase.from('matches').delete().eq('id',flip[0].id);}
-      const {error:e2}=await supabase.from('matches').insert({home_team,away_team,home_goals,away_goals,round_col,source:'manual'});
-      if(e2){console.error('handleSaveMatch error:',e2);return false;}
+      .or(`and(home_team.eq.${home_team},away_team.eq.${away_team}),and(home_team.eq.${away_team},away_team.eq.${home_team})`);
+    if(existing?.length){
+      const ids=existing.map(r=>r.id);
+      await supabase.from('matches').delete().in('id',ids);
     }
-    await recalcAndSaveResults();
+    const {error}=await supabase.from('matches').insert({home_team,away_team,home_goals,away_goals,round_col,source:'manual'});
+    if(error){console.error('handleSaveMatch insert error:',error);return 'Error al guardar: '+error.message;}
+    const recalcErr=await recalcAndSaveResults();
+    if(recalcErr)return 'Guardado pero recálculo falló: '+recalcErr;
     await loadData();
     return true;
   }

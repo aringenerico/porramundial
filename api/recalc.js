@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 const SUPABASE_URL = 'https://kvdtuogpkpklnqmbcjvo.supabase.co';
 
 function calcMatchPts(allMats) {
@@ -20,38 +22,24 @@ function calcMatchPts(allMats) {
   return pts;
 }
 
-async function sbFetch(path, method, body, serviceKey) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-    method,
-    headers: {
-      'apikey': serviceKey,
-      'Authorization': `Bearer ${serviceKey}`,
-      'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!r.ok) {
-    const text = await r.text();
-    throw new Error(`${method} ${path} → ${r.status}: ${text}`);
-  }
-  return method === 'GET' ? r.json() : null;
-}
-
 export default async function handler(req, res) {
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
   if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
-  try {
-    const allMats = await sbFetch('/matches?select=*&order=id', 'GET', null, serviceKey);
-    const pts = calcMatchPts(allMats);
-    const rows = Object.entries(pts).map(([team, p]) => ({ team, ...p }));
-    if (!rows.length) return res.status(200).json({ ok: true, teams: 0 });
+  const sb = createClient(SUPABASE_URL, serviceKey, {
+    auth: { persistSession: false },
+  });
 
-    // Upsert to results (service key bypasses RLS)
-    await sbFetch('/results?on_conflict=team', 'POST', rows, serviceKey);
-    res.status(200).json({ ok: true, teams: rows.length });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  const { data: allMats, error: fetchErr } = await sb.from('matches').select('*').order('id');
+  if (fetchErr) return res.status(500).json({ error: 'fetch matches: ' + fetchErr.message });
+
+  const pts = calcMatchPts(allMats || []);
+  const rows = Object.entries(pts).map(([team, p]) => ({ team, ...p }));
+
+  if (!rows.length) return res.status(200).json({ ok: true, teams: 0 });
+
+  const { error: upsertErr } = await sb.from('results').upsert(rows, { onConflict: 'team' });
+  if (upsertErr) return res.status(500).json({ error: 'upsert results: ' + upsertErr.message });
+
+  res.status(200).json({ ok: true, teams: rows.length });
 }
