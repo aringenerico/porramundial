@@ -462,8 +462,10 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .bnav-btn.on{color:var(--gold)}
 .bnav-btn.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:3px;border-radius:3px;background:var(--gold);box-shadow:0 0 12px var(--gold-glow)}
 .bnav-btn-icon{font-size:20px;line-height:1}
-.hdr-logout{background:none;border:1px solid rgba(78,94,120,0.4);border-radius:7px;padding:5px 10px;color:var(--mut);cursor:pointer;font-size:11px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;letter-spacing:1px;transition:var(--tr);white-space:nowrap;touch-action:manipulation}
-.hdr-logout:hover{border-color:var(--brd2);color:var(--pink)}
+.hdr-user-area{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.hdr-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080c14;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase;cursor:default;box-shadow:0 0 10px var(--gold-glow);letter-spacing:0.5px}
+.hdr-logout{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:6px 12px;color:var(--pink);cursor:pointer;font-size:12px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;letter-spacing:1px;transition:var(--tr);white-space:nowrap;touch-action:manipulation;display:flex;align-items:center;gap:5px;min-height:34px}
+.hdr-logout:hover{background:rgba(255,77,109,0.22);border-color:var(--pink);box-shadow:0 0 12px rgba(255,77,109,0.2)}
 .auth-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px}
 .auth-card{background:var(--sur);border:1px solid var(--brd);border-radius:16px;padding:32px 28px;width:100%;max-width:400px}
 .auth-logo{text-align:center;margin-bottom:24px}
@@ -1477,7 +1479,16 @@ export default function App() {
             <div className="hdr-bote-lbl">{t.participants}</div>
             <div className="hdr-bote-val">{participantsWithTotals.length}</div>
           </div>
-          <button className="hdr-logout" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión">🚪</button>
+          <div className="hdr-user-area">
+            {session?.user?.email&&(
+              <div className="hdr-avatar" title={session.user.email}>
+                {session.user.email.split('@')[0].replace(/[^a-zA-Z]/g,'').slice(0,2).toUpperCase()||'?'}
+              </div>
+            )}
+            <button className="hdr-logout" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión">
+              <span style={{fontSize:14}}>⏻</span> Salir
+            </button>
+          </div>
         </div>
       </div>
       {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}/>}
