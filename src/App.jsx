@@ -623,6 +623,10 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             </div>
           ))}
         </div>
+        <div style={{display:'flex',gap:8,marginTop:14,paddingTop:14,borderTop:'1px solid var(--brd)'}}>
+          <button className="btn-ghost" onClick={()=>goTo('normas')}>📋 Ver normas</button>
+          <button className="btn-ghost" onClick={()=>goTo('seleccion')}>{myParticipant?'⚽ Mis equipos':'⚽ Inscribirme'}</button>
+        </div>
       </div>
       {/* Prizes — TBD */}
       <div className="card" style={{background:'linear-gradient(135deg,#0e1e38,#091428)'}}>
@@ -714,7 +718,7 @@ function RulesPage({ t }) {
   );
 }
 
-function RegistrationPage({ onSubmit, myParticipant, userId, t }) {
+function RegistrationPage({ onSubmit, userId, t }) {
   const [name,setName]=useState('');
   const [sel,setSel]=useState({g1:null,g2:[],g3:[],g4:null});
   const [picks,setPicks]=useState({top_scorer:'',mvp:'',best_young:'',best_goalkeeper:''});
@@ -732,27 +736,6 @@ function RegistrationPage({ onSubmit, myParticipant, userId, t }) {
       setPlayers(g);
     });
   },[]);
-
-  if(myParticipant)return(
-    <div className="page"><div className="success-box">
-      <div style={{fontSize:48,marginBottom:14}}>✅</div>
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:24,color:'var(--green)',letterSpacing:1}}>¡Ya estás inscrito!</div>
-      <div style={{fontSize:14,color:'var(--mut)',marginTop:6,marginBottom:16}}>Tu selección ya está guardada. No es posible cambiarla.</div>
-      <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center',marginBottom:16}}>
-        {(myParticipant.teams||[]).map(tt=><span key={tt} className="sum-chip">{FLAGS[tt]||'🏳️'} {tt}</span>)}
-      </div>
-      {AWARD_CONFIG.some(a=>myParticipant[a.col])&&(
-        <div style={{marginTop:8,padding:14,background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10,textAlign:'left',maxWidth:360,margin:'0 auto'}}>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:12,color:'var(--gold)',letterSpacing:1,marginBottom:8}}>🎯 TUS PREDICCIONES</div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
-            {AWARD_CONFIG.filter(a=>myParticipant[a.col]).map(a=>(
-              <div key={a.key} style={{fontSize:12,color:'var(--txt)'}}><span style={{color:'var(--mut)'}}>{a.icon} </span><strong style={{color:'var(--white)'}}>{myParticipant[a.col]}</strong></div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div></div>
-  );
 
   if(!isRegistrationOpen())return(
     <div className="page"><div className="closed-box">
@@ -1436,12 +1419,11 @@ export default function App() {
   if(!session)return(<><style>{CSS}</style><LoginPage lang={lang} setLang={setLang}/></>);
 
   const navItems=[
-    {id:'inicio',  icon:'🏠', l:t.nav_home},
-    {id:'normas',  icon:'📋', l:t.nav_rules},
-    {id:'seleccion',icon:'⚽',l:t.nav_teams},
-    {id:'resultados',icon:'🔍',l:t.nav_results},
-    {id:'clasificacion',icon:'🏆',l:t.nav_leaderboard},
-    {id:'yo',icon:'👤',l:lang==='en'?'Me':'Yo'},
+    {id:'inicio',       icon:'🏠', l:t.nav_home},
+    {id:'normas',       icon:'📋', l:t.nav_rules},
+    {id:'seleccion',    icon:'⚽', l:t.nav_teams},
+    {id:'resultados',   icon:'🔍', l:t.nav_results},
+    {id:'clasificacion',icon:'🏆', l:t.nav_leaderboard},
     ...(adminMode?[{id:'admin',icon:'⚙️',l:'Admin'}]:[]),
   ];
 
@@ -1462,10 +1444,10 @@ export default function App() {
       </div>
       {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}/>}
       {tab==='normas'        &&<RulesPage        t={t}/>}
-      {tab==='seleccion'     &&<RegistrationPage onSubmit={handleRegister} myParticipant={myParticipant} userId={session?.user?.id} t={t}/>}
+      {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t}/>}
+      {tab==='seleccion'     &&!myParticipant    &&<RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage  participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData} t={t}/>}
-      {tab==='yo'            &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners}/>}
       <FooterPin onUnlock={()=>{setAdminMode(true);setTab('admin');}}/>
       <nav className="bnav">
