@@ -465,7 +465,6 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .podium-teams{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:8px}
 .podium-team-chip{font-size:10px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px}
 .clasif-row{display:flex;align-items:center;gap:14px;background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:12px 16px;margin-bottom:8px;transition:var(--tr);border-left:3px solid transparent}
-.clasif-row:hover{border-color:var(--brd2);background:var(--sur3)}
 .clasif-pos{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--sur2);border:1px solid var(--brd);color:var(--mut);flex-shrink:0}
 .clasif-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:700;font-size:17px;color:var(--white);text-transform:uppercase;letter-spacing:1px}
 .clasif-teams-mini{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
@@ -473,6 +472,21 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .clasif-pts{margin-left:auto;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:26px;color:var(--gold);text-align:right;flex-shrink:0}
 .clasif-pts span{font-size:12px;color:var(--mut)}
 .bonus-badge{display:inline-block;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);color:var(--green);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;margin-left:6px;letter-spacing:0.5px}
+.clasif-row{cursor:pointer;transition:border-color .15s,transform .15s,background .15s}
+.clasif-row:hover{border-color:var(--brd2);background:var(--sur3)}
+.clasif-row:active{transform:scale(0.995)}
+.clasif-row.me{background:rgba(245,183,49,0.06);border-color:rgba(245,183,49,0.4)}
+.clasif-row.me .clasif-name{color:var(--gold)}
+.me-pin{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:8.5px;letter-spacing:0.08em;color:var(--bg);background:var(--gold);padding:1px 6px;border-radius:99px;margin-left:7px;text-transform:uppercase;vertical-align:middle}
+.contrib-bar{display:flex;gap:2px;height:4px;border-radius:99px;overflow:hidden;max-width:170px;margin-top:6px;background:var(--sur2)}
+.lb-legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 2px 12px;font-size:10px;color:var(--mut);font-weight:600}
+.lb-legend span{display:flex;align-items:center;gap:5px}
+.lb-legend i{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0}
+.jump-fab{position:fixed;right:16px;bottom:90px;z-index:40;background:var(--gold);color:var(--bg);border:none;border-radius:99px;padding:10px 16px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 8px 24px rgba(245,183,49,0.35);animation:fadeIn .25s ease}
+.sheet-backdrop{position:fixed;inset:0;background:rgba(5,16,31,0.75);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:flex-end}
+.sheet{background:var(--sur);width:100%;max-height:82vh;overflow:auto;border-radius:22px 22px 0 0;padding:14px 18px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--brd2);animation:sheetUp .25s ease}
+.sheet-grab{width:40px;height:4px;border-radius:99px;background:var(--brd2);margin:0 auto 16px}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
@@ -1071,14 +1085,107 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
   );
 }
 
-function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
+function contribByTier(participant, resultsMap, winnersMap) {
+  const seg = { g1:0, g2:0, g3:0, g4:0, bonus:0 };
+  (participant.teams||[]).forEach(tm => {
+    const k = TEAM_TIER[tm]; if (k) seg[k] += calcTotal(resultsMap[tm]||{});
+  });
+  seg.bonus = AWARD_CONFIG.filter(a => winnersMap[a.key] && participant[a.col]===winnersMap[a.key]).length * AWARD_BONUS;
+  return seg;
+}
+
+function ContribBar({ participant, resultsMap, winnersMap }) {
+  const seg = contribByTier(participant, resultsMap, winnersMap);
+  const total = seg.g1+seg.g2+seg.g3+seg.g4+seg.bonus;
+  if (total <= 0) return null;
+  const parts = [
+    { v:seg.g1, c:GROUPS.g1.color }, { v:seg.g2, c:GROUPS.g2.color },
+    { v:seg.g3, c:GROUPS.g3.color }, { v:seg.g4, c:GROUPS.g4.color },
+    { v:seg.bonus, c:'var(--green)' },
+  ].filter(p => p.v > 0);
+  return (
+    <div className="contrib-bar" title="Contribución por tier (+ bonus)">
+      {parts.map((p,i)=><div key={i} style={{flex:p.v, background:p.c}}/>)}
+    </div>
+  );
+}
+
+function JumpToMeFab({ myParticipant, sorted, page, setPage }) {
+  const [show, setShow] = useState(false);
+  const myIdx = myParticipant ? sorted.findIndex(p=>p.name===myParticipant.name) : -1;
+  useEffect(() => {
+    if (myIdx < 0) return;
+    const check = () => {
+      const el = document.getElementById('me-row');
+      if (!el) { setShow(true); return; }
+      const r = el.getBoundingClientRect();
+      setShow(!(r.top > 60 && r.bottom < window.innerHeight - 60));
+    };
+    check();
+    window.addEventListener('scroll', check, { passive:true });
+    return () => window.removeEventListener('scroll', check);
+  }, [myIdx, page]);
+  const [pendingScroll, setPendingScroll] = useState(false);
+  useEffect(() => {
+    if (!pendingScroll) return;
+    const el = document.getElementById('me-row');
+    if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); setPendingScroll(false); }
+  }, [page, pendingScroll]);
+  if (myIdx < 0 || !show) return null;
+  const handleClick = () => {
+    const el = document.getElementById('me-row');
+    if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+    const myPage = Math.floor(myIdx / PAGE_SIZE) + 1;
+    setPage(myPage);
+    setPendingScroll(true);
+  };
+  return <button className="jump-fab" onClick={handleClick}>↓ Mi posición #{myIdx+1}</button>;
+}
+
+function PlayerSheet({ participant, resultsMap, winnersMap, onClose }) {
+  if (!participant) return null;
+  const maxPts = Math.max(...(participant.teams||[]).map(t=>calcTotal(resultsMap[t]||{})), 1);
+  return (
+    <div className="sheet-backdrop" onClick={onClose}>
+      <div className="sheet" onClick={e=>e.stopPropagation()}>
+        <div className="sheet-grab"/>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div className="clasif-name" style={{fontSize:18}}>{participant.name}</div>
+            <div className="num" style={{fontSize:22,color:'var(--gold)',lineHeight:1,marginTop:4}}>
+              {participant.total} <span style={{fontSize:12,color:'var(--mut)',fontWeight:400}}>pts</span>
+            </div>
+          </div>
+        </div>
+        {Object.entries(GROUPS).map(([key,g]) => {
+          const teams = (participant.teams||[]).filter(t=>TEAM_TIER[t]===key);
+          if (!teams.length) return null;
+          return (
+            <div className="squad-tier-group" key={key}>
+              <div className="squad-tier-hdr" style={{color:g.color}}>{g.label}</div>
+              {teams.map(t=><SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} maxPts={maxPts}/>)}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, onRefresh, t }) {
   const [page,setPage]=useState(1);
+  const [detail,setDetail]=useState(null);
   const topRef=useRef(null);
-  useEffect(()=>{ topRef.current?.scrollIntoView({behavior:'instant'}); },[page]);
+  useEffect(()=>{ window.scrollTo({ top: (topRef.current?.offsetTop ?? 0) - 80, behavior:'smooth' }); },[page]);
   const changePage=(n)=>{ setPage(n); };
   const sorted=[...participants].sort((a,b)=>b.total-a.total);
   const pot=participants.length*10;
   const top3=sorted.slice(0,3);
+  const prizeByRank=[
+    {name:t.prize1_name,price:t.prize1_price},
+    {name:t.prize2_name,price:t.prize2_price},
+    {name:t.prize3_name,price:t.prize3_price},
+  ];
   const isFirstPage=page===1;
   const showPodium=isFirstPage&&top3.length>=2;
   const podColors=['var(--gold)','#b0b8cc','#9a7050'];
@@ -1128,6 +1235,8 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
           </div>
         </div>
       )}
+      <JumpToMeFab myParticipant={myParticipant} sorted={sorted} page={page} setPage={setPage}/>
+      <PlayerSheet participant={detail} resultsMap={resultsMap} winnersMap={winnersMap} onClose={()=>setDetail(null)}/>
       <div key={page} style={{animation:'fadeIn 0.2s ease'}}>
         {showPodium&&(
           <div className="podium">
@@ -1141,17 +1250,28 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
                   </div>
                   <div className="podium-name">{p.name}</div>
                   <div className="podium-pts" style={{color:podColors[ri]}}>{p.total}<span> {t.pts}</span></div>
-                  <div className="podium-premio" style={{color:podColors[ri]}}>{t.prize_tbd}</div>
+                  <div className="podium-premio" style={{color:podColors[ri]}}>
+                    {prizeByRank[ri].name}
+                    <span style={{display:'block',fontSize:10,color:'var(--mut)',marginTop:2}}>{prizeByRank[ri].price}</span>
+                  </div>
                   <div className="podium-teams">{(p.teams||[]).map(tm=><span key={tm} className="podium-team-chip"><FlagChip team={tm} size={14}/> {tm}</span>)}</div>
                 </div>
               );
             })}
           </div>
         )}
+        <div className="lb-legend">
+          <span><i style={{background:GROUPS.g1.color}}/>TOP</span>
+          <span><i style={{background:GROUPS.g2.color}}/>STRONG</span>
+          <span><i style={{background:GROUPS.g3.color}}/>AVERAGE</span>
+          <span><i style={{background:GROUPS.g4.color}}/>SURPRISE</span>
+          <span><i style={{background:'var(--green)'}}/>Bonus</span>
+        </div>
         {listRows.map((p,i)=>{
           const pos=pageStart+(isFirstPage&&showPodium?3:0)+i+1;
+          const isMe=myParticipant&&p.name===myParticipant.name;
           return(
-            <div className="clasif-row" key={p.name}>
+            <div className={`clasif-row${isMe?' me':''}`} id={isMe?'me-row':undefined} key={p.name} onClick={()=>setDetail(p)}>
               <div className="clasif-pos" style={
                 pos===1?{background:'rgba(245,183,49,0.15)',borderColor:'rgba(245,183,49,0.4)',color:'var(--gold)'}:
                 pos===2?{background:'rgba(176,184,204,0.10)',borderColor:'rgba(176,184,204,0.35)',color:'#b0b8cc'}:
@@ -1160,9 +1280,10 @@ function LeaderboardPage({ participants, winnersMap, onRefresh, t }) {
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:4}}>
                   <span className="clasif-name">{p.name}</span>
+                  {isMe&&<span className="me-pin">TÚ</span>}
                   <BonusBadge p={p}/>
                 </div>
-                <div className="clasif-teams-mini">{(p.teams||[]).map(tm=><span key={tm} className="clasif-team-chip"><FlagChip team={tm} size={13}/> {tm} · </span>)}</div>
+                <ContribBar participant={p} resultsMap={resultsMap} winnersMap={winnersMap}/>
                 <PickChips p={p}/>
               </div>
               <div className="clasif-pts">{p.total}<span> {t.pts}</span></div>
@@ -1522,14 +1643,14 @@ export default function App() {
   async function handleRegister({name,teams,picks,userId}) {
     const {data:existing}=await supabase.from('participants').select('id').eq('name',name).maybeSingle();
     if(existing)return 'duplicate';
-    const {data:inserted,error}=await supabase.from('participants').insert({name,teams,user_id:userId||null}).select('id').single();
-    if(error){if(error.code==='23505')return 'duplicate';return 'error';}
-    if(inserted?.id){
-      await supabase.from('participants').update({
-        pick_top_scorer:picks.top_scorer||null,pick_mvp:picks.mvp||null,
-        pick_young:picks.best_young||null,pick_goalkeeper:picks.best_goalkeeper||null,
-      }).eq('id',inserted.id);
-    }
+    const {error}=await supabase.from('participants').insert({
+      name, teams, user_id:userId||null,
+      pick_top_scorer:picks.top_scorer||null,
+      pick_mvp:picks.mvp||null,
+      pick_young:picks.best_young||null,
+      pick_goalkeeper:picks.best_goalkeeper||null,
+    });
+    if(error){if(error.code==='23505')return 'duplicate';console.error('Register error:',error);return 'error';}
     await loadData();
     // Refresh my participant so registration shows as done
     if(userId){
@@ -1617,7 +1738,7 @@ export default function App() {
       {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t}/>}
       {tab==='seleccion'     &&!myParticipant    &&<RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
-      {tab==='clasificacion' &&<LeaderboardPage  participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData} t={t}/>}
+      {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners}/>}
       <FooterPin onUnlock={()=>{setAdminMode(true);setTab('admin');}}/>
       <nav className="bnav">
