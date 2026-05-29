@@ -1522,14 +1522,16 @@ export default function App() {
   async function handleRegister({name,teams,picks,userId}) {
     const {data:existing}=await supabase.from('participants').select('id').eq('name',name).maybeSingle();
     if(existing)return 'duplicate';
-    const {data:inserted,error}=await supabase.from('participants').insert({name,teams,user_id:userId||null}).select('id').single();
+    const {error}=await supabase.from('participants').insert({
+      name,
+      teams,
+      user_id:         userId||null,
+      pick_top_scorer: picks.top_scorer||null,
+      pick_mvp:        picks.mvp||null,
+      pick_young:      picks.best_young||null,
+      pick_goalkeeper: picks.best_goalkeeper||null,
+    });
     if(error){if(error.code==='23505')return 'duplicate';return 'error';}
-    if(inserted?.id){
-      await supabase.from('participants').update({
-        pick_top_scorer:picks.top_scorer||null,pick_mvp:picks.mvp||null,
-        pick_young:picks.best_young||null,pick_goalkeeper:picks.best_goalkeeper||null,
-      }).eq('id',inserted.id);
-    }
     await loadData();
     // Refresh my participant so registration shows as done
     if(userId){
