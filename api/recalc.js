@@ -26,20 +26,31 @@ export default async function handler(req, res) {
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
   if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
-  const sb = createClient(SUPABASE_URL, serviceKey, {
-    auth: { persistSession: false },
-  });
+  const sb = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } });
 
+  // 1. Read matches
   const { data: allMats, error: fetchErr } = await sb.from('matches').select('*').order('id');
-  if (fetchErr) return res.status(500).json({ error: 'fetch matches: ' + fetchErr.message });
+  if (fetchErr) return res.status(500).json({ step: 'fetch_matches', error: fetchErr.message });
+
+  console.log('[recalc] matches found:', allMats?.length ?? 0);
 
   const pts = calcMatchPts(allMats || []);
   const rows = Object.entries(pts).map(([team, p]) => ({ team, ...p }));
 
-  if (!rows.length) return res.status(200).json({ ok: true, teams: 0 });
+  console.log('[recalc] teams calculated:', rows.length, rows.map(r => `${r.team}:${Object.values(r).slice(1).reduce((a,b)=>a+b,0)}`));
 
-  const { error: upsertErr } = await sb.from('results').upsert(rows, { onConflict: 'team' });
-  if (upsertErr) return res.status(500).json({ error: 'upsert results: ' + upsertErr.message });
+  if (!rows.length) return res.status(200).json({ ok: true, teams: 0, matches: allMats?.length ?? 0 });
 
-  res.status(200).json({ ok: true, teams: rows.length });
+  // 2. Delete existing results and insert fresh (avoids constraint issues)
+  const { error: delErr } = await sb.from('results').delete().neq('team', '__never__');
+  if (delErr) console.warn('[recalc] delete warning:', delErr.message);
+
+  const { error: insertErr } = await sb.from('results').insert(rows);
+  if (insertErr) {
+    console.error('[recalc] insert error:', insertErr.message);
+    return res.status(500).json({ step: 'insert_results', error: insertErr.message });
+  }
+
+  console.log('[recalc] results saved ok:', rows.length, 'teams');
+  res.status(200).json({ ok: true, teams: rows.length, matches: allMats?.length ?? 0 });
 }
