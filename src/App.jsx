@@ -546,7 +546,7 @@ function useCountdown(target) {
   return time;
 }
 
-function HomePage({ participants, goTo, t }) {
+function HomePage({ participants, goTo, t, myParticipant, participantsSorted, resultsMap }) {
   const open=isRegistrationOpen();
   const countdown=useCountdown(DEADLINE);
   const prizeCards=[
@@ -554,8 +554,43 @@ function HomePage({ participants, goTo, t }) {
     {lbl:t.prize2,medal:'🥈',col:'#b0b8cc',     name:t.prize2_name, price:t.prize2_price, url:t.prize2_url},
     {lbl:t.prize3,medal:'🥉',col:'#9a7050',     name:t.prize3_name, price:t.prize3_price, url:t.prize3_url},
   ];
+
+  // My position summary
+  const myRank=myParticipant?(participantsSorted||[]).findIndex(p=>p.name===myParticipant.name)+1:0;
+  const myTotal=myParticipant?(participantsSorted||[]).find(p=>p.name===myParticipant.name)?.total??0:0;
+  const leaderTotal=(participantsSorted||[])[0]?.total??0;
+  const rankCol=myRank===1?'var(--gold)':myRank===2?'#b0b8cc':myRank===3?'#9a7050':'var(--blue)';
+  const rankBg=myRank===1?'rgba(245,183,49,0.1)':myRank===2?'rgba(176,184,204,0.07)':myRank===3?'rgba(154,112,80,0.07)':'rgba(90,159,255,0.07)';
+  const rankBrd=myRank===1?'rgba(245,183,49,0.35)':myRank===2?'rgba(176,184,204,0.3)':myRank===3?'rgba(154,112,80,0.3)':'rgba(90,159,255,0.25)';
+
   return(
     <div className="page">
+      {myParticipant&&(
+        <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`,marginBottom:16}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{background:rankBg,border:`1px solid ${rankBrd}`,borderRadius:12,padding:'10px 16px',textAlign:'center',flexShrink:0}}>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:32,color:rankCol,lineHeight:1}}>#{myRank||'—'}</div>
+              <div style={{fontSize:10,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginTop:2}}>Posición</div>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:20,color:'var(--white)',letterSpacing:1,textTransform:'uppercase',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{myParticipant.name}</div>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:24,color:rankCol,lineHeight:1.2}}>{myTotal} <span style={{fontSize:13,color:'var(--mut)',fontWeight:400}}>pts</span></div>
+              {myRank>1&&leaderTotal>0&&<div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>+{leaderTotal-myTotal} pts para el 1º</div>}
+              {myRank===1&&<div style={{fontSize:12,color:'var(--gold)',marginTop:2}}>¡Vas primero! 🥇</div>}
+            </div>
+            <button className="btn-ghost" style={{flexShrink:0}} onClick={()=>goTo('yo')}>Ver →</button>
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:12}}>
+            {(myParticipant.teams||[]).map(tm=><span key={tm} className="sum-chip">{FLAGS[tm]||'🏳️'} {tm}</span>)}
+          </div>
+        </div>
+      )}
+      {!myParticipant&&open&&(
+        <div className="card" style={{background:'rgba(245,183,49,0.05)',border:'1px solid rgba(245,183,49,0.2)',textAlign:'center',padding:'20px'}}>
+          <div style={{fontSize:13,color:'var(--mut)',marginBottom:12}}>Todavía no estás inscrito en la porra.</div>
+          <button className="btn-primary" style={{maxWidth:280,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
+        </div>
+      )}
       <div className="hero">
         <div className="hero-title">🏆 TS World Cup Pool 2026</div>
         <div className="hero-sub">USA · Mexico · Canada &nbsp;|&nbsp; Jun 11 – Jul 19 2026</div>
@@ -604,8 +639,7 @@ function HomePage({ participants, goTo, t }) {
           ))}
         </div>
       </div>
-      {open?<button className="btn-primary" onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
-        :<div style={{textAlign:'center',padding:'14px 0',fontSize:13,color:'var(--mut)'}}>{t.reg_closed_msg}</div>}
+      {!open&&<div style={{textAlign:'center',padding:'14px 0',fontSize:13,color:'var(--mut)'}}>{t.reg_closed_msg}</div>}
     </div>
   );
 }
@@ -680,7 +714,7 @@ function RulesPage({ t }) {
   );
 }
 
-function RegistrationPage({ onSubmit, t }) {
+function RegistrationPage({ onSubmit, myParticipant, userId, t }) {
   const [name,setName]=useState('');
   const [sel,setSel]=useState({g1:null,g2:[],g3:[],g4:null});
   const [picks,setPicks]=useState({top_scorer:'',mvp:'',best_young:'',best_goalkeeper:''});
@@ -698,6 +732,27 @@ function RegistrationPage({ onSubmit, t }) {
       setPlayers(g);
     });
   },[]);
+
+  if(myParticipant)return(
+    <div className="page"><div className="success-box">
+      <div style={{fontSize:48,marginBottom:14}}>✅</div>
+      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:24,color:'var(--green)',letterSpacing:1}}>¡Ya estás inscrito!</div>
+      <div style={{fontSize:14,color:'var(--mut)',marginTop:6,marginBottom:16}}>Tu selección ya está guardada. No es posible cambiarla.</div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center',marginBottom:16}}>
+        {(myParticipant.teams||[]).map(tt=><span key={tt} className="sum-chip">{FLAGS[tt]||'🏳️'} {tt}</span>)}
+      </div>
+      {AWARD_CONFIG.some(a=>myParticipant[a.col])&&(
+        <div style={{marginTop:8,padding:14,background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10,textAlign:'left',maxWidth:360,margin:'0 auto'}}>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:12,color:'var(--gold)',letterSpacing:1,marginBottom:8}}>🎯 TUS PREDICCIONES</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+            {AWARD_CONFIG.filter(a=>myParticipant[a.col]).map(a=>(
+              <div key={a.key} style={{fontSize:12,color:'var(--txt)'}}><span style={{color:'var(--mut)'}}>{a.icon} </span><strong style={{color:'var(--white)'}}>{myParticipant[a.col]}</strong></div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div></div>
+  );
 
   if(!isRegistrationOpen())return(
     <div className="page"><div className="closed-box">
@@ -727,7 +782,7 @@ function RegistrationPage({ onSubmit, t }) {
   const handleSubmit=async()=>{
     if(!name.trim()||!allSelected()||!allPicks()||submitting)return;
     setSubmitting(true);setError('');
-    const result=await onSubmit({name:name.trim(),teams:allTeams(),picks});
+    const result=await onSubmit({name:name.trim(),teams:allTeams(),picks,userId});
     if(result===true){setDone(true);}else{
       setError(result==='duplicate'?t.err_duplicate:t.err_general);
       setSubmitting(false);
@@ -1102,6 +1157,94 @@ function AdminPage({ onSync, winnersMap, onSaveWinners }) {
   );
 }
 
+function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t }) {
+  if(!myParticipant)return(
+    <div className="page"><div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
+      <div style={{fontSize:52,marginBottom:14}}>📋</div>
+      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>AÚN NO ESTÁS INSCRITO</div>
+      <div style={{fontSize:13,color:'var(--mut)',marginTop:8,marginBottom:20}}>Regístrate para ver tus resultados aquí.</div>
+      <button className="btn-primary" style={{maxWidth:260,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
+    </div></div>
+  );
+
+  const rows=(myParticipant.teams||[]).map(tm=>({
+    ...(resultsMap[tm]||{team:tm,j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0}),
+  })).map(r=>({...r,_total:calcTotal(r)})).sort((a,b)=>b._total-a._total);
+
+  const teamTotal=rows.reduce((s,r)=>s+r._total,0);
+  const hasWinners=Object.values(winnersMap).some(v=>v);
+  const bonusPts=AWARD_CONFIG.filter(a=>winnersMap[a.key]&&myParticipant[a.col]===winnersMap[a.key]).length*AWARD_BONUS;
+  const grandTotal=teamTotal+bonusPts;
+  const rank=(participantsSorted||[]).findIndex(p=>p.name===myParticipant.name)+1;
+  const leaderTotal=(participantsSorted||[])[0]?.total??0;
+  const totalPlayers=(participantsSorted||[]).length;
+  const rankCol=rank===1?'var(--gold)':rank===2?'#b0b8cc':rank===3?'#9a7050':'var(--blue)';
+  const rankBg=rank===1?'rgba(245,183,49,0.1)':rank===2?'rgba(176,184,204,0.07)':rank===3?'rgba(154,112,80,0.07)':'rgba(90,159,255,0.07)';
+  const rankBrd=rank===1?'rgba(245,183,49,0.35)':rank===2?'rgba(176,184,204,0.3)':rank===3?'rgba(154,112,80,0.3)':'rgba(90,159,255,0.25)';
+
+  return(
+    <div className="page">
+      {/* Position card */}
+      <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`}}>
+        <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+          <div style={{textAlign:'center',flexShrink:0}}>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:56,color:rankCol,lineHeight:1}}>#{rank||'—'}</div>
+            <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1}}>de {totalPlayers}</div>
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:24,color:'var(--white)',letterSpacing:2,textTransform:'uppercase',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{myParticipant.name}</div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
+            {rank>1&&leaderTotal>0&&<div style={{fontSize:13,color:'var(--mut)',marginTop:2}}>+{leaderTotal-grandTotal} pts para el 1º</div>}
+            {rank===1&&<div style={{fontSize:13,color:'var(--gold)',marginTop:2}}>¡Vas primero! 🥇</div>}
+          </div>
+        </div>
+        {bonusPts>0&&(
+          <div style={{marginTop:12,padding:'8px 12px',background:'rgba(34,212,142,0.1)',border:'1px solid rgba(34,212,142,0.3)',borderRadius:8,fontSize:13,color:'var(--green)'}}>
+            🎖️ +{bonusPts} pts de bonus por predicciones correctas
+          </div>
+        )}
+      </div>
+
+      {/* Teams breakdown */}
+      <div className="card">
+        <div className="sect-title" style={{marginBottom:12}}>📊 Puntos por equipo</div>
+        {rows.length===0?(
+          <div style={{textAlign:'center',padding:'32px 0',fontSize:13,color:'var(--mut)'}}>Los resultados estarán disponibles cuando empiece el torneo.</div>
+        ):(
+          <TeamTable rows={rows} showIndex={false}/>
+        )}
+        {rows.length>0&&(
+          <div style={{display:'flex',justifyContent:'flex-end',paddingTop:10,borderTop:'1px solid var(--brd)',marginTop:4}}>
+            <span style={{fontSize:13,color:'var(--mut)',marginRight:8}}>Total equipos:</span>
+            <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
+          </div>
+        )}
+      </div>
+
+      {/* Award predictions */}
+      <div className="card" style={{border:'1px solid rgba(245,183,49,0.25)',background:'linear-gradient(135deg,#0e1e38,#091428)'}}>
+        <div className="sect-title" style={{color:'var(--gold)'}}>🎯 Tus predicciones</div>
+        <div className="award-grid">
+          {AWARD_CONFIG.map(a=>{
+            const correct=hasWinners&&winnersMap[a.key]&&myParticipant[a.col]===winnersMap[a.key];
+            const pending=!hasWinners||!winnersMap[a.key];
+            return(
+              <div key={a.key} className={`award-pick ${correct?'award-correct':''}`} style={{border:pending?'1px solid var(--brd)':correct?'1px solid rgba(34,212,142,0.5)':'1px solid rgba(255,107,138,0.4)',background:pending?'var(--sur2)':correct?'rgba(34,212,142,0.08)':'rgba(255,107,138,0.06)'}}>
+                <div className="award-pick-lbl">{a.icon} {a.label}</div>
+                <div className="award-pick-val" style={{color:pending?'var(--white)':correct?'var(--green)':'var(--pink)'}}>
+                  {myParticipant[a.col]||<span style={{color:'var(--mut)'}}>—</span>}
+                  {correct&&<span style={{fontSize:12,marginLeft:6}}>✓ +10 pts</span>}
+                  {!pending&&!correct&&myParticipant[a.col]&&<span style={{fontSize:11,marginLeft:6,color:'var(--mut)'}}>({winnersMap[a.key]})</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LoginPage({ lang, setLang }) {
   const [mode,setMode]=useState('login'); // 'login' | 'register' | 'reset'
   const [email,setEmail]=useState('');
@@ -1195,6 +1338,7 @@ export default function App() {
   const [adminMode,setAdminMode]=useState(false);
   const [lang,setLang]=useState(()=>{ try{return localStorage.getItem('lang')||'es';}catch{return 'es';} });
   const [session,setSession]=useState(undefined); // undefined = loading, null = no session
+  const [myParticipant,setMyParticipant]=useState(null);
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
   const t=LANGS[lang];
 
@@ -1203,6 +1347,13 @@ export default function App() {
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_,s)=>setSession(s??null));
     return()=>subscription.unsubscribe();
   },[]);
+
+  // Load/refresh current user's participant record
+  useEffect(()=>{
+    if(!session?.user?.id){setMyParticipant(null);return;}
+    supabase.from('participants').select('*').eq('user_id',session.user.id).maybeSingle()
+      .then(({data})=>setMyParticipant(data||null));
+  },[session]);
 
   useEffect(()=>{loadData();},[]);
 
@@ -1224,10 +1375,10 @@ export default function App() {
   const participantsWithTotals=participants.map(p=>({...p,total:calcTeamPts(p.teams)+calcBonus(p)}));
   const participantsSorted=participantsWithTotals.slice().sort((a,b)=>b.total-a.total);
 
-  async function handleRegister({name,teams,picks}) {
+  async function handleRegister({name,teams,picks,userId}) {
     const {data:existing}=await supabase.from('participants').select('id').eq('name',name).maybeSingle();
     if(existing)return 'duplicate';
-    const {data:inserted,error}=await supabase.from('participants').insert({name,teams}).select('id').single();
+    const {data:inserted,error}=await supabase.from('participants').insert({name,teams,user_id:userId||null}).select('id').single();
     if(error){if(error.code==='23505')return 'duplicate';return 'error';}
     if(inserted?.id){
       await supabase.from('participants').update({
@@ -1235,7 +1386,13 @@ export default function App() {
         pick_young:picks.best_young||null,pick_goalkeeper:picks.best_goalkeeper||null,
       }).eq('id',inserted.id);
     }
-    await loadData();setTimeout(()=>setTab('clasificacion'),1500);return true;
+    await loadData();
+    // Refresh my participant so registration shows as done
+    if(userId){
+      const {data:mine}=await supabase.from('participants').select('*').eq('user_id',userId).maybeSingle();
+      setMyParticipant(mine||null);
+    }
+    setTimeout(()=>setTab('clasificacion'),1500);return true;
   }
 
   async function handleSync(log) {
@@ -1284,6 +1441,7 @@ export default function App() {
     {id:'seleccion',icon:'⚽',l:t.nav_teams},
     {id:'resultados',icon:'🔍',l:t.nav_results},
     {id:'clasificacion',icon:'🏆',l:t.nav_leaderboard},
+    {id:'yo',icon:'👤',l:lang==='en'?'Me':'Yo'},
     ...(adminMode?[{id:'admin',icon:'⚙️',l:'Admin'}]:[]),
   ];
 
@@ -1302,11 +1460,12 @@ export default function App() {
           <button className="hdr-logout" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión">🚪</button>
         </div>
       </div>
-      {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t}/>}
+      {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}/>}
       {tab==='normas'        &&<RulesPage        t={t}/>}
-      {tab==='seleccion'     &&<RegistrationPage onSubmit={handleRegister} t={t}/>}
+      {tab==='seleccion'     &&<RegistrationPage onSubmit={handleRegister} myParticipant={myParticipant} userId={session?.user?.id} t={t}/>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage  participants={participantsWithTotals} winnersMap={winnersMap} onRefresh={loadData} t={t}/>}
+      {tab==='yo'            &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners}/>}
       <FooterPin onUnlock={()=>{setAdminMode(true);setTab('admin');}}/>
       <nav className="bnav">
