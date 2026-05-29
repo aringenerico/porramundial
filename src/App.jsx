@@ -815,7 +815,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
               {myRank>1&&leaderTotal>0&&<div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>+{leaderTotal-myTotal} pts para el 1º</div>}
               {myRank===1&&<div style={{fontSize:12,color:'var(--gold)',marginTop:2}}>¡Vas primero!</div>}
             </div>
-            <button className="btn-ghost" style={{flexShrink:0}} onClick={()=>goTo('yo')}>Ver →</button>
+            <button className="btn-ghost" style={{flexShrink:0}} onClick={()=>goTo('seleccion')}>Ver →</button>
           </div>
           <div className="mini-squad">
             {(myParticipant.teams||[]).map(tm => {
@@ -843,7 +843,6 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         <div className="hero-grid">
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">{t.participants}</div></div>
           <div className="hero-stat"><div className="hero-stat-val">7</div><div className="hero-stat-lbl">{t.teams_entry}</div></div>
-          <div className="hero-stat"><div className="hero-stat-val" style={{color:'var(--gold)'}}>95,70€</div><div className="hero-stat-lbl">{t.prize_title}</div></div>
         </div>
         {open&&countdown&&(
           <div style={{marginTop:20,padding:'14px 16px',background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10}}>
@@ -869,9 +868,8 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             </div>
           ))}
         </div>
-        <div style={{display:'flex',gap:8,marginTop:14,paddingTop:14,borderTop:'1px solid var(--brd)'}}>
-          <button className="btn-ghost" onClick={()=>goTo('normas')}><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Icon name="rules" size={14}/> Ver normas</span></button>
-          <button className="btn-ghost" onClick={()=>goTo('seleccion')}><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Icon name="goal" size={14}/> {myParticipant?'Mis equipos':'Inscribirme'}</span></button>
+        <div style={{marginTop:14,paddingTop:14,borderTop:'1px solid var(--brd)'}}>
+          <button className="btn-primary" onClick={()=>goTo('normas')} style={{width:'100%'}}><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Icon name="rules" size={14}/> Ver normas completas</span></button>
         </div>
       </div>
       {/* Prizes — TBD */}
