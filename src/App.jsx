@@ -1696,11 +1696,18 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
+  useEffect(()=>{setWinners({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});},[winnersMap.top_scorer,winnersMap.mvp,winnersMap.best_young,winnersMap.best_goalkeeper]);
   const [saving,setSaving]=useState(false);
   const [saved,setSaved]=useState(false);
+  const [saveErr,setSaveErr]=useState('');
   const [matchTab,setMatchTab]=useState('j1');
   const sync=async()=>{setSyncing(true);await onSync(msg=>setLog(prev=>prev+'\n'+msg));setSyncing(false);};
-  const saveWinners=async()=>{setSaving(true);await onSaveWinners(winners);setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),2000);};
+  const saveWinners=async()=>{
+    setSaving(true);setSaveErr('');
+    const err=await onSaveWinners(winners);
+    setSaving(false);
+    if(err){setSaveErr(err);}else{setSaved(true);setTimeout(()=>setSaved(false),2500);}
+  };
 
   // Build lookup: "home|away|round" → saved match
   const savedByKey={};
@@ -1731,7 +1738,8 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
             </div>
           ))}
         </div>
-        <button className="btn-primary" style={{marginTop:14}} onClick={saveWinners} disabled={saving}>{saved?'✅ Saved!':saving?'Saving…':'💾 Save Award Winners'}</button>
+        <button className="btn-primary" style={{marginTop:14}} onClick={saveWinners} disabled={saving}>{saved?'✅ Guardado!':saving?'Guardando…':'💾 Save Award Winners'}</button>
+        {saveErr&&<div style={{marginTop:8,fontSize:12,color:'#e55',background:'rgba(229,85,85,0.1)',border:'1px solid rgba(229,85,85,0.3)',borderRadius:6,padding:'6px 10px'}}>❌ {saveErr}</div>}
         <hr className="admin-divider"/>
         <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:6}}>⚽ Resultados de Partidos</div>
         <div style={{fontSize:12,color:'var(--mut)',marginBottom:14}}>Entrada manual. Los partidos guardados aquí tienen prioridad sobre el Sync de la API.</div>
@@ -2158,8 +2166,10 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ top_scorer:w.top_scorer||null, mvp:w.mvp||null, young:w.young||null, goalkeeper:w.goalkeeper||null }),
     });
-    if (!r.ok) { const b=await r.json().catch(()=>({})); console.error('[save-winners]', b); return; }
+    const b = await r.json().catch(()=>({}));
+    if (!r.ok) { console.error('[save-winners]', b); return b?.error || 'Error al guardar'; }
     await loadData();
+    return null;
   }
 
   if(session===undefined||loading)return(<><style>{CSS}</style><LoadingScreen/></>);

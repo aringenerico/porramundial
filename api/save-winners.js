@@ -9,19 +9,43 @@ export default async function handler(req, res) {
   if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
   const { top_scorer, mvp, young, goalkeeper } = req.body || {};
+  const payload = {
+    top_scorer: top_scorer || null,
+    mvp:        mvp        || null,
+    young:      young      || null,
+    goalkeeper: goalkeeper || null,
+  };
+
   const sb = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } });
 
-  // Upsert into row id=1 (single-row config table, bypasses RLS via service key)
-  const { error } = await sb.from('award_winners').upsert(
-    { id:1, top_scorer:top_scorer||null, mvp:mvp||null, young:young||null, goalkeeper:goalkeeper||null },
-    { onConflict: 'id' }
-  );
+  // Find existing row (table is a single-row config)
+  const { data: existing, error: selErr } = await sb
+    .from('award_winners')
+    .select('id')
+    .limit(1)
+    .maybeSingle();
 
-  if (error) {
-    console.error('[save-winners] error:', error.message);
-    return res.status(500).json({ error: error.message });
+  if (selErr) {
+    console.error('[save-winners] select error:', selErr.message);
+    return res.status(500).json({ step: 'select', error: selErr.message });
   }
 
-  console.log('[save-winners] saved ok:', { top_scorer, mvp, young, goalkeeper });
+  let error;
+  if (existing?.id) {
+    // Row exists — update it
+    ({ error } = await sb.from('award_winners').update(payload).eq('id', existing.id));
+    console.log('[save-winners] updated row id', existing.id);
+  } else {
+    // No row yet — insert
+    ({ error } = await sb.from('award_winners').insert(payload));
+    console.log('[save-winners] inserted new row');
+  }
+
+  if (error) {
+    console.error('[save-winners] write error:', error.message);
+    return res.status(500).json({ step: existing?.id ? 'update' : 'insert', error: error.message });
+  }
+
+  console.log('[save-winners] saved ok:', payload);
   res.status(200).json({ ok: true });
 }
