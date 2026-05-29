@@ -18,32 +18,20 @@ export default async function handler(req, res) {
 
   const sb = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } });
 
-  // Find existing row (table is a single-row config)
-  const { data: existing, error: selErr } = await sb
+  // Delete all rows — OR condition matches every row regardless of nulls
+  const { error: delErr } = await sb
     .from('award_winners')
-    .select('id')
-    .limit(1)
-    .maybeSingle();
+    .delete()
+    .or('top_scorer.is.null,top_scorer.not.is.null');
 
-  if (selErr) {
-    console.error('[save-winners] select error:', selErr.message);
-    return res.status(500).json({ step: 'select', error: selErr.message });
-  }
+  if (delErr) console.warn('[save-winners] delete warning:', delErr.message);
 
-  let error;
-  if (existing?.id) {
-    // Row exists — update it
-    ({ error } = await sb.from('award_winners').update(payload).eq('id', existing.id));
-    console.log('[save-winners] updated row id', existing.id);
-  } else {
-    // No row yet — insert
-    ({ error } = await sb.from('award_winners').insert(payload));
-    console.log('[save-winners] inserted new row');
-  }
+  // Insert fresh row
+  const { error } = await sb.from('award_winners').insert(payload);
 
   if (error) {
-    console.error('[save-winners] write error:', error.message);
-    return res.status(500).json({ step: existing?.id ? 'update' : 'insert', error: error.message });
+    console.error('[save-winners] insert error:', error.message);
+    return res.status(500).json({ step: 'insert', error: error.message });
   }
 
   console.log('[save-winners] saved ok:', payload);
