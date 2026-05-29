@@ -71,7 +71,17 @@ const LANGS = {
     step4_t:'Gana el premio',          step4_d:'Más puntos al final se lleva el 1er premio',
     prize1:'1er Premio', prize2:'2º Premio', prize3:'3er Premio',
     prize_tbd:'Por confirmar',
-    prize_tbd_note:'🎁 Los premios están pendientes de decisión · ¡Pronto habrá novedades!',
+    prize_tbd_note:'',
+    prize1_name:'Restaurantes para dos', prize2_name:'Sensaciones de bienestar', prize3_name:'Entradas de cine para dos',
+    prize1_price:'49,90€', prize2_price:'29,90€', prize3_price:'16,90€',
+    prize1_url:'https://www.smartbox.com/es/nuestras-smartbox/gastronomia/restaurantes-para-dos-849954.html',
+    prize2_url:'https://www.smartbox.com/es/nuestras-smartbox/bienestar/sensaciones-de-bienestar-1250516.html',
+    prize3_url:'https://www.smartbox.com/es/nuestras-smartbox/momentos-magicos/entradas-de-cine-para-dos-1237890.html',
+    my_position:'Tu Posición', for_leader:'para el líder', you_lead:'¡Vas primero!',
+    login_title:'Acceder a la Porra', login_desc:'Introduce tu correo y te enviamos un enlace mágico para entrar sin contraseña.',
+    login_email_ph:'tu@email.com', login_btn:'✉️ Enviar enlace mágico',
+    login_sent_title:'¡Revisa tu correo!', login_sent_desc:'Te hemos enviado un enlace. Haz clic en él para acceder.',
+    logout:'Cerrar sesión',
     register_btn:'⚡ Inscribirme y elegir mis equipos',
     reg_closed_msg:'🔒 Inscripción cerrada el 7 de junio de 2026',
     team_selection:'📋 Selección de Equipos', group_label:'Grupo',
@@ -135,7 +145,17 @@ const LANGS = {
     step4_t:'Win the prize',            step4_d:'Most points at the end wins the 1st prize',
     prize1:'1st Prize', prize2:'2nd Prize', prize3:'3rd Prize',
     prize_tbd:'To be confirmed',
-    prize_tbd_note:'🎁 Prizes are pending confirmation · Stay tuned!',
+    prize_tbd_note:'',
+    prize1_name:'Restaurants for Two', prize2_name:'Wellness Sensations', prize3_name:'Cinema Tickets for Two',
+    prize1_price:'49.90€', prize2_price:'29.90€', prize3_price:'16.90€',
+    prize1_url:'https://www.smartbox.com/es/nuestras-smartbox/gastronomia/restaurantes-para-dos-849954.html',
+    prize2_url:'https://www.smartbox.com/es/nuestras-smartbox/bienestar/sensaciones-de-bienestar-1250516.html',
+    prize3_url:'https://www.smartbox.com/es/nuestras-smartbox/momentos-magicos/entradas-de-cine-para-dos-1237890.html',
+    my_position:'Your Position', for_leader:'to the leader', you_lead:"You're leading!",
+    login_title:'Join the Pool', login_desc:"Enter your email and we'll send you a magic link — no password needed.",
+    login_email_ph:'you@email.com', login_btn:'✉️ Send magic link',
+    login_sent_title:'Check your inbox!', login_sent_desc:"We've sent you a link. Click it to sign in.",
+    logout:'Sign out',
     register_btn:'⚡ Register and pick my teams',
     reg_closed_msg:'🔒 Registration closed on June 7, 2026',
     team_selection:'📋 Team Selection', group_label:'Group',
@@ -199,7 +219,17 @@ const LANGS = {
     step4_t:'Ganhe o prêmio',           step4_d:'Quem tiver mais pontos no final ganha o 1º prêmio',
     prize1:'1º Prêmio', prize2:'2º Prêmio', prize3:'3º Prêmio',
     prize_tbd:'A confirmar',
-    prize_tbd_note:'🎁 Os prêmios estão pendentes de decisão · Em breve novidades!',
+    prize_tbd_note:'',
+    prize1_name:'Restaurantes para Dois', prize2_name:'Sensações de Bem-estar', prize3_name:'Entradas de Cinema para Dois',
+    prize1_price:'49,90€', prize2_price:'29,90€', prize3_price:'16,90€',
+    prize1_url:'https://www.smartbox.com/es/nuestras-smartbox/gastronomia/restaurantes-para-dos-849954.html',
+    prize2_url:'https://www.smartbox.com/es/nuestras-smartbox/bienestar/sensaciones-de-bienestar-1250516.html',
+    prize3_url:'https://www.smartbox.com/es/nuestras-smartbox/momentos-magicos/entradas-de-cine-para-dos-1237890.html',
+    my_position:'Sua Posição', for_leader:'para o líder', you_lead:'Você está na frente!',
+    login_title:'Entrar na Porra', login_desc:'Digite seu e-mail e enviaremos um link mágico para entrar sem senha.',
+    login_email_ph:'seu@email.com', login_btn:'✉️ Enviar link mágico',
+    login_sent_title:'Verifique seu e-mail!', login_sent_desc:'Enviamos um link. Clique nele para entrar.',
+    logout:'Sair',
     register_btn:'⚡ Inscrever-me e escolher meus times',
     reg_closed_msg:'🔒 Inscrições encerradas em 7 de junho de 2026',
     team_selection:'📋 Seleção de Times', group_label:'Grupo',
@@ -312,6 +342,9 @@ html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);
 .premio-medal{font-size:28px;margin-bottom:6px}
 .premio-tbd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin:4px 0 2px}
 .premio-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.premio-price{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin:4px 0 2px}
+.premio-link{font-size:11px;color:var(--mut);text-decoration:none;letter-spacing:0.5px;transition:color .2s}
+.premio-link:hover{color:var(--gold)}
 .sel-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
 .sel-prog-item{border-radius:10px;padding:10px 12px;border:1px solid;text-align:center;transition:var(--tr)}
 .sel-prog-g{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase}
@@ -497,11 +530,10 @@ function useCountdown(target) {
 function HomePage({ participants, goTo, t }) {
   const open=isRegistrationOpen();
   const countdown=useCountdown(DEADLINE);
-  // Prize cards — TBD version
   const prizeCards=[
-    {lbl:t.prize1,medal:'🥇',col:'var(--gold)'},
-    {lbl:t.prize2,medal:'🥈',col:'#b0b8cc'},
-    {lbl:t.prize3,medal:'🥉',col:'#9a7050'},
+    {lbl:t.prize1,medal:'🥇',col:'var(--gold)', name:t.prize1_name, price:t.prize1_price, url:t.prize1_url},
+    {lbl:t.prize2,medal:'🥈',col:'#b0b8cc',     name:t.prize2_name, price:t.prize2_price, url:t.prize2_url},
+    {lbl:t.prize3,medal:'🥉',col:'#9a7050',     name:t.prize3_name, price:t.prize3_price, url:t.prize3_url},
   ];
   return(
     <div className="page">
@@ -511,7 +543,7 @@ function HomePage({ participants, goTo, t }) {
         <div className="hero-grid">
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">{t.participants}</div></div>
           <div className="hero-stat"><div className="hero-stat-val">7</div><div className="hero-stat-lbl">{t.teams_entry}</div></div>
-          <div className="hero-stat"><div className="hero-stat-val">🏆</div><div className="hero-stat-lbl">{t.prize_tbd}</div></div>
+          <div className="hero-stat"><div className="hero-stat-val" style={{color:'var(--gold)'}}>95,70€</div><div className="hero-stat-lbl">{t.prize_title}</div></div>
         </div>
         {open&&countdown&&(
           <div style={{marginTop:20,padding:'14px 16px',background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10}}>
@@ -545,13 +577,12 @@ function HomePage({ participants, goTo, t }) {
           {prizeCards.map(p=>(
             <div key={p.lbl} className="premio-card" style={{background:`${p.col}10`,borderColor:`${p.col}40`}}>
               <div className="premio-medal">{p.medal}</div>
-              <div className="premio-tbd" style={{color:p.col}}>{t.prize_tbd}</div>
-              <div className="premio-lbl">{p.lbl}</div>
+              <div className="premio-tbd" style={{color:p.col}}>{p.lbl}</div>
+              <div className="premio-price" style={{color:p.col}}>{p.price}</div>
+              <div className="premio-lbl">{p.name}</div>
+              <a className="premio-link" href={p.url} target="_blank" rel="noopener noreferrer">smartbox.com ↗</a>
             </div>
           ))}
-        </div>
-        <div style={{marginTop:14,padding:'10px 14px',background:'rgba(78,94,120,0.2)',border:'1px solid rgba(78,94,120,0.35)',borderRadius:8,fontSize:12,color:'var(--mut)',textAlign:'center'}}>
-          {t.prize_tbd_note}
         </div>
       </div>
       {open?<button className="btn-primary" onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
@@ -599,20 +630,22 @@ function RulesPage({ t }) {
           ))}
         </div>
       </div>
-      {/* Prizes — TBD in Rules too */}
-      <div className="card">
+      <div className="card" style={{background:'linear-gradient(135deg,#0e1e38,#091428)'}}>
         <div className="sect-title">{t.prize_title}</div>
         <div className="premio-grid">
-          {[{medal:'🥇',pos:t.winner,col:'var(--gold)'},{medal:'🥈',pos:t.second,col:'#b0b8cc'},{medal:'🥉',pos:t.third,col:'#9a7050'}].map(p=>(
+          {[
+            {medal:'🥇',pos:t.prize1,col:'var(--gold)',name:t.prize1_name,price:t.prize1_price,url:t.prize1_url},
+            {medal:'🥈',pos:t.prize2,col:'#b0b8cc',    name:t.prize2_name,price:t.prize2_price,url:t.prize2_url},
+            {medal:'🥉',pos:t.prize3,col:'#9a7050',    name:t.prize3_name,price:t.prize3_price,url:t.prize3_url},
+          ].map(p=>(
             <div className="premio-card" key={p.pos} style={{background:`${p.col}10`,borderColor:`${p.col}40`}}>
               <div className="premio-medal">{p.medal}</div>
-              <div className="premio-tbd" style={{color:p.col}}>{t.prize_tbd}</div>
-              <div className="premio-lbl">{p.pos}</div>
+              <div className="premio-tbd" style={{color:p.col}}>{p.pos}</div>
+              <div className="premio-price" style={{color:p.col}}>{p.price}</div>
+              <div className="premio-lbl">{p.name}</div>
+              <a className="premio-link" href={p.url} target="_blank" rel="noopener noreferrer">smartbox.com ↗</a>
             </div>
           ))}
-        </div>
-        <div style={{marginTop:12,padding:'10px 14px',background:'rgba(78,94,120,0.2)',border:'1px solid rgba(78,94,120,0.35)',borderRadius:8,fontSize:12,color:'var(--mut)',textAlign:'center'}}>
-          {t.prize_tbd_note}
         </div>
       </div>
       <div className="card">
