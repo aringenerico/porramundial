@@ -1906,28 +1906,9 @@ export default function App() {
     setTimeout(()=>setTab('clasificacion'),1500);return true;
   }
 
-  function calcMatchPts(allMats) {
-    const blank=()=>({j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0});
-    const pts={};
-    for(const m of allMats){
-      const home=m.home_team,away=m.away_team;
-      const hg=m.home_goals??0,ag=m.away_goals??0;
-      const col=m.round_col;
-      if(!col)continue;
-      if(!pts[home])pts[home]=blank();if(!pts[away])pts[away]=blank();
-      pts[home][col]+=hg;pts[away][col]+=ag;
-      if(hg>ag)pts[home][col]+=3;else if(hg<ag)pts[away][col]+=3;else{pts[home][col]+=1;pts[away][col]+=1;}
-      if(col!=='j1'&&col!=='j2'&&col!=='j3'){pts[home][col]+=6;pts[away][col]+=6;}
-      if(col==='final'){const winner=hg>=ag?home:away;pts[winner][col]+=10;}
-    }
-    return pts;
-  }
-
   async function recalcAndSaveResults() {
-    const {data:allMats}=await supabase.from('matches').select('*');
-    const pts=calcMatchPts(allMats||[]);
-    const rows=Object.entries(pts).map(([team,p])=>({team,...p}));
-    if(rows.length){await supabase.from('results').upsert(rows,{onConflict:'team'});}
+    const r=await fetch('/api/recalc',{method:'POST'});
+    if(!r.ok){const b=await r.json().catch(()=>({}));console.error('recalc error:',b);}
   }
 
   async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col}) {
