@@ -84,6 +84,93 @@ const STAGE_COL = {
   'QUARTER_FINALS':'qf','SEMI_FINALS':'sf','FINAL':'final',
 };
 
+const ALL_TEAMS = Object.values(GROUPS).flatMap(g=>g.teams).sort();
+const KNOCKOUT_ROUNDS = [
+  {col:'r32',label:'Dieciseisavos'},{col:'r16',label:'Octavos'},
+  {col:'qf',label:'Cuartos'},{col:'sf',label:'Semifinal'},{col:'final',label:'Final'},
+];
+
+const FIXTURES = {
+  j1:[
+    {home:'Mexico',away:'South Africa',group:'A'},
+    {home:'South Korea',away:'Czech Republic',group:'A'},
+    {home:'Canada',away:'Bosnia and Herzegovina',group:'B'},
+    {home:'United States',away:'Paraguay',group:'D'},
+    {home:'Qatar',away:'Switzerland',group:'B'},
+    {home:'Brazil',away:'Morocco',group:'C'},
+    {home:'Haiti',away:'Scotland',group:'C'},
+    {home:'Australia',away:'Turkey',group:'D'},
+    {home:'Germany',away:'Curacao',group:'E'},
+    {home:'Netherlands',away:'Japan',group:'F'},
+    {home:'Ivory Coast',away:'Ecuador',group:'E'},
+    {home:'Sweden',away:'Tunisia',group:'F'},
+    {home:'Spain',away:'Cape Verde',group:'H'},
+    {home:'Belgium',away:'Egypt',group:'G'},
+    {home:'Saudi Arabia',away:'Uruguay',group:'H'},
+    {home:'Iran',away:'New Zealand',group:'G'},
+    {home:'France',away:'Senegal',group:'I'},
+    {home:'Iraq',away:'Norway',group:'I'},
+    {home:'Argentina',away:'Algeria',group:'J'},
+    {home:'Austria',away:'Jordan',group:'J'},
+    {home:'Portugal',away:'DR Congo',group:'K'},
+    {home:'England',away:'Croatia',group:'L'},
+    {home:'Ghana',away:'Panama',group:'L'},
+    {home:'Uzbekistan',away:'Colombia',group:'K'},
+  ],
+  j2:[
+    {home:'Czech Republic',away:'South Africa',group:'A'},
+    {home:'Switzerland',away:'Bosnia and Herzegovina',group:'B'},
+    {home:'Canada',away:'Qatar',group:'B'},
+    {home:'Mexico',away:'South Korea',group:'A'},
+    {home:'United States',away:'Australia',group:'D'},
+    {home:'Scotland',away:'Morocco',group:'C'},
+    {home:'Brazil',away:'Haiti',group:'C'},
+    {home:'Turkey',away:'Paraguay',group:'D'},
+    {home:'Netherlands',away:'Sweden',group:'F'},
+    {home:'Germany',away:'Ivory Coast',group:'E'},
+    {home:'Ecuador',away:'Curacao',group:'E'},
+    {home:'Tunisia',away:'Japan',group:'F'},
+    {home:'Spain',away:'Saudi Arabia',group:'H'},
+    {home:'Belgium',away:'Iran',group:'G'},
+    {home:'Uruguay',away:'Cape Verde',group:'H'},
+    {home:'New Zealand',away:'Egypt',group:'G'},
+    {home:'Argentina',away:'Austria',group:'J'},
+    {home:'France',away:'Iraq',group:'I'},
+    {home:'Norway',away:'Senegal',group:'I'},
+    {home:'Jordan',away:'Algeria',group:'J'},
+    {home:'Portugal',away:'Uzbekistan',group:'K'},
+    {home:'England',away:'Ghana',group:'L'},
+    {home:'Panama',away:'Croatia',group:'L'},
+    {home:'Colombia',away:'DR Congo',group:'K'},
+  ],
+  j3:[
+    {home:'Switzerland',away:'Canada',group:'B'},
+    {home:'Bosnia and Herzegovina',away:'Qatar',group:'B'},
+    {home:'Scotland',away:'Brazil',group:'C'},
+    {home:'Morocco',away:'Haiti',group:'C'},
+    {home:'Czech Republic',away:'Mexico',group:'A'},
+    {home:'South Africa',away:'South Korea',group:'A'},
+    {home:'Curacao',away:'Ivory Coast',group:'E'},
+    {home:'Ecuador',away:'Germany',group:'E'},
+    {home:'Japan',away:'Sweden',group:'F'},
+    {home:'Tunisia',away:'Netherlands',group:'F'},
+    {home:'Turkey',away:'United States',group:'D'},
+    {home:'Paraguay',away:'Australia',group:'D'},
+    {home:'Norway',away:'France',group:'I'},
+    {home:'Senegal',away:'Iraq',group:'I'},
+    {home:'Cape Verde',away:'Saudi Arabia',group:'H'},
+    {home:'Uruguay',away:'Spain',group:'H'},
+    {home:'Egypt',away:'Iran',group:'G'},
+    {home:'New Zealand',away:'Belgium',group:'G'},
+    {home:'Panama',away:'England',group:'L'},
+    {home:'Croatia',away:'Ghana',group:'L'},
+    {home:'Colombia',away:'Portugal',group:'K'},
+    {home:'DR Congo',away:'Uzbekistan',group:'K'},
+    {home:'Algeria',away:'Austria',group:'J'},
+    {home:'Jordan',away:'Argentina',group:'J'},
+  ],
+};
+
 const LANGS = {
   es: {
     pot:'Participantes', nav_home:'Inicio', nav_rules:'Normas', nav_teams:'Mis Equipos',
@@ -491,6 +578,24 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
 .admin-divider{border:none;border-top:1px solid var(--brd);margin:20px 0}
+.match-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.match-tab{padding:6px 14px;border-radius:7px;border:1px solid var(--brd);background:var(--sur2);color:var(--mut);font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:var(--tr);text-transform:uppercase}
+.match-tab.on{background:rgba(245,183,49,0.12);border-color:rgba(245,183,49,0.4);color:var(--gold)}
+.match-group-hdr{font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:12px 0 5px 2px}
+.match-row{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;border:1px solid var(--brd);border-left:3px solid var(--brd);margin-bottom:5px;background:var(--sur);transition:border-color .15s}
+.match-row.saved{border-left-color:var(--green)}
+.match-team{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
+.match-team-home{justify-content:flex-end}
+.match-name{font-size:11px;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px}
+.match-score{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.score-inp{width:34px;height:34px;text-align:center;background:var(--sur2);border:1px solid var(--brd);border-radius:6px;color:var(--white);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:16px;outline:none;transition:border-color .15s}
+.score-inp:focus{border-color:var(--gold)}
+.score-sep{color:var(--mut);font-weight:700;font-size:14px}
+.match-save-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--brd);background:var(--sur2);color:var(--mut);cursor:pointer;font-size:13px;flex-shrink:0;transition:var(--tr);display:flex;align-items:center;justify-content:center}
+.match-save-btn:not(:disabled):hover{border-color:var(--gold);color:var(--gold)}
+.match-save-btn.saved{border-color:rgba(74,222,128,0.4);color:var(--green);background:rgba(74,222,128,0.08)}
+.match-save-btn:disabled{opacity:0.35;cursor:default}
+.elim-form{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:14px;margin-bottom:14px}
 .pin-input{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:7px 12px;color:var(--white);font-size:14px;outline:none;width:140px;transition:border-color .2s}
 .pin-input:focus{border-color:var(--gold)}
 .pin-input.err{border-color:var(--pink)}
@@ -1334,19 +1439,132 @@ function FooterPin({ onUnlock }) {
   );
 }
 
-function AdminPage({ onSync, winnersMap, onSaveWinners }) {
+function MatchRow({ home, away, round, saved, onSave }) {
+  const [hg, setHg] = useState(saved?.home_goals?.toString() ?? '');
+  const [ag, setAg] = useState(saved?.away_goals?.toString() ?? '');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(!!saved);
+  useEffect(() => {
+    setHg(saved?.home_goals?.toString() ?? '');
+    setAg(saved?.away_goals?.toString() ?? '');
+    setDone(!!saved);
+  }, [saved?.id, saved?.home_goals, saved?.away_goals]);
+  const isDirty = hg !== (saved?.home_goals?.toString() ?? '') || ag !== (saved?.away_goals?.toString() ?? '');
+  const canSave = hg !== '' && ag !== '';
+  const save = async () => {
+    if (!canSave || busy) return;
+    setBusy(true);
+    const ok = await onSave({ home_team:home, away_team:away, home_goals:parseInt(hg), away_goals:parseInt(ag), round_col:round });
+    if (ok) setDone(true);
+    setBusy(false);
+  };
+  return (
+    <div className={`match-row${done && !isDirty ? ' saved' : ''}`}>
+      <div className="match-team match-team-home">
+        <span className="match-name">{home}</span>
+        <FlagChip team={home} size={20}/>
+      </div>
+      <div className="match-score">
+        <input className="score-inp" value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/,''));setDone(false);}} maxLength={2} inputMode="numeric" placeholder="–"/>
+        <span className="score-sep">–</span>
+        <input className="score-inp" value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/,''));setDone(false);}} maxLength={2} inputMode="numeric" placeholder="–"/>
+      </div>
+      <div className="match-team">
+        <FlagChip team={away} size={20}/>
+        <span className="match-name">{away}</span>
+      </div>
+      <button className={`match-save-btn${done && !isDirty ? ' saved' : ''}`} onClick={save} disabled={!canSave || busy}>
+        {busy ? '⏳' : done && !isDirty ? '✓' : '💾'}
+      </button>
+    </div>
+  );
+}
+
+function KnockoutSection({ savedMatches, onSaveMatch }) {
+  const [round, setRound] = useState('r32');
+  const [home, setHome] = useState('');
+  const [away, setAway] = useState('');
+  const [hg, setHg] = useState('');
+  const [ag, setAg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const knockoutSaved = (savedMatches||[]).filter(m => !['j1','j2','j3'].includes(m.round_col));
+  const save = async () => {
+    if (!home || !away || hg==='' || ag==='' || busy) return;
+    setBusy(true);
+    const ok = await onSaveMatch({ home_team:home, away_team:away, home_goals:parseInt(hg), away_goals:parseInt(ag), round_col:round });
+    if (ok) { setHg(''); setAg(''); setHome(''); setAway(''); }
+    setBusy(false);
+  };
+  return (
+    <div>
+      <div className="elim-form">
+        <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,fontWeight:700,marginBottom:10,fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif"}}>Añadir partido eliminatorio</div>
+        <select className="inp" style={{marginBottom:8}} value={round} onChange={e=>setRound(e.target.value)}>
+          {KNOCKOUT_ROUNDS.map(r=><option key={r.col} value={r.col}>{r.label}</option>)}
+        </select>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <select className="inp" style={{flex:1,marginBottom:0}} value={home} onChange={e=>setHome(e.target.value)}>
+            <option value="">Local…</option>
+            {ALL_TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+          <input className="score-inp" value={hg} onChange={e=>setHg(e.target.value.replace(/\D/,''))} maxLength={2} inputMode="numeric" placeholder="0"/>
+          <span className="score-sep">–</span>
+          <input className="score-inp" value={ag} onChange={e=>setAg(e.target.value.replace(/\D/,''))} maxLength={2} inputMode="numeric" placeholder="0"/>
+          <select className="inp" style={{flex:1,marginBottom:0}} value={away} onChange={e=>setAway(e.target.value)}>
+            <option value="">Visitante…</option>
+            {ALL_TEAMS.filter(t=>t!==home).map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+          <button className="btn-primary" onClick={save} disabled={!home||!away||hg===''||ag===''||busy} style={{minWidth:80,marginBottom:0}}>
+            {busy?'⏳':'💾 Guardar'}
+          </button>
+        </div>
+      </div>
+      {KNOCKOUT_ROUNDS.map(r => {
+        const ms = knockoutSaved.filter(m=>m.round_col===r.col);
+        if (!ms.length) return null;
+        return (
+          <div key={r.col}>
+            <div className="match-group-hdr">{r.label}</div>
+            {ms.map(m=><MatchRow key={m.id} home={m.home_team} away={m.away_team} round={m.round_col} saved={m} onSave={onSaveMatch}/>)}
+          </div>
+        );
+      })}
+      {!knockoutSaved.length && (
+        <div style={{textAlign:'center',padding:'28px 0',fontSize:13,color:'var(--mut)'}}>
+          No hay partidos eliminatorios registrados aún.<br/>
+          <span style={{fontSize:11}}>Aparecerán aquí a medida que avance el torneo.</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch }) {
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
   const [saving,setSaving]=useState(false);
   const [saved,setSaved]=useState(false);
+  const [matchTab,setMatchTab]=useState('j1');
   const sync=async()=>{setSyncing(true);await onSync(msg=>setLog(prev=>prev+'\n'+msg));setSyncing(false);};
   const saveWinners=async()=>{setSaving(true);await onSaveWinners(winners);setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),2000);};
+
+  // Build lookup: "home|away|round" → saved match
+  const savedByKey={};
+  (savedMatches||[]).forEach(m=>{
+    savedByKey[`${m.home_team}|${m.away_team}|${m.round_col}`]=m;
+    savedByKey[`${m.away_team}|${m.home_team}|${m.round_col}`]=m;
+  });
+  const manualCount=(savedMatches||[]).filter(m=>m.source==='manual').length;
+
   return(
     <div className="page">
       <div className="card" style={{border:'1px solid rgba(245,183,49,0.3)'}}>
         <div className="sect-title">⚙️ Admin Panel</div>
-        <div style={{fontSize:13,color:'var(--mut)',marginBottom:12}}>Fetches all finished World Cup 2026 matches from football-data.org and recalculates every team's points automatically.</div>
+        <div style={{fontSize:13,color:'var(--mut)',marginBottom:12}}>
+          Sincroniza resultados desde football-data.org.
+          {manualCount>0&&<span style={{color:'var(--gold)',marginLeft:6}}>⚠ {manualCount} partidos manuales — el Sync no los sobreescribirá.</span>}
+        </div>
         <button className="btn-primary" onClick={sync} disabled={syncing}>{syncing?'⏳ Syncing…':'🔄 Sync Results from API'}</button>
         {log&&<div className="admin-log">{log}</div>}
         <hr className="admin-divider"/>
@@ -1361,6 +1579,31 @@ function AdminPage({ onSync, winnersMap, onSaveWinners }) {
           ))}
         </div>
         <button className="btn-primary" style={{marginTop:14}} onClick={saveWinners} disabled={saving}>{saved?'✅ Saved!':saving?'⏳ Saving…':'💾 Save Award Winners'}</button>
+        <hr className="admin-divider"/>
+        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:6}}>⚽ Resultados de Partidos</div>
+        <div style={{fontSize:12,color:'var(--mut)',marginBottom:14}}>Entrada manual. Los partidos guardados aquí tienen prioridad sobre el Sync de la API.</div>
+        <div className="match-tabs">
+          {['j1','j2','j3','elim'].map(tab=>(
+            <button key={tab} className={`match-tab${matchTab===tab?' on':''}`} onClick={()=>setMatchTab(tab)}>
+              {tab==='j1'?'Jornada 1':tab==='j2'?'Jornada 2':tab==='j3'?'Jornada 3':'Eliminatorias'}
+            </button>
+          ))}
+        </div>
+        {matchTab!=='elim'&&(()=>{
+          const fixtures=FIXTURES[matchTab]||[];
+          const byGroup={};
+          fixtures.forEach(f=>{if(!byGroup[f.group])byGroup[f.group]=[];byGroup[f.group].push(f);});
+          return Object.entries(byGroup).sort().map(([g,ms])=>(
+            <div key={g}>
+              <div className="match-group-hdr">Grupo {g}</div>
+              {ms.map(f=>{
+                const s=savedByKey[`${f.home}|${f.away}|${matchTab}`];
+                return <MatchRow key={`${f.home}|${f.away}`} home={f.home} away={f.away} round={matchTab} saved={s} onSave={onSaveMatch}/>;
+              })}
+            </div>
+          ));
+        })()}
+        {matchTab==='elim'&&<KnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}/>}
       </div>
     </div>
   );
@@ -1599,6 +1842,7 @@ export default function App() {
   const [participants,setParticipants]=useState([]);
   const [resultsMap,setResultsMap]=useState({});
   const [winnersMap,setWinnersMap]=useState({});
+  const [matches,setMatches]=useState([]);
   const [loading,setLoading]=useState(true);
   const [adminMode,setAdminMode]=useState(false);
   const [lang,setLang]=useState(()=>{ try{return localStorage.getItem('lang')||'es';}catch{return 'es';} });
@@ -1623,15 +1867,17 @@ export default function App() {
   useEffect(()=>{loadData();},[]);
 
   async function loadData() {
-    const [{data:parts},{data:res},{data:winners}]=await Promise.all([
+    const [{data:parts},{data:res},{data:winners},{data:mats}]=await Promise.all([
       supabase.from('participants').select('*').order('created_at'),
       supabase.from('results').select('*'),
       supabase.from('award_winners').select('*'),
+      supabase.from('matches').select('*').order('id'),
     ]);
     setParticipants(parts||[]);
     const map={};(res||[]).forEach(r=>{map[r.team]=r;});setResultsMap(map);
     const row=winners?.[0]||{};
     setWinnersMap({top_scorer:row.top_scorer||'',mvp:row.mvp||'',best_young:row.young||'',best_goalkeeper:row.goalkeeper||''});
+    setMatches(mats||[]);
     setLoading(false);
   }
 
@@ -1660,17 +1906,74 @@ export default function App() {
     setTimeout(()=>setTab('clasificacion'),1500);return true;
   }
 
+  function calcMatchPts(allMats) {
+    const blank=()=>({j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0});
+    const pts={};
+    for(const m of allMats){
+      const home=m.home_team,away=m.away_team;
+      const hg=m.home_goals??0,ag=m.away_goals??0;
+      const col=m.round_col;
+      if(!col)continue;
+      if(!pts[home])pts[home]=blank();if(!pts[away])pts[away]=blank();
+      pts[home][col]+=hg;pts[away][col]+=ag;
+      if(hg>ag)pts[home][col]+=3;else if(hg<ag)pts[away][col]+=3;else{pts[home][col]+=1;pts[away][col]+=1;}
+      if(col!=='j1'&&col!=='j2'&&col!=='j3'){pts[home][col]+=6;pts[away][col]+=6;}
+      if(col==='final'){const winner=hg>=ag?home:away;pts[winner][col]+=10;}
+    }
+    return pts;
+  }
+
+  async function recalcAndSaveResults() {
+    const {data:allMats}=await supabase.from('matches').select('*');
+    const pts=calcMatchPts(allMats||[]);
+    const rows=Object.entries(pts).map(([team,p])=>({team,...p}));
+    if(rows.length){await supabase.from('results').upsert(rows,{onConflict:'team'});}
+  }
+
+  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col}) {
+    const a=home_team<away_team?home_team:away_team;
+    const b=home_team<away_team?away_team:home_team;
+    const {data:existing}=await supabase.from('matches').select('id')
+      .eq('round_col',round_col)
+      .filter('home_team','in',`("${a}","${b}")`)
+      .filter('away_team','in',`("${a}","${b}")`);
+    // Use upsert via unique index: (least(home,away), greatest(home,away), round_col)
+    const {error}=await supabase.from('matches').upsert(
+      {home_team,away_team,home_goals,away_goals,round_col,source:'manual'},
+      {onConflict:'home_team,away_team,round_col',ignoreDuplicates:false}
+    );
+    if(error){
+      // unique index is on sorted pair; try deleting and reinserting if teams are flipped
+      const {data:flip}=await supabase.from('matches').select('id,home_team,away_team')
+        .eq('round_col',round_col).or(`and(home_team.eq.${away_team},away_team.eq.${home_team})`);
+      if(flip?.length){await supabase.from('matches').delete().eq('id',flip[0].id);}
+      const {error:e2}=await supabase.from('matches').insert({home_team,away_team,home_goals,away_goals,round_col,source:'manual'});
+      if(e2){console.error('handleSaveMatch error:',e2);return false;}
+    }
+    await recalcAndSaveResults();
+    await loadData();
+    return true;
+  }
+
   async function handleSync(log) {
     log('Fetching matches from football-data.org…');
     try {
       const res=await fetch('/api/sync');
       const body=await res.json();
       if(!res.ok)throw new Error(body?.error||body?.message||`API ${res.status}`);
-      const {matches}=body;
-      const finished=matches.filter(m=>m.status==='FINISHED');
-      log(`${finished.length} finished matches found. Calculating points…`);
-      const blank=()=>({j1:0,j2:0,j3:0,r32:0,r16:0,qf:0,sf:0,final:0});
-      const pts={};
+      const {matches:apiMatches}=body;
+      const finished=apiMatches.filter(m=>m.status==='FINISHED');
+      log(`${finished.length} finished matches found.`);
+
+      // Load existing manual matches so we can skip them
+      const {data:manualMats}=await supabase.from('matches').select('home_team,away_team,round_col,source');
+      const manualKeys=new Set((manualMats||[]).filter(m=>m.source==='manual').map(m=>{
+        const a=m.home_team<m.away_team?m.home_team:m.away_team;
+        const b=m.home_team<m.away_team?m.away_team:m.home_team;
+        return `${a}|${b}|${m.round_col}`;
+      }));
+
+      const toUpsert=[];
       for(const m of finished){
         const home=normTeam(m.homeTeam.name),away=normTeam(m.awayTeam.name);
         const hg=m.score.fullTime.home??0,ag=m.score.fullTime.away??0;
@@ -1678,17 +1981,20 @@ export default function App() {
         if(m.stage==='GROUP_STAGE'){col=m.matchday===1?'j1':m.matchday===2?'j2':'j3';}
         else{col=STAGE_COL[m.stage];}
         if(!col)continue;
-        if(!pts[home])pts[home]=blank();if(!pts[away])pts[away]=blank();
-        pts[home][col]+=hg;pts[away][col]+=ag;
-        if(hg>ag)pts[home][col]+=3;else if(hg<ag)pts[away][col]+=3;else{pts[home][col]+=1;pts[away][col]+=1;}
-        if(col!=='j1'&&col!=='j2'&&col!=='j3'){pts[home][col]+=6;pts[away][col]+=6;}
-        if(col==='final'){const winner=hg>=ag?home:away;pts[winner][col]+=10;}
+        const a=home<away?home:away,b=home<away?away:home;
+        if(manualKeys.has(`${a}|${b}|${col}`)){log(`Skipping manual: ${home} vs ${away} (${col})`);continue;}
+        toUpsert.push({home_team:home,away_team:away,home_goals:hg,away_goals:ag,round_col:col,source:'api'});
       }
-      const rows=Object.entries(pts).map(([team,p])=>({team,...p}));
-      log(`Saving ${rows.length} teams to Supabase…`);
-      const {error}=await supabase.from('results').upsert(rows,{onConflict:'team'});
-      if(error)throw new Error(error.message);
-      await loadData();log(`✅ Done! ${rows.length} teams synced from ${finished.length} matches.`);
+
+      if(toUpsert.length){
+        log(`Storing ${toUpsert.length} API matches…`);
+        const {error:me}=await supabase.from('matches').upsert(toUpsert,{onConflict:'home_team,away_team,round_col',ignoreDuplicates:false});
+        if(me)log(`⚠️ Match store warning: ${me.message}`);
+      }
+
+      await recalcAndSaveResults();
+      await loadData();
+      log(`✅ Done! ${toUpsert.length} API matches stored.`);
     }catch(e){log(`❌ Error: ${e.message}`);}
   }
 
@@ -1739,7 +2045,7 @@ export default function App() {
       {tab==='seleccion'     &&!myParticipant    &&<RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t}/>}
-      {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners}/>}
+      {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch}/>}
       <FooterPin onUnlock={()=>{setAdminMode(true);setTab('admin');}}/>
       <nav className="bnav">
         {navItems.map(nt=>(
