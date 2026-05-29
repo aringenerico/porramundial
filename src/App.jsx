@@ -38,6 +38,40 @@ const AWARD_CONFIG = [
 const calcTotal = r =>
   (r?.j1||0)+(r?.j2||0)+(r?.j3||0)+(r?.r32||0)+(r?.r16||0)+(r?.qf||0)+(r?.sf||0)+(r?.final||0);
 
+// ── Tier helpers ──────────────────────────────────────────────
+const TEAM_TIER = (() => {
+  const map = {};
+  Object.entries(GROUPS).forEach(([key,g]) => g.teams.forEach(t => { map[t] = key; }));
+  return map;
+})();
+const tierOf = team => GROUPS[TEAM_TIER[team]] || null;
+
+// ── Team status helpers ───────────────────────────────────────
+const ROUND_ORDER = ['j1','j2','j3','r32','r16','qf','sf','final'];
+const ROUND_LABEL = {
+  j1:'Jornada 1', j2:'Jornada 2', j3:'Jornada 3',
+  r32:'Dieciseisavos', r16:'Octavos', qf:'Cuartos', sf:'Semifinal', final:'Final',
+};
+function tournamentStage(resultsMap) {
+  let maxIdx = -1;
+  Object.values(resultsMap||{}).forEach(r => {
+    ROUND_ORDER.forEach((col,i) => { if ((r?.[col]||0) > 0 && i > maxIdx) maxIdx = i; });
+  });
+  return maxIdx;
+}
+function teamStatus(team, resultsMap) {
+  const r = resultsMap?.[team];
+  const stageIdx = tournamentStage(resultsMap);
+  if (stageIdx < 0 || !r) return { state:'pending', reachedIdx:-1, label:'Por empezar' };
+  let reachedIdx = -1;
+  ROUND_ORDER.forEach((col,i) => { if ((r[col]||0) > 0) reachedIdx = i; });
+  if ((r.final||0) > 0 && stageIdx === ROUND_ORDER.length - 1)
+    return { state:'champion', reachedIdx, label:'Campeón' };
+  if (reachedIdx >= stageIdx)
+    return { state:'alive', reachedIdx, label: ROUND_LABEL[ROUND_ORDER[reachedIdx]] || '—' };
+  return { state:'out', reachedIdx, label:`Cayó en ${ROUND_LABEL[ROUND_ORDER[reachedIdx]]||'grupos'}` };
+}
+
 const ADMIN_PIN = 'Arin2026!';
 const FD_TEAM_MAP = {
   'Korea Republic':'South Korea',"Côte d'Ivoire":'Ivory Coast','IR Iran':'Iran',
@@ -446,6 +480,26 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .pin-input{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:7px 12px;color:var(--white);font-size:14px;outline:none;width:140px;transition:border-color .2s}
 .pin-input:focus{border-color:var(--gold)}
 .pin-input.err{border-color:var(--pink)}
+.squad-tier-group{margin-bottom:14px}
+.squad-tier-hdr{display:flex;align-items:center;gap:8px;margin:0 2px 8px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:11px;letter-spacing:0.1em;text-transform:uppercase}
+.squad-tier-hdr .pick{margin-left:auto;font-size:10px;color:var(--mut);font-weight:600;font-family:'Geist','Inter',system-ui,sans-serif}
+.squad-card{display:flex;align-items:center;gap:12px;background:var(--sur);border:1px solid var(--brd);border-radius:12px;padding:11px 13px;margin-bottom:7px;position:relative;transition:border-color .15s ease}
+.squad-card:hover{border-color:var(--brd2)}
+.squad-main{flex:1;min-width:0}
+.squad-top{display:flex;align-items:center;gap:6px}
+.squad-name{font-weight:700;font-size:14px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.squad-sub{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:2px}
+.tier-tag{font-weight:800;letter-spacing:0.06em;text-transform:uppercase;font-size:10px}
+.squad-dot{color:#64748B}
+.squad-bar{height:4px;background:var(--sur2);border-radius:99px;overflow:hidden;margin-top:7px;max-width:200px}
+.squad-bar>div{height:100%;border-radius:99px;transition:width .3s ease}
+.squad-pts{display:flex;flex-direction:column;align-items:flex-end;min-width:42px;flex-shrink:0}
+.squad-pts .num{font-size:17px;color:var(--white);line-height:1}
+.squad-pts-sub{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+.squad-state{position:absolute;top:9px;right:11px;font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:8.5px;letter-spacing:0.08em;padding:2px 7px;border-radius:99px}
+.mini-squad{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.mini-squad-item{position:relative}
+.mini-dot{position:absolute;bottom:-2px;right:-2px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bg)}
 .search-drop{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--sur);border:1px solid var(--gold);border-radius:12px;z-index:100;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
 .search-drop-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:none;border:none;border-bottom:1px solid var(--brd);color:var(--txt);font-size:13px;cursor:pointer;transition:background .1s;text-align:left;min-height:44px;gap:8px}
 .search-drop-item:last-child{border-bottom:none}
@@ -583,8 +637,17 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             </div>
             <button className="btn-ghost" style={{flexShrink:0}} onClick={()=>goTo('yo')}>Ver →</button>
           </div>
-          <div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:12}}>
-            {(myParticipant.teams||[]).map(tm=><span key={tm} className="sum-chip"><FlagChip team={tm} size={16}/> {tm}</span>)}
+          <div className="mini-squad">
+            {(myParticipant.teams||[]).map(tm => {
+              const st = teamStatus(tm, resultsMap);
+              const dotCol = st.state==='champion'?'var(--gold)':st.state==='alive'?'var(--green)':st.state==='out'?'#475569':'transparent';
+              return (
+                <div key={tm} className="mini-squad-item" style={{opacity:st.state==='out'?0.5:1}} title={`${tm} · ${st.label}`}>
+                  <FlagChip team={tm} size={26}/>
+                  <span className="mini-dot" style={{background:dotCol}}/>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -1182,6 +1245,46 @@ function AdminPage({ onSync, winnersMap, onSaveWinners }) {
   );
 }
 
+function SquadCard({ team, result, resultsMap, maxPts }) {
+  const tier = tierOf(team);
+  const total = calcTotal(result);
+  const st = teamStatus(team, resultsMap);
+  const tierColor = tier?.color || 'var(--mut)';
+  const dead = st.state === 'out';
+  const pct = maxPts > 0 ? Math.round((total / maxPts) * 100) : 0;
+  const stateChip = {
+    alive:    { txt:'VIVO',    col:'var(--green)', bg:'rgba(74,222,128,0.12)' },
+    out:      { txt:'FUERA',   col:'var(--mut)',   bg:'rgba(255,255,255,0.04)' },
+    champion: { txt:'CAMPEÓN', col:'var(--gold)',  bg:'rgba(245,183,49,0.14)' },
+    pending:  { txt:'—',       col:'var(--mut)',   bg:'rgba(255,255,255,0.04)' },
+  }[st.state];
+  return (
+    <div className="squad-card" style={{borderLeft:`3px solid ${tierColor}`,opacity:dead?0.55:1}}>
+      <FlagChip team={team} size={36}/>
+      <div className="squad-main">
+        <div className="squad-top">
+          <span className="squad-name">{team}</span>
+          {st.state==='alive'&&(TEAM_TIER[team]==='g4'||TEAM_TIER[team]==='g3')&&st.reachedIdx>=5&&
+            <Icon name="flame" size={13} color="#ff6b35"/>}
+        </div>
+        <div className="squad-sub">
+          <span className="tier-tag" style={{color:tierColor}}>{tier?.label}</span>
+          <span className="squad-dot">·</span>
+          <span style={{color:dead?'var(--mut)':'var(--txt)'}}>{st.label}</span>
+        </div>
+        <div className="squad-bar"><div style={{width:`${pct}%`,background:tierColor}}/></div>
+      </div>
+      <div className="squad-pts">
+        <span className="num">{total}</span>
+        <span className="squad-pts-sub">pts</span>
+      </div>
+      <span className="squad-state" style={{color:stateChip.col,background:stateChip.bg}}>
+        {stateChip.txt}
+      </span>
+    </div>
+  );
+}
+
 function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t }) {
   if(!myParticipant)return(
     <div className="page"><div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
@@ -1220,7 +1323,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
             <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:24,color:'var(--white)',letterSpacing:2,textTransform:'uppercase',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{myParticipant.name}</div>
             <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
             {rank>1&&leaderTotal>0&&<div style={{fontSize:13,color:'var(--mut)',marginTop:2}}>+{leaderTotal-grandTotal} pts para el 1º</div>}
-            {rank===1&&<div style={{fontSize:13,color:'var(--gold)',marginTop:2}}>¡Vas primero! 🥇</div>}
+            {rank===1&&<div style={{fontSize:13,color:'var(--gold)',marginTop:2,display:'flex',alignItems:'center',gap:4}}><Icon name="crown" size={13} color="var(--gold)"/> ¡Vas primero!</div>}
           </div>
         </div>
         {bonusPts>0&&(
@@ -1230,20 +1333,36 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
         )}
       </div>
 
-      {/* Teams breakdown */}
+      {/* Teams breakdown — living roster */}
       <div className="card">
-        <div className="sect-title" style={{marginBottom:12}}>📊 Puntos por equipo</div>
-        {rows.length===0?(
-          <div style={{textAlign:'center',padding:'32px 0',fontSize:13,color:'var(--mut)'}}>Los resultados estarán disponibles cuando empiece el torneo.</div>
-        ):(
-          <TeamTable rows={rows} showIndex={false}/>
-        )}
-        {rows.length>0&&(
-          <div style={{display:'flex',justifyContent:'flex-end',paddingTop:10,borderTop:'1px solid var(--brd)',marginTop:4}}>
-            <span style={{fontSize:13,color:'var(--mut)',marginRight:8}}>Total equipos:</span>
-            <span style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
+        <div className="sect-title" style={{marginBottom:12}}>Mi plantilla</div>
+        {tournamentStage(resultsMap) < 0 ? (
+          <div style={{textAlign:'center',padding:'28px 0',fontSize:13,color:'var(--mut)'}}>
+            Tu plantilla cobra vida cuando empiece el torneo.
           </div>
+        ) : (
+          Object.entries(GROUPS).map(([key,g]) => {
+            const teamsInTier = (myParticipant.teams||[]).filter(t => TEAM_TIER[t] === key);
+            if (!teamsInTier.length) return null;
+            const maxPts = Math.max(...(myParticipant.teams||[]).map(t => calcTotal(resultsMap[t]||{})), 1);
+            const sorted = [...teamsInTier].sort((a,b) => calcTotal(resultsMap[b]||{}) - calcTotal(resultsMap[a]||{}));
+            return (
+              <div className="squad-tier-group" key={key}>
+                <div className="squad-tier-hdr" style={{color:g.color}}>
+                  {g.label}
+                  <span className="pick">{teamsInTier.length} {teamsInTier.length>1?'equipos':'equipo'}</span>
+                </div>
+                {sorted.map(t => (
+                  <SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} maxPts={maxPts}/>
+                ))}
+              </div>
+            );
+          })
         )}
+        <div style={{display:'flex',justifyContent:'flex-end',paddingTop:10,borderTop:'1px solid var(--brd)',marginTop:4}}>
+          <span style={{fontSize:13,color:'var(--mut)',marginRight:8}}>Total equipos:</span>
+          <span className="num" style={{fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
+        </div>
       </div>
 
       {/* Award predictions */}
