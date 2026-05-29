@@ -171,6 +171,54 @@ const FIXTURES = {
   ],
 };
 
+// Tournament groups A-L (for bracket resolution)
+const TOURNEY_GROUPS = {
+  A:['Mexico','South Africa','South Korea','Czech Republic'],
+  B:['Canada','Bosnia and Herzegovina','Qatar','Switzerland'],
+  C:['Brazil','Morocco','Haiti','Scotland'],
+  D:['United States','Paraguay','Australia','Turkey'],
+  E:['Germany','Curacao','Ivory Coast','Ecuador'],
+  F:['Netherlands','Japan','Sweden','Tunisia'],
+  G:['Belgium','Egypt','Iran','New Zealand'],
+  H:['Spain','Cape Verde','Saudi Arabia','Uruguay'],
+  I:['France','Senegal','Iraq','Norway'],
+  J:['Argentina','Algeria','Austria','Jordan'],
+  K:['Portugal','DR Congo','Uzbekistan','Colombia'],
+  L:['England','Croatia','Ghana','Panama'],
+};
+
+// Full knockout bracket template
+// Slot codes: 'A1'=Group A winner, 'B2'=runner-up, 'T1'-'T8'=best 3rd-place
+// 'r32_Nw'=winner of r32 match N, etc.
+const BRACKET = {
+  r32:[
+    {n:1,home:'A1',away:'B2'},{n:2,home:'C1',away:'D2'},
+    {n:3,home:'B1',away:'A2'},{n:4,home:'D1',away:'C2'},
+    {n:5,home:'E1',away:'F2'},{n:6,home:'G1',away:'H2'},
+    {n:7,home:'F1',away:'E2'},{n:8,home:'H1',away:'G2'},
+    {n:9,home:'I1',away:'J2'},{n:10,home:'K1',away:'L2'},
+    {n:11,home:'J1',away:'I2'},{n:12,home:'L1',away:'K2'},
+    {n:13,home:'T1',away:'T2'},{n:14,home:'T3',away:'T4'},
+    {n:15,home:'T5',away:'T6'},{n:16,home:'T7',away:'T8'},
+  ],
+  r16:[
+    {n:1,home:'r32_1w',away:'r32_2w'},{n:2,home:'r32_3w',away:'r32_4w'},
+    {n:3,home:'r32_5w',away:'r32_6w'},{n:4,home:'r32_7w',away:'r32_8w'},
+    {n:5,home:'r32_9w',away:'r32_10w'},{n:6,home:'r32_11w',away:'r32_12w'},
+    {n:7,home:'r32_13w',away:'r32_14w'},{n:8,home:'r32_15w',away:'r32_16w'},
+  ],
+  qf:[
+    {n:1,home:'r16_1w',away:'r16_2w'},{n:2,home:'r16_3w',away:'r16_4w'},
+    {n:3,home:'r16_5w',away:'r16_6w'},{n:4,home:'r16_7w',away:'r16_8w'},
+  ],
+  sf:[
+    {n:1,home:'qf_1w',away:'qf_2w'},{n:2,home:'qf_3w',away:'qf_4w'},
+  ],
+  final:[
+    {n:1,home:'sf_1w',away:'sf_2w'},
+  ],
+};
+
 const LANGS = {
   es: {
     pot:'Participantes', nav_home:'Inicio', nav_rules:'Normas', nav_teams:'Mis Equipos',
@@ -1487,59 +1535,157 @@ function MatchRow({ home, away, round, saved, onSave }) {
   );
 }
 
-function KnockoutSection({ savedMatches, onSaveMatch }) {
-  const [round, setRound] = useState('r32');
-  const [home, setHome] = useState('');
-  const [away, setAway] = useState('');
-  const [hg, setHg] = useState('');
-  const [ag, setAg] = useState('');
-  const [busy, setBusy] = useState(false);
-  const knockoutSaved = (savedMatches||[]).filter(m => !['j1','j2','j3'].includes(m.round_col));
-  const save = async () => {
-    if (!home || !away || hg==='' || ag==='' || busy) return;
-    setBusy(true);
-    const ok = await onSaveMatch({ home_team:home, away_team:away, home_goals:parseInt(hg), away_goals:parseInt(ag), round_col:round });
-    if (ok) { setHg(''); setAg(''); setHome(''); setAway(''); }
-    setBusy(false);
-  };
+// Calculate group standings for tournament group A-L
+function calcGroupStandings(gk, allMatches) {
+  const teams = TOURNEY_GROUPS[gk]; if (!teams) return [];
+  const s = {};
+  teams.forEach(t => { s[t]={pts:0,gf:0,ga:0,gd:0,w:0,d:0,l:0,played:0}; });
+  (allMatches||[]).filter(m =>
+    ['j1','j2','j3'].includes(m.round_col) &&
+    teams.includes(m.home_team) && teams.includes(m.away_team) &&
+    m.home_goals != null && m.away_goals != null
+  ).forEach(m => {
+    const hg=m.home_goals, ag=m.away_goals;
+    s[m.home_team].gf+=hg; s[m.home_team].ga+=ag; s[m.home_team].played++;
+    s[m.away_team].gf+=ag; s[m.away_team].ga+=hg; s[m.away_team].played++;
+    if(hg>ag){s[m.home_team].pts+=3;s[m.home_team].w++;s[m.away_team].l++;}
+    else if(hg<ag){s[m.away_team].pts+=3;s[m.away_team].w++;s[m.home_team].l++;}
+    else{s[m.home_team].pts+=1;s[m.home_team].d++;s[m.away_team].pts+=1;s[m.away_team].d++;}
+  });
+  teams.forEach(t=>{s[t].gd=s[t].gf-s[t].ga;});
+  return teams.map(t=>({team:t,...s[t]})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+}
+
+// Resolve a bracket slot code to actual team name
+function resolveSlot(slot, allMatches) {
+  const grp=/^([A-L])([123])$/.exec(slot);
+  if(grp){
+    const st=calcGroupStandings(grp[1],allMatches), pos=parseInt(grp[2])-1;
+    const done=st.length===4&&st.every(x=>x.played===3);
+    return done&&st[pos]?{team:st[pos].team,label:slot,ready:true}:{team:null,label:slot,ready:false};
+  }
+  const t3=/^T([1-8])$/.exec(slot);
+  if(t3){
+    const rank=parseInt(t3[1])-1;
+    const allDone=Object.keys(TOURNEY_GROUPS).every(gk=>{
+      const st=calcGroupStandings(gk,allMatches);return st.length===4&&st.every(x=>x.played===3);
+    });
+    if(allDone){
+      const thirds=Object.keys(TOURNEY_GROUPS)
+        .map(gk=>calcGroupStandings(gk,allMatches)[2]).filter(Boolean)
+        .sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf).slice(0,8);
+      if(thirds[rank])return{team:thirds[rank].team,label:`3°${rank+1}`,ready:true};
+    }
+    return{team:null,label:`3°${rank+1}`,ready:false};
+  }
+  const prev=/^(r32|r16|qf|sf)_(\d+)w$/.exec(slot);
+  if(prev){
+    const[,rnd,n]=prev; const bm=(BRACKET[rnd]||[])[parseInt(n)-1];
+    if(!bm)return{team:null,label:slot,ready:false};
+    const h=resolveSlot(bm.home,allMatches),a=resolveSlot(bm.away,allMatches);
+    if(!h.team||!a.team)return{team:null,label:`W(${rnd.toUpperCase()}${n})`,ready:false};
+    const sv=(allMatches||[]).find(m=>
+      m.round_col===rnd&&m.home_goals!=null&&m.away_goals!=null&&
+      ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
+    );
+    if(!sv)return{team:null,label:`W(${rnd.toUpperCase()}${n})`,ready:false};
+    return{team:sv.home_goals>=sv.away_goals?sv.home_team:sv.away_team,label:`W(${rnd.toUpperCase()}${n})`,ready:true};
+  }
+  return{team:null,label:slot,ready:false};
+}
+
+function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
+  const [roundTab,setRoundTab]=useState('grupos');
+  const tabs=[
+    {key:'grupos',label:'Grupos'},
+    {key:'r32',label:'D16'},
+    {key:'r16',label:'Octavos'},
+    {key:'qf',label:'Cuartos'},
+    {key:'sf',label:'Semis'},
+    {key:'final',label:'Final'},
+  ];
   return (
     <div>
-      <div className="elim-form">
-        <div style={{fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,fontWeight:700,marginBottom:10,fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif"}}>Añadir partido eliminatorio</div>
-        <select className="inp" style={{marginBottom:8}} value={round} onChange={e=>setRound(e.target.value)}>
-          {KNOCKOUT_ROUNDS.map(r=><option key={r.col} value={r.col}>{r.label}</option>)}
-        </select>
-        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-          <select className="inp" style={{flex:1,marginBottom:0}} value={home} onChange={e=>setHome(e.target.value)}>
-            <option value="">Local…</option>
-            {ALL_TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
-          </select>
-          <input className="score-inp" value={hg} onChange={e=>setHg(e.target.value.replace(/\D/,''))} maxLength={2} inputMode="numeric" placeholder="0"/>
-          <span className="score-sep">–</span>
-          <input className="score-inp" value={ag} onChange={e=>setAg(e.target.value.replace(/\D/,''))} maxLength={2} inputMode="numeric" placeholder="0"/>
-          <select className="inp" style={{flex:1,marginBottom:0}} value={away} onChange={e=>setAway(e.target.value)}>
-            <option value="">Visitante…</option>
-            {ALL_TEAMS.filter(t=>t!==home).map(t=><option key={t} value={t}>{t}</option>)}
-          </select>
-          <button className="btn-primary" onClick={save} disabled={!home||!away||hg===''||ag===''||busy} style={{minWidth:80,marginBottom:0}}>
-            {busy?'⏳':'💾 Guardar'}
+      <div className="match-tabs" style={{overflowX:'auto',flexWrap:'nowrap',paddingBottom:2}}>
+        {tabs.map(t=>(
+          <button key={t.key} className={`match-tab${roundTab===t.key?' on':''}`} onClick={()=>setRoundTab(t.key)}>
+            {t.label}
           </button>
-        </div>
+        ))}
       </div>
-      {KNOCKOUT_ROUNDS.map(r => {
-        const ms = knockoutSaved.filter(m=>m.round_col===r.col);
-        if (!ms.length) return null;
-        return (
-          <div key={r.col}>
-            <div className="match-group-hdr">{r.label}</div>
-            {ms.map(m=><MatchRow key={m.id} home={m.home_team} away={m.away_team} round={m.round_col} saved={m} onSave={onSaveMatch}/>)}
-          </div>
-        );
-      })}
-      {!knockoutSaved.length && (
-        <div style={{textAlign:'center',padding:'28px 0',fontSize:13,color:'var(--mut)'}}>
-          No hay partidos eliminatorios registrados aún.<br/>
-          <span style={{fontSize:11}}>Aparecerán aquí a medida que avance el torneo.</span>
+      {roundTab==='grupos'?(
+        <div>
+          {Object.keys(TOURNEY_GROUPS).map(gk=>{
+            const st=calcGroupStandings(gk,savedMatches);
+            const done=st.length===4&&st.every(s=>s.played===3);
+            return(
+              <div key={gk} style={{marginBottom:14}}>
+                <div className="match-group-hdr" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span>Grupo {gk}</span>
+                  {done&&<span style={{fontSize:10,color:'var(--green)',fontWeight:700,letterSpacing:0.5}}>✓ COMPLETO</span>}
+                </div>
+                <div style={{background:'var(--sur2)',borderRadius:8,border:'1px solid var(--brd)',overflow:'hidden'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
+                    <thead>
+                      <tr style={{background:'rgba(255,255,255,0.03)'}}>
+                        <th style={{textAlign:'left',padding:'5px 8px',color:'var(--mut)',fontWeight:600,fontSize:10}}>Equipo</th>
+                        <th style={{textAlign:'center',width:24,color:'var(--mut)',fontWeight:600,fontSize:10}}>J</th>
+                        <th style={{textAlign:'center',width:24,color:'var(--mut)',fontWeight:600,fontSize:10}}>G</th>
+                        <th style={{textAlign:'center',width:28,color:'var(--mut)',fontWeight:600,fontSize:10}}>GD</th>
+                        <th style={{textAlign:'center',width:28,color:'var(--gold)',fontWeight:700,fontSize:10}}>Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {st.map((s,idx)=>{
+                        const bL=idx===0?'3px solid var(--green)':idx===1?'3px solid rgba(74,222,128,0.45)':idx===2?'3px solid rgba(245,183,49,0.3)':'3px solid transparent';
+                        return(
+                          <tr key={s.team} style={{borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                            <td style={{padding:'6px 8px 6px 6px',borderLeft:bL}}>
+                              <div style={{display:'flex',alignItems:'center',gap:5}}>
+                                <FlagChip team={s.team} size={17}/>
+                                <span style={{color:idx<2?'var(--white)':'var(--mut)',fontWeight:idx<2?500:400,maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.team}</span>
+                              </div>
+                            </td>
+                            <td style={{textAlign:'center',padding:'6px 4px',color:'var(--mut)'}}>{s.played}</td>
+                            <td style={{textAlign:'center',padding:'6px 4px',color:'var(--mut)'}}>{s.w}</td>
+                            <td style={{textAlign:'center',padding:'6px 4px',color:s.gd>0?'var(--green)':s.gd<0?'#e55':'var(--mut)'}}>{s.gd>0?'+':''}{s.gd}</td>
+                            <td style={{textAlign:'center',padding:'6px 4px',color:'var(--gold)',fontWeight:700}}>{s.pts}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ):(
+        <div>
+          {(BRACKET[roundTab]||[]).map(bm=>{
+            const h=resolveSlot(bm.home,savedMatches),a=resolveSlot(bm.away,savedMatches);
+            if(!h.ready||!a.ready){
+              return(
+                <div key={bm.n} style={{display:'flex',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',gap:6}}>
+                  <div style={{flex:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
+                    {h.team?<><FlagChip team={h.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{h.team}</span></>
+                    :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{h.label}</span>}
+                  </div>
+                  <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,width:22,textAlign:'center'}}>vs</span>
+                  <div style={{flex:1,display:'flex',alignItems:'center',gap:5}}>
+                    {a.team?<><FlagChip team={a.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{a.team}</span></>
+                    :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{a.label}</span>}
+                  </div>
+                  <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,paddingLeft:4}}>pendiente</span>
+                </div>
+              );
+            }
+            const sv=(savedMatches||[]).find(m=>
+              m.round_col===roundTab&&
+              ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
+            );
+            return <MatchRow key={bm.n} home={h.team} away={a.team} round={roundTab} saved={sv} onSave={onSaveMatch}/>;
+          })}
         </div>
       )}
     </div>
@@ -1610,7 +1756,7 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
             </div>
           ));
         })()}
-        {matchTab==='elim'&&<KnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}/>}
+        {matchTab==='elim'&&<AutoKnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}/>}
       </div>
     </div>
   );
