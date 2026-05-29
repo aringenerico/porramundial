@@ -29,10 +29,10 @@ const GROUPS = {
 
 
 const AWARD_CONFIG = [
-  { key:"top_scorer",      col:"pick_top_scorer", label:"Top Scorer",             icon:"boot"  },
-  { key:"mvp",             col:"pick_mvp",        label:"Tournament MVP",          icon:"mvp"   },
-  { key:"best_young",      col:"pick_young",      label:"Best Young Player (U21)", icon:"star"  },
-  { key:"best_goalkeeper", col:"pick_goalkeeper", label:"Best Goalkeeper",         icon:"glove" },
+  { key:"top_scorer",      col:"top_scorer",      label:"Top Scorer",             icon:"boot"  },
+  { key:"mvp",             col:"mvp",             label:"Tournament MVP",          icon:"mvp"   },
+  { key:"best_young",      col:"best_young",      label:"Best Young Player (U21)", icon:"star"  },
+  { key:"best_goalkeeper", col:"best_goalkeeper", label:"Best Goalkeeper",         icon:"glove" },
 ];
 
 const calcTotal = r =>
@@ -1645,10 +1645,10 @@ export default function App() {
     if(existing)return 'duplicate';
     const {error}=await supabase.from('participants').insert({
       name, teams, user_id:userId||null,
-      pick_top_scorer:picks.top_scorer||null,
-      pick_mvp:picks.mvp||null,
-      pick_young:picks.best_young||null,
-      pick_goalkeeper:picks.best_goalkeeper||null,
+      top_scorer:picks.top_scorer||null,
+      mvp:picks.mvp||null,
+      best_young:picks.best_young||null,
+      best_goalkeeper:picks.best_goalkeeper||null,
     });
     if(error){if(error.code==='23505')return 'duplicate';console.error('Register error:',error);return 'error';}
     await loadData();
