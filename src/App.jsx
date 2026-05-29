@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { FlagChip } from './design/FlagChip';
 import { Icon } from './design/Icon';
@@ -193,12 +193,12 @@ const LANGS = {
     prize3_url:'https://www.smartbox.com/es/nuestras-smartbox/momentos-magicos/entradas-de-cine-para-dos-1237890.html',
     my_position:'Tu Posición', for_leader:'para el líder', you_lead:'¡Vas primero!',
     login_title:'Acceder a la Porra', login_desc:'Introduce tu correo y te enviamos un enlace mágico para entrar sin contraseña.',
-    login_email_ph:'tu@email.com', login_btn:'✉️ Enviar enlace mágico',
+    login_email_ph:'tu@email.com', login_btn:'Enviar enlace mágico',
     login_sent_title:'¡Revisa tu correo!', login_sent_desc:'Te hemos enviado un enlace. Haz clic en él para acceder.',
     logout:'Cerrar sesión',
-    register_btn:'⚡ Inscribirme y elegir mis equipos',
-    reg_closed_msg:'🔒 Inscripción cerrada el 7 de junio de 2026',
-    team_selection:'📋 Selección de Equipos', group_label:'Grupo',
+    register_btn:'Inscribirme y elegir mis equipos',
+    reg_closed_msg:'Inscripción cerrada el 7 de junio de 2026',
+    team_selection:'Selección de Equipos', group_label:'Grupo',
     pick_team:'Elige', pick_team_s:'equipo', pick_team_p:'equipos',
     teams_available:'equipos disponibles',
     scoring_title:'Sistema de Puntuación',
@@ -208,12 +208,12 @@ const LANGS = {
     sc_champ:'Ganar el torneo', sc_champ_n:'Bonus final',
     sc_top:'Máximo goleador del torneo', sc_top_n:'Si está en tu selección',
     sc_def:'Menos goles encajados', sc_def_n:'Solo semifinalistas',
-    award_bonus_title:'🎖️ Bonus Predicciones de Premios',
+    award_bonus_title:'Bonus Predicciones de Premios',
     award_bonus_desc:'Predice los 4 premios del torneo al inscribirte. Cada predicción correcta añade',
     award_bonus_max:'Máximo',
-    prize_title:'🏆 Premios',
+    prize_title:'Premios',
     winner:'Ganador', second:'2º Puesto', third:'3er Puesto',
-    format_title:'📅 Formato del Torneo',
+    format_title:'Formato del Torneo',
     format:[
       {phase:'Fase de Grupos',detail:'Jornadas 1, 2 y 3'},
       {phase:'Octavos de Final',detail:'32 equipos → 16'},
@@ -224,25 +224,25 @@ const LANGS = {
     ],
     reg_closed_title:'INSCRIPCIONES CERRADAS', reg_closed_date:'La inscripción terminó el', reg_closed_end:'7 de junio de 2026',
     step_name:'Nombre', step_teams:'Equipos', step_awards:'Premios', step_confirm:'Confirmar',
-    your_name:'👤 Tu Nombre', full_name:'Nombre completo', full_name_hint:'Nombre + Apellido',
+    your_name:'Tu Nombre', full_name:'Nombre completo', full_name_hint:'Nombre + Apellido',
     name_placeholder:'ej. Pedro Sánchez',
     err_duplicate:'Ese nombre ya está inscrito. Prueba con otro nombre completo.',
     err_general:'Error al inscribirse. Comprueba tu conexión e inténtalo de nuevo.',
-    teams_summary:'🗂️ Tus equipos seleccionados',
-    award_preds:'🎯 Predicciones de Premios', pts_each:'+10 pts cada uno', x_selected:'seleccionados',
+    teams_summary:'Tus equipos seleccionados',
+    award_preds:'Predicciones de Premios', pts_each:'+10 pts cada uno', x_selected:'seleccionados',
     btn_name:'Introduce tu nombre para continuar', btn_teams:'Elige todos tus equipos',
-    btn_awards:'Elige las 4 predicciones de premios', btn_confirm:'✅ Confirmar inscripción', btn_saving:'⏳ Guardando…',
+    btn_awards:'Elige las 4 predicciones de premios', btn_confirm:'Confirmar inscripción', btn_saving:'Guardando…',
     reg_ok_title:'¡Inscripción completada!', reg_ok_sub:'Tus equipos y predicciones se han guardado. ¡Buena suerte!',
-    your_award_preds:'🎖️ TUS PREDICCIONES DE PREMIOS',
+    your_award_preds:'TUS PREDICCIONES DE PREMIOS',
     select_player:'Selecciona jugador', loading_players:'Cargando jugadores…',
     search_players:'Buscar jugadores…', no_results_for:'Sin resultados para',
-    search_title:'🔍 Buscar Participante', search_ph:'Nombre del participante…', search_btn:'BUSCAR',
+    search_title:'Buscar Participante', search_ph:'Nombre del participante…', search_btn:'BUSCAR',
     not_found_pre:'No se encontró ningún participante con el nombre', not_found_post:'Comprueba la ortografía e inténtalo de nuevo.',
     teams_selected:'equipos seleccionados', total_pts:'Pts totales', rank_label:'Pos',
-    award_preds_label:'Predicciones de Premios', points_by_team:'📊 Puntos por Equipo',
+    award_preds_label:'Predicciones de Premios', points_by_team:'Puntos por Equipo',
     refresh:'↻ Actualizar', no_results_title:'LOS RESULTADOS ESTARÁN DISPONIBLES AL INICIO DEL TORNEO',
     no_results_date:'11 de junio de 2026',
-    award_winners:'🏅 Ganadores de Premios', no_part_title:'SIN PARTICIPANTES AÚN', no_part_sub:'Sé el primero en inscribirte',
+    award_winners:'Ganadores de Premios', no_part_title:'SIN PARTICIPANTES AÚN', no_part_sub:'Sé el primero en inscribirte',
     pts:'pts', pot_footer:'Participantes', part_footer:'participantes', entry_short:'',
     refresh_lb:'↻ Actualizar clasificación', page_of:'de',
   },
@@ -267,12 +267,12 @@ const LANGS = {
     prize3_url:'https://www.smartbox.com/es/nuestras-smartbox/momentos-magicos/entradas-de-cine-para-dos-1237890.html',
     my_position:'Your Position', for_leader:'to the leader', you_lead:"You're leading!",
     login_title:'Join the Pool', login_desc:"Enter your email and we'll send you a magic link — no password needed.",
-    login_email_ph:'you@email.com', login_btn:'✉️ Send magic link',
+    login_email_ph:'you@email.com', login_btn:'Send magic link',
     login_sent_title:'Check your inbox!', login_sent_desc:"We've sent you a link. Click it to sign in.",
     logout:'Sign out',
-    register_btn:'⚡ Register and pick my teams',
-    reg_closed_msg:'🔒 Registration closed on June 7, 2026',
-    team_selection:'📋 Team Selection', group_label:'Group',
+    register_btn:'Register and pick my teams',
+    reg_closed_msg:'Registration closed on June 7, 2026',
+    team_selection:'Team Selection', group_label:'Group',
     pick_team:'Pick', pick_team_s:'team', pick_team_p:'teams',
     teams_available:'teams available',
     scoring_title:'Scoring System',
@@ -282,12 +282,12 @@ const LANGS = {
     sc_champ:'Winning the tournament', sc_champ_n:'Final bonus',
     sc_top:'Tournament top scorer', sc_top_n:'If in your selection',
     sc_def:'Fewest goals conceded', sc_def_n:'Semi-finalists only',
-    award_bonus_title:'🎖️ Award Predictions Bonus',
+    award_bonus_title:'Award Predictions Bonus',
     award_bonus_desc:'Predict the 4 tournament awards when registering. Each correct prediction adds',
     award_bonus_max:'Maximum',
-    prize_title:'🏆 Prizes',
+    prize_title:'Prizes',
     winner:'Winner', second:'2nd Place', third:'3rd Place',
-    format_title:'📅 Tournament Format',
+    format_title:'Tournament Format',
     format:[
       {phase:'Group Stage',detail:'Match days 1, 2 and 3'},
       {phase:'Round of 32',detail:'32 teams → 16'},
@@ -298,25 +298,25 @@ const LANGS = {
     ],
     reg_closed_title:'REGISTRATION CLOSED', reg_closed_date:'Registration ended on', reg_closed_end:'June 7, 2026',
     step_name:'Name', step_teams:'Teams', step_awards:'Awards', step_confirm:'Confirm',
-    your_name:'👤 Your Name', full_name:'Full name', full_name_hint:'First name + Last name',
+    your_name:'Your Name', full_name:'Full name', full_name_hint:'First name + Last name',
     name_placeholder:'e.g. Pedro Sánchez',
     err_duplicate:'That name is already registered. Please try another full name.',
     err_general:'Registration failed. Please check your connection and try again.',
-    teams_summary:'🗂️ Your selected teams',
-    award_preds:'🎯 Award Predictions', pts_each:'+10 pts each', x_selected:'selected',
+    teams_summary:'Your selected teams',
+    award_preds:'Award Predictions', pts_each:'+10 pts each', x_selected:'selected',
     btn_name:'Enter your name to continue', btn_teams:'Pick all your teams',
-    btn_awards:'Pick all 4 award predictions', btn_confirm:'✅ Confirm registration', btn_saving:'⏳ Saving…',
+    btn_awards:'Pick all 4 award predictions', btn_confirm:'Confirm registration', btn_saving:'Saving…',
     reg_ok_title:'Registration complete!', reg_ok_sub:'Your teams and predictions have been saved. Good luck!',
-    your_award_preds:'🎖️ YOUR AWARD PREDICTIONS',
+    your_award_preds:'YOUR AWARD PREDICTIONS',
     select_player:'Select player', loading_players:'Loading players…',
     search_players:'Search players…', no_results_for:'No results for',
-    search_title:'🔍 Search by Participant', search_ph:'Enter participant name…', search_btn:'SEARCH',
+    search_title:'Search by Participant', search_ph:'Enter participant name…', search_btn:'SEARCH',
     not_found_pre:'No participant found with the name', not_found_post:'Check the spelling and try again.',
     teams_selected:'teams selected', total_pts:'Total pts', rank_label:'Rank',
-    award_preds_label:'Award Predictions', points_by_team:'📊 Points by Team',
+    award_preds_label:'Award Predictions', points_by_team:'Points by Team',
     refresh:'↻ Refresh', no_results_title:'RESULTS WILL BE AVAILABLE ONCE THE TOURNAMENT BEGINS',
     no_results_date:'June 11, 2026',
-    award_winners:'🏅 Award Winners', no_part_title:'NO PARTICIPANTS YET', no_part_sub:'Be the first to register',
+    award_winners:'Award Winners', no_part_title:'NO PARTICIPANTS YET', no_part_sub:'Be the first to register',
     pts:'pts', pot_footer:'Participants', part_footer:'participants', entry_short:'',
     refresh_lb:'↻ Refresh leaderboard', page_of:'of',
   },
@@ -341,12 +341,12 @@ const LANGS = {
     prize3_url:'https://www.smartbox.com/es/nuestras-smartbox/momentos-magicos/entradas-de-cine-para-dos-1237890.html',
     my_position:'Sua Posição', for_leader:'para o líder', you_lead:'Você está na frente!',
     login_title:'Entrar na Porra', login_desc:'Digite seu e-mail e enviaremos um link mágico para entrar sem senha.',
-    login_email_ph:'seu@email.com', login_btn:'✉️ Enviar link mágico',
+    login_email_ph:'seu@email.com', login_btn:'Enviar link mágico',
     login_sent_title:'Verifique seu e-mail!', login_sent_desc:'Enviamos um link. Clique nele para entrar.',
     logout:'Sair',
-    register_btn:'⚡ Inscrever-me e escolher meus times',
-    reg_closed_msg:'🔒 Inscrições encerradas em 7 de junho de 2026',
-    team_selection:'📋 Seleção de Times', group_label:'Grupo',
+    register_btn:'Inscrever-me e escolher meus times',
+    reg_closed_msg:'Inscrições encerradas em 7 de junho de 2026',
+    team_selection:'Seleção de Times', group_label:'Grupo',
     pick_team:'Escolha', pick_team_s:'time', pick_team_p:'times',
     teams_available:'times disponíveis',
     scoring_title:'Sistema de Pontuação',
@@ -356,12 +356,12 @@ const LANGS = {
     sc_champ:'Ganhar o torneio', sc_champ_n:'Bônus final',
     sc_top:'Artilheiro do torneio', sc_top_n:'Se estiver na sua seleção',
     sc_def:'Menos gols sofridos', sc_def_n:'Apenas semifinalistas',
-    award_bonus_title:'🎖️ Bônus de Previsões de Prêmios',
+    award_bonus_title:'Bônus de Previsões de Prêmios',
     award_bonus_desc:'Preveja os 4 prêmios do torneio ao se inscrever. Cada previsão correta adiciona',
     award_bonus_max:'Máximo',
-    prize_title:'🏆 Prêmios',
+    prize_title:'Prêmios',
     winner:'Vencedor', second:'2º Lugar', third:'3º Lugar',
-    format_title:'📅 Formato do Torneio',
+    format_title:'Formato do Torneio',
     format:[
       {phase:'Fase de Grupos',detail:'Rodadas 1, 2 e 3'},
       {phase:'Oitavas de Final',detail:'32 times → 16'},
@@ -372,25 +372,25 @@ const LANGS = {
     ],
     reg_closed_title:'INSCRIÇÕES ENCERRADAS', reg_closed_date:'As inscrições encerraram em', reg_closed_end:'7 de junho de 2026',
     step_name:'Nome', step_teams:'Times', step_awards:'Prêmios', step_confirm:'Confirmar',
-    your_name:'👤 Seu Nome', full_name:'Nome completo', full_name_hint:'Nome + Sobrenome',
+    your_name:'Seu Nome', full_name:'Nome completo', full_name_hint:'Nome + Sobrenome',
     name_placeholder:'ex. Pedro Sánchez',
     err_duplicate:'Esse nome já está cadastrado. Por favor, tente outro nome completo.',
     err_general:'Falha ao se inscrever. Verifique sua conexão e tente novamente.',
-    teams_summary:'🗂️ Seus times selecionados',
-    award_preds:'🎯 Previsões de Prêmios', pts_each:'+10 pts cada', x_selected:'selecionados',
+    teams_summary:'Seus times selecionados',
+    award_preds:'Previsões de Prêmios', pts_each:'+10 pts cada', x_selected:'selecionados',
     btn_name:'Digite seu nome para continuar', btn_teams:'Escolha todos os seus times',
-    btn_awards:'Escolha as 4 previsões de prêmios', btn_confirm:'✅ Confirmar inscrição', btn_saving:'⏳ Salvando…',
+    btn_awards:'Escolha as 4 previsões de prêmios', btn_confirm:'Confirmar inscrição', btn_saving:'Salvando…',
     reg_ok_title:'Inscrição concluída!', reg_ok_sub:'Seus times e previsões foram salvos. Boa sorte!',
-    your_award_preds:'🎖️ SUAS PREVISÕES DE PRÊMIOS',
+    your_award_preds:'SUAS PREVISÕES DE PRÊMIOS',
     select_player:'Selecione jogador', loading_players:'Carregando jogadores…',
     search_players:'Buscar jogadores…', no_results_for:'Sem resultados para',
-    search_title:'🔍 Buscar Participante', search_ph:'Digite o nome do participante…', search_btn:'BUSCAR',
+    search_title:'Buscar Participante', search_ph:'Digite o nome do participante…', search_btn:'BUSCAR',
     not_found_pre:'Nenhum participante encontrado com o nome', not_found_post:'Verifique a ortografia e tente novamente.',
     teams_selected:'times selecionados', total_pts:'Pts totais', rank_label:'Pos',
-    award_preds_label:'Previsões de Prêmios', points_by_team:'📊 Pontos por Time',
+    award_preds_label:'Previsões de Prêmios', points_by_team:'Pontos por Time',
     refresh:'↻ Atualizar', no_results_title:'OS RESULTADOS ESTARÃO DISPONÍVEIS QUANDO O TORNEIO COMEÇAR',
     no_results_date:'11 de junho de 2026',
-    award_winners:'🏅 Vencedores de Prêmios', no_part_title:'SEM PARTICIPANTES AINDA', no_part_sub:'Seja o primeiro a se inscrever',
+    award_winners:'Vencedores de Prêmios', no_part_title:'SEM PARTICIPANTES AINDA', no_part_sub:'Seja o primeiro a se inscrever',
     pts:'pts', pot_footer:'Participantes', part_footer:'participantes', entry_short:'',
     refresh_lb:'↻ Atualizar classificação', page_of:'de',
   },
@@ -410,7 +410,7 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 @media(prefers-reduced-motion:reduce){.skeleton{animation:none;background:var(--sur2)}*,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
 .hdr{background:linear-gradient(180deg,#0a1628 0%,#080e1c 100%);border-bottom:1px solid var(--brd);padding:0 20px;position:sticky;top:0;z-index:50}
 .hdr-top{display:flex;align-items:center;gap:10px;padding:16px 0 12px}
-.hdr-icon{font-size:30px}
+.hdr-icon{display:flex;align-items:center}
 .hdr-name{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:26px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);line-height:1}
 .hdr-sub{font-size:11px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
 .hdr-bote{margin-left:auto;background:rgba(245,183,49,0.1);border:1px solid rgba(245,183,49,0.25);border-radius:8px;padding:6px 14px;text-align:right;transition:background .2s}
@@ -612,6 +612,10 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .squad-dot{color:#64748B}
 .squad-bar{height:4px;background:var(--sur2);border-radius:99px;overflow:hidden;margin-top:7px;max-width:200px}
 .squad-bar>div{height:100%;border-radius:99px;transition:width .3s ease}
+.pre-banner{display:flex;align-items:center;gap:8px;background:rgba(245,183,49,0.07);border:1px solid rgba(245,183,49,0.2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--mut);margin-bottom:14px;line-height:1.4}
+.squad-summary{display:flex;gap:14px;font-size:11px;color:var(--mut);font-weight:600;margin:-4px 0 14px}
+.squad-summary span{display:flex;align-items:center;gap:5px}
+.squad-summary .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 .squad-pts{display:flex;flex-direction:column;align-items:flex-end;min-width:42px;flex-shrink:0}
 .squad-pts .num{font-size:17px;color:var(--white);line-height:1}
 .squad-pts-sub{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
@@ -636,7 +640,7 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .auth-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px}
 .auth-card{background:var(--sur);border:1px solid var(--brd);border-radius:16px;padding:32px 28px;width:100%;max-width:400px}
 .auth-logo{text-align:center;margin-bottom:24px}
-.auth-logo-icon{font-size:48px}
+.auth-logo-icon{display:flex;justify-content:center;margin-bottom:4px}
 .auth-logo-title{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:900;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:8px}
 .auth-logo-sub{font-size:11px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
 .auth-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:9px;padding:4px}
@@ -777,7 +781,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         </div>
       )}
       <div className="hero">
-        <div className="hero-title">🏆 TS World Cup Pool 2026</div>
+        <div className="hero-title">TS World Cup Pool 2026</div>
         <div className="hero-sub">USA · Mexico · Canada &nbsp;|&nbsp; Jun 11 – Jul 19 2026</div>
         <div className="hero-grid">
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">{t.participants}</div></div>
@@ -809,8 +813,8 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
           ))}
         </div>
         <div style={{display:'flex',gap:8,marginTop:14,paddingTop:14,borderTop:'1px solid var(--brd)'}}>
-          <button className="btn-ghost" onClick={()=>goTo('normas')}>📋 Ver normas</button>
-          <button className="btn-ghost" onClick={()=>goTo('seleccion')}>{myParticipant?'⚽ Mis equipos':'⚽ Inscribirme'}</button>
+          <button className="btn-ghost" onClick={()=>goTo('normas')}><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Icon name="rules" size={14}/> Ver normas</span></button>
+          <button className="btn-ghost" onClick={()=>goTo('seleccion')}><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Icon name="goal" size={14}/> {myParticipant?'Mis equipos':'Inscribirme'}</span></button>
         </div>
       </div>
       {/* Prizes — TBD */}
@@ -1571,7 +1575,7 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
         <button className="btn-primary" onClick={sync} disabled={syncing}>{syncing?'⏳ Syncing…':'🔄 Sync Results from API'}</button>
         {log&&<div className="admin-log">{log}</div>}
         <hr className="admin-divider"/>
-        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:14}}>🏅 Award Winners</div>
+        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:14}}>Award Winners</div>
         <div style={{fontSize:13,color:'var(--mut)',marginBottom:14}}>Fill these in when the tournament ends. Each participant who predicted correctly earns +10 pts.</div>
         <div className="award-grid">
           {[{k:'top_scorer',label:'⚽ Top Scorer'},{k:'mvp',label:'🏆 Tournament MVP'},{k:'young',label:'🌟 Best Young Player'},{k:'goalkeeper',label:'🧤 Best Goalkeeper'}].map(a=>(
@@ -1581,7 +1585,7 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
             </div>
           ))}
         </div>
-        <button className="btn-primary" style={{marginTop:14}} onClick={saveWinners} disabled={saving}>{saved?'✅ Saved!':saving?'⏳ Saving…':'💾 Save Award Winners'}</button>
+        <button className="btn-primary" style={{marginTop:14}} onClick={saveWinners} disabled={saving}>{saved?'✅ Saved!':saving?'Saving…':'💾 Save Award Winners'}</button>
         <hr className="admin-divider"/>
         <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:6}}>⚽ Resultados de Partidos</div>
         <div style={{fontSize:12,color:'var(--mut)',marginBottom:14}}>Entrada manual. Los partidos guardados aquí tienen prioridad sobre el Sync de la API.</div>
@@ -1618,12 +1622,13 @@ function SquadCard({ team, result, resultsMap, maxPts }) {
   const st = teamStatus(team, resultsMap);
   const tierColor = tier?.color || 'var(--mut)';
   const dead = st.state === 'out';
+  const pending = st.state === 'pending';
   const pct = maxPts > 0 ? Math.round((total / maxPts) * 100) : 0;
   const stateChip = {
     alive:    { txt:'VIVO',    col:'var(--green)', bg:'rgba(74,222,128,0.12)' },
     out:      { txt:'FUERA',   col:'var(--mut)',   bg:'rgba(255,255,255,0.04)' },
     champion: { txt:'CAMPEÓN', col:'var(--gold)',  bg:'rgba(245,183,49,0.14)' },
-    pending:  { txt:'—',       col:'var(--mut)',   bg:'rgba(255,255,255,0.04)' },
+    pending:  { txt:'LISTO',   col:tierColor,      bg:`${tierColor}1f` },
   }[st.state];
   return (
     <div className="squad-card" style={{borderLeft:`3px solid ${tierColor}`,opacity:dead?0.55:1}}>
@@ -1637,12 +1642,12 @@ function SquadCard({ team, result, resultsMap, maxPts }) {
         <div className="squad-sub">
           <span className="tier-tag" style={{color:tierColor}}>{tier?.label}</span>
           <span className="squad-dot">·</span>
-          <span style={{color:dead?'var(--mut)':'var(--txt)'}}>{st.label}</span>
+          <span style={{color:dead?'var(--mut)':'var(--txt-mid)'}}>{pending?'Por empezar':st.label}</span>
         </div>
-        <div className="squad-bar"><div style={{width:`${pct}%`,background:tierColor}}/></div>
+        {!pending&&<div className="squad-bar"><div style={{width:`${pct}%`,background:tierColor}}/></div>}
       </div>
       <div className="squad-pts">
-        <span className="num">{total}</span>
+        <span className="num">{pending?'–':total}</span>
         <span className="squad-pts-sub">pts</span>
       </div>
       <span className="squad-state" style={{color:stateChip.col,background:stateChip.bg}}>
@@ -1655,7 +1660,7 @@ function SquadCard({ team, result, resultsMap, maxPts }) {
 function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t }) {
   if(!myParticipant)return(
     <div className="page"><div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
-      <div style={{fontSize:52,marginBottom:14}}>📋</div>
+      <div style={{marginBottom:14}}><Icon name="rules" size={44} color="var(--mut)"/></div>
       <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>AÚN NO ESTÁS INSCRITO</div>
       <div style={{fontSize:13,color:'var(--mut)',marginTop:8,marginBottom:20}}>Regístrate para ver tus resultados aquí.</div>
       <button className="btn-primary" style={{maxWidth:260,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
@@ -1689,13 +1694,20 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:24,color:'var(--white)',letterSpacing:2,textTransform:'uppercase',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{myParticipant.name}</div>
             <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:36,color:rankCol,lineHeight:1.1}}>{grandTotal}<span style={{fontSize:14,color:'var(--mut)',fontWeight:400}}> pts</span></div>
-            {rank>1&&leaderTotal>0&&<div style={{fontSize:13,color:'var(--mut)',marginTop:2}}>+{leaderTotal-grandTotal} pts para el 1º</div>}
-            {rank===1&&<div style={{fontSize:13,color:'var(--gold)',marginTop:2,display:'flex',alignItems:'center',gap:4}}><Icon name="crown" size={13} color="var(--gold)"/> ¡Vas primero!</div>}
+            {grandTotal===0?(
+              <div style={{fontSize:13,color:'var(--mut)',marginTop:2,display:'flex',alignItems:'center',gap:5}}>
+                <Icon name="check" size={13} color="var(--green)"/> Inscripción confirmada · ¡a esperar el pitido!
+              </div>
+            ):rank>1&&leaderTotal>0?(
+              <div style={{fontSize:13,color:'var(--mut)',marginTop:2}}>+{leaderTotal-grandTotal} pts para el 1º</div>
+            ):rank===1?(
+              <div style={{fontSize:13,color:'var(--gold)',marginTop:2,display:'flex',alignItems:'center',gap:4}}><Icon name="crown" size={13} color="var(--gold)"/> ¡Vas primero!</div>
+            ):null}
           </div>
         </div>
         {bonusPts>0&&(
-          <div style={{marginTop:12,padding:'8px 12px',background:'rgba(34,212,142,0.1)',border:'1px solid rgba(34,212,142,0.3)',borderRadius:8,fontSize:13,color:'var(--green)'}}>
-            🎖️ +{bonusPts} pts de bonus por predicciones correctas
+          <div style={{marginTop:12,padding:'8px 12px',background:'rgba(34,212,142,0.1)',border:'1px solid rgba(34,212,142,0.3)',borderRadius:8,fontSize:13,color:'var(--green)',display:'flex',alignItems:'center',gap:6}}>
+            <Icon name="medal" size={14} color="var(--green)"/> +{bonusPts} pts de bonus por predicciones correctas
           </div>
         )}
       </div>
@@ -1703,29 +1715,47 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
       {/* Teams breakdown — living roster */}
       <div className="card">
         <div className="sect-title" style={{marginBottom:12}}>Mi plantilla</div>
-        {tournamentStage(resultsMap) < 0 ? (
-          <div style={{textAlign:'center',padding:'28px 0',fontSize:13,color:'var(--mut)'}}>
-            Tu plantilla cobra vida cuando empiece el torneo.
+        {(()=>{
+          const teams=myParticipant.teams||[];
+          const live=teams.filter(t=>['alive','champion'].includes(teamStatus(t,resultsMap).state)).length;
+          const out=teams.filter(t=>teamStatus(t,resultsMap).state==='out').length;
+          const started=tournamentStage(resultsMap)>=0;
+          return(
+            <div className="squad-summary">
+              {started?(
+                <>
+                  <span><span className="dot" style={{background:'var(--green)'}}/>{live} vivos</span>
+                  <span><span className="dot" style={{background:'#475569'}}/>{out} fuera</span>
+                </>
+              ):(
+                <span>{teams.length} equipos · 4 categorías · listos para el debut</span>
+              )}
+            </div>
+          );
+        })()}
+        {tournamentStage(resultsMap)<0&&(
+          <div className="pre-banner">
+            <Icon name="trophy" size={15} color="var(--gold)"/>
+            El torneo arranca el 11 de junio. Aquí seguirás a tus equipos en vivo: rondas, puntos y quién sigue con vida.
           </div>
-        ) : (
-          Object.entries(GROUPS).map(([key,g]) => {
-            const teamsInTier = (myParticipant.teams||[]).filter(t => TEAM_TIER[t] === key);
-            if (!teamsInTier.length) return null;
-            const maxPts = Math.max(...(myParticipant.teams||[]).map(t => calcTotal(resultsMap[t]||{})), 1);
-            const sorted = [...teamsInTier].sort((a,b) => calcTotal(resultsMap[b]||{}) - calcTotal(resultsMap[a]||{}));
-            return (
-              <div className="squad-tier-group" key={key}>
-                <div className="squad-tier-hdr" style={{color:g.color}}>
-                  {g.label}
-                  <span className="pick">{teamsInTier.length} {teamsInTier.length>1?'equipos':'equipo'}</span>
-                </div>
-                {sorted.map(t => (
-                  <SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} maxPts={maxPts}/>
-                ))}
-              </div>
-            );
-          })
         )}
+        {Object.entries(GROUPS).map(([key,g])=>{
+          const teamsInTier=(myParticipant.teams||[]).filter(t=>TEAM_TIER[t]===key);
+          if(!teamsInTier.length)return null;
+          const maxPts=Math.max(...(myParticipant.teams||[]).map(t=>calcTotal(resultsMap[t]||{})),1);
+          const sorted=[...teamsInTier].sort((a,b)=>calcTotal(resultsMap[b]||{})-calcTotal(resultsMap[a]||{}));
+          return(
+            <div className="squad-tier-group" key={key}>
+              <div className="squad-tier-hdr" style={{color:g.color}}>
+                {g.label}
+                <span className="pick">{teamsInTier.length} {teamsInTier.length>1?'equipos':'equipo'}</span>
+              </div>
+              {sorted.map(t=>(
+                <SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} maxPts={maxPts}/>
+              ))}
+            </div>
+          );
+        })}
         <div style={{display:'flex',justifyContent:'flex-end',paddingTop:10,borderTop:'1px solid var(--brd)',marginTop:4}}>
           <span style={{fontSize:13,color:'var(--mut)',marginRight:8}}>Total equipos:</span>
           <span className="num" style={{fontSize:18,color:'var(--gold)'}}>{teamTotal} pts</span>
@@ -1734,7 +1764,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
 
       {/* Award predictions */}
       <div className="card" style={{border:'1px solid rgba(245,183,49,0.25)',background:'linear-gradient(135deg,#0e1e38,#091428)'}}>
-        <div className="sect-title" style={{color:'var(--gold)'}}>🎯 Tus predicciones</div>
+        <div className="sect-title" style={{color:'var(--gold)'}}>Tus predicciones</div>
         <div className="award-grid">
           {AWARD_CONFIG.map(a=>{
             const correct=hasWinners&&winnersMap[a.key]&&myParticipant[a.col]===winnersMap[a.key];
@@ -1792,7 +1822,7 @@ function LoginPage({ lang, setLang }) {
     <div className="auth-wrap">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-icon">⚽</div>
+          <div className="auth-logo-icon"><Icon name="trophy" size={40} color="var(--gold)"/></div>
           <div className="auth-logo-title">World Cup Pool 2026</div>
           <div className="auth-logo-sub">USA · Mexico · Canada</div>
         </div>
@@ -1985,12 +2015,12 @@ export default function App() {
   if(!session)return(<><style>{CSS}</style><LoginPage lang={lang} setLang={setLang}/></>);
 
   const navItems=[
-    {id:'inicio',       icon:'🏠', l:t.nav_home},
-    {id:'normas',       icon:'📋', l:t.nav_rules},
-    {id:'seleccion',    icon:'⚽', l:t.nav_teams},
-    {id:'resultados',   icon:'🔍', l:t.nav_results},
-    {id:'clasificacion',icon:'🏆', l:t.nav_leaderboard},
-    ...(adminMode?[{id:'admin',icon:'⚙️',l:'Admin'}]:[]),
+    {id:'inicio',       icon:'home',     l:t.nav_home},
+    {id:'normas',       icon:'rules',    l:t.nav_rules},
+    {id:'seleccion',    icon:'goal',     l:t.nav_teams},
+    {id:'resultados',   icon:'search',   l:t.nav_results},
+    {id:'clasificacion',icon:'trophy',   l:t.nav_leaderboard},
+    ...(adminMode?[{id:'admin',icon:'settings',l:'Admin'}]:[]),
   ];
 
   return(
@@ -1999,7 +2029,7 @@ export default function App() {
       <div className="hdr">
         <div className="hdr-top">
           <LangSelector lang={lang} setLang={setLang}/>
-          <span className="hdr-icon">⚽</span>
+          <span className="hdr-icon"><Icon name="trophy" size={26} color="var(--gold)"/></span>
           <div><div className="hdr-name">World Cup Pool 2026</div><div className="hdr-sub">USA · Mexico · Canada</div></div>
           <div className="hdr-bote">
             <div className="hdr-bote-lbl">{t.participants}</div>
@@ -2012,7 +2042,7 @@ export default function App() {
               </div>
             )}
             <button className="hdr-logout" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión">
-              <span style={{fontSize:14}}>⏻</span> Salir
+              <Icon name="power" size={14}/> Salir
             </button>
           </div>
         </div>
@@ -2029,7 +2059,7 @@ export default function App() {
         {navItems.map(nt=>(
           <button key={nt.id} className={`bnav-btn ${tab===nt.id?'on':''}`}
             onClick={()=>{setTab(nt.id);if(nt.id==='resultados'||nt.id==='clasificacion')loadData();}}>
-            <span className="bnav-btn-icon">{nt.icon}</span>
+            <Icon name={nt.icon} size={20} stroke={tab===nt.id?2.2:1.8} color={tab===nt.id?'var(--gold)':'currentColor'}/>
             {nt.l}
           </button>
         ))}
