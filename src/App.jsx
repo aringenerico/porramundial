@@ -2153,7 +2153,12 @@ export default function App() {
   }
 
   async function handleSaveWinners(w) {
-    await supabase.from('award_winners').update({top_scorer:w.top_scorer||null,mvp:w.mvp||null,young:w.young||null,goalkeeper:w.goalkeeper||null}).eq('id',1);
+    const r = await fetch('/api/save-winners', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ top_scorer:w.top_scorer||null, mvp:w.mvp||null, young:w.young||null, goalkeeper:w.goalkeeper||null }),
+    });
+    if (!r.ok) { const b=await r.json().catch(()=>({})); console.error('[save-winners]', b); return; }
     await loadData();
   }
 
