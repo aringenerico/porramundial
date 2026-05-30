@@ -850,10 +850,12 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">{t.participants}</div></div>
           <div className="hero-stat"><div className="hero-stat-val">7</div><div className="hero-stat-lbl">{t.teams_entry}</div></div>
           <div className="hero-stat">
-            <div className="hero-stat-val" style={{color:'var(--gold)'}}>{topTeam?topTeam.pts:'—'}</div>
-            <div className="hero-stat-lbl" style={{display:'flex',alignItems:'center',gap:3,marginTop:3}}>
-              {topTeam&&<FlagChip team={topTeam.team} size={13}/>}
-              <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:72,textTransform:'none'}}>{topTeam?topTeam.team:'mejor equipo'}</span>
+            <div className="hero-stat-lbl" style={{marginBottom:6}}>Mejor equipo</div>
+            <div style={{display:'flex',alignItems:'center',gap:6,overflow:'hidden'}}>
+              {topTeam&&<FlagChip team={topTeam.team} size={22}/>}
+              <div className="hero-stat-val" style={{color:'var(--gold)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',lineHeight:1.1}}>
+                {topTeam?topTeam.team:'—'}
+              </div>
             </div>
           </div>
         </div>
