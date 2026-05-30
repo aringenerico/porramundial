@@ -294,6 +294,14 @@ const LANGS = {
     award_winners:'Ganadores de Premios', no_part_title:'SIN PARTICIPANTES AÚN', no_part_sub:'Sé el primero en inscribirte',
     pts:'pts', pot_footer:'Participantes', part_footer:'participantes', entry_short:'',
     refresh_lb:'↻ Actualizar clasificación', page_of:'de',
+    rival_label:'Tu rival', rival_leads:'te lleva', rank_changed:'vs. última visita',
+    rank_up:'subiste', rank_down:'bajaste', rank_same:'sin cambios',
+    share_btn:'Compartir posición',
+    onboard_title:'¡Únete a la porra!', onboard_sub:'Son 5 minutos. Sin contraseña.',
+    onboard_1:'Inicia sesión con tu email', onboard_2:'Elige tus 7 equipos', onboard_3:'Acumula puntos y sube en la tabla',
+    onboard_cta:'Inscribirme ahora',
+    empty_soon:'El torneo arranca el 11 de junio de 2026',
+    empty_lb_sub:'Inscríbete para aparecer en la clasificación',
   },
   en: {
     pot:'Participants', nav_home:'Home', nav_rules:'Rules', nav_teams:'My Teams',
@@ -368,6 +376,14 @@ const LANGS = {
     award_winners:'Award Winners', no_part_title:'NO PARTICIPANTS YET', no_part_sub:'Be the first to register',
     pts:'pts', pot_footer:'Participants', part_footer:'participants', entry_short:'',
     refresh_lb:'↻ Refresh leaderboard', page_of:'of',
+    rival_label:'Your rival', rival_leads:'leads by', rank_changed:'vs. last visit',
+    rank_up:'up', rank_down:'down', rank_same:'no change',
+    share_btn:'Share position',
+    onboard_title:'Join the pool!', onboard_sub:'5 minutes. No password needed.',
+    onboard_1:'Sign in with your email', onboard_2:'Pick your 7 teams', onboard_3:'Earn points and climb the table',
+    onboard_cta:'Register now',
+    empty_soon:'The tournament starts on June 11, 2026',
+    empty_lb_sub:'Register to appear on the leaderboard',
   },
   pt: {
     pot:'Participantes', nav_home:'Início', nav_rules:'Regras', nav_teams:'Meus Times',
@@ -442,6 +458,14 @@ const LANGS = {
     award_winners:'Vencedores de Prêmios', no_part_title:'SEM PARTICIPANTES AINDA', no_part_sub:'Seja o primeiro a se inscrever',
     pts:'pts', pot_footer:'Participantes', part_footer:'participantes', entry_short:'',
     refresh_lb:'↻ Atualizar classificação', page_of:'de',
+    rival_label:'Seu rival', rival_leads:'está à frente por', rank_changed:'vs. última visita',
+    rank_up:'subiu', rank_down:'caiu', rank_same:'sem mudança',
+    share_btn:'Compartilhar posição',
+    onboard_title:'Entre na bolão!', onboard_sub:'5 minutos. Sem senha.',
+    onboard_1:'Entre com seu e-mail', onboard_2:'Escolha seus 7 times', onboard_3:'Acumule pontos e suba na tabela',
+    onboard_cta:'Inscrever-me agora',
+    empty_soon:'O torneio começa em 11 de junho de 2026',
+    empty_lb_sub:'Inscreva-se para aparecer na classificação',
   },
 };
 
@@ -624,6 +648,21 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}.hdr-bote{display:none}.hdr-logout-txt{display:none}.hdr-logout{padding:6px 8px}.hdr-sub{display:none}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
+.rank-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;font-family:var(--f-ui);vertical-align:middle;margin-left:6px}
+.rank-up{background:rgba(74,222,128,0.15);color:var(--green)}
+.rank-down{background:rgba(255,77,109,0.15);color:var(--pink)}
+.rank-same{background:var(--sur2);color:var(--mut)}
+.rival-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);margin-top:6px;flex-wrap:wrap}
+.rival-name{color:var(--txt);font-weight:600}
+.rival-gap{color:var(--pink);font-weight:700;font-family:var(--f-mono)}
+.onboard-card{background:linear-gradient(135deg,rgba(245,183,49,0.06),rgba(245,183,49,0.02));border:1px solid rgba(245,183,49,0.22);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.onboard-steps{display:flex;flex-direction:column;gap:8px;margin:14px 0 18px}
+.onboard-step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt)}
+.onboard-num{width:24px;height:24px;border-radius:50%;background:rgba(245,183,49,0.15);border:1px solid rgba(245,183,49,0.3);color:var(--gold);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.empty-state{text-align:center;padding:48px 20px}
+.empty-state-icon{font-size:48px;margin-bottom:12px}
+.empty-state-title{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--mut);letter-spacing:1px;margin-bottom:6px}
+.empty-state-sub{font-size:13px;color:var(--mut)}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
 .admin-divider{border:none;border-top:1px solid var(--brd);margin:20px 0}
 .match-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
@@ -806,6 +845,19 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
   const rankBg=myRank===1?'rgba(245,183,49,0.1)':myRank===2?'rgba(176,184,204,0.07)':myRank===3?'rgba(154,112,80,0.07)':'rgba(90,159,255,0.07)';
   const rankBrd=myRank===1?'rgba(245,183,49,0.35)':myRank===2?'rgba(176,184,204,0.3)':myRank===3?'rgba(154,112,80,0.3)':'rgba(90,159,255,0.25)';
 
+  // Rival = person immediately above in ranking
+  const rivalAbove=myRank>1?(participantsSorted||[])[myRank-2]:null;
+  const rivalGap=rivalAbove?(rivalAbove.total||0)-myTotal:0;
+
+  // Rank delta vs. last visit (localStorage)
+  const rankKey=myParticipant?`prev_rank_${myParticipant.name}`:null;
+  const [prevRank]=useState(()=>rankKey?parseInt(localStorage.getItem(rankKey)||'0'):0);
+  const rankDelta=(myRank>0&&prevRank>0)?prevRank-myRank:0;
+  useEffect(()=>{
+    if(!rankKey||myRank<=0)return;
+    return()=>{try{localStorage.setItem(rankKey,String(myRank));}catch{}};
+  },[rankKey,myRank]);
+
   return(
     <div className="page">
       {myParticipant&&(
@@ -814,12 +866,25 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
             <div style={{background:rankBg,border:`1px solid ${rankBrd}`,borderRadius:12,padding:'10px 16px',textAlign:'center',flexShrink:0}}>
               <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:32,color:rankCol,lineHeight:1}}>#{myRank||'—'}</div>
               <div style={{fontSize:10,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginTop:2}}>Posición</div>
+              {rankDelta!==0&&(
+                <span className={`rank-badge ${rankDelta>0?'rank-up':'rank-down'}`}>
+                  {rankDelta>0?'↑':'↓'}{Math.abs(rankDelta)}
+                </span>
+              )}
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:20,color:'var(--white)',letterSpacing:1,textTransform:'uppercase',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{myParticipant.name}</div>
               <div style={{fontFamily:"var(--f-mono)",fontVariantNumeric:'tabular-nums',fontWeight:700,fontSize:24,color:rankCol,lineHeight:1.2}}>{myTotal} <span style={{fontSize:13,color:'var(--mut)',fontWeight:400}}>pts</span></div>
-              {myRank>1&&leaderTotal>0&&<div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>+{leaderTotal-myTotal} pts para el 1º</div>}
-              {myRank===1&&<div style={{fontSize:12,color:'var(--gold)',marginTop:2}}>¡Vas primero!</div>}
+              {myRank>1&&leaderTotal>0&&<div style={{fontSize:12,color:'var(--mut)',marginTop:2}}>+{leaderTotal-myTotal} {t.for_leader}</div>}
+              {myRank===1&&<div style={{fontSize:12,color:'var(--gold)',marginTop:2}}>{t.you_lead}</div>}
+              {rivalAbove&&rivalGap>0&&(
+                <div className="rival-row">
+                  <span>{t.rival_label}:</span>
+                  <span className="rival-name">{rivalAbove.name}</span>
+                  <span>{t.rival_leads}</span>
+                  <span className="rival-gap">{rivalGap} pts</span>
+                </div>
+              )}
             </div>
             <button className="btn-ghost" style={{flexShrink:0}} onClick={()=>goTo('seleccion')}>Ver →</button>
           </div>
@@ -838,9 +903,18 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         </div>
       )}
       {!myParticipant&&open&&(
-        <div className="card" style={{background:'rgba(245,183,49,0.05)',border:'1px solid rgba(245,183,49,0.2)',textAlign:'center',padding:'20px'}}>
-          <div style={{fontSize:13,color:'var(--mut)',marginBottom:12}}>Todavía no estás inscrito en la porra.</div>
-          <button className="btn-primary" style={{maxWidth:280,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
+        <div className="onboard-card">
+          <div style={{fontFamily:"var(--f-display)",fontWeight:900,fontSize:20,color:'var(--gold)',letterSpacing:1,marginBottom:4}}>{t.onboard_title}</div>
+          <div style={{fontSize:13,color:'var(--mut)'}}>{t.onboard_sub}</div>
+          <div className="onboard-steps">
+            {[t.onboard_1,t.onboard_2,t.onboard_3].map((s,i)=>(
+              <div key={i} className="onboard-step">
+                <div className="onboard-num">{i+1}</div>
+                <span>{s}</span>
+              </div>
+            ))}
+          </div>
+          <button className="btn-primary" onClick={()=>goTo('seleccion')}>{t.onboard_cta}</button>
         </div>
       )}
       <div className="hero">
@@ -1376,10 +1450,12 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
   const listRows=isFirstPage&&showPodium?pageRows.slice(3):pageRows;
 
   if(participants.length===0)return(
-    <div className="page"><div className="card" style={{textAlign:'center',padding:'56px 20px'}}>
-      <div style={{marginBottom:14,display:'flex',justifyContent:'center'}}><Icon name="users" size={44} color="var(--mut)"/></div>
-      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>{t.no_part_title}</div>
-      <div style={{fontSize:13,color:'var(--mut)',marginTop:8}}>{t.no_part_sub}</div>
+    <div className="page"><div className="card">
+      <div className="empty-state">
+        <div className="empty-state-icon">🏆</div>
+        <div className="empty-state-title">{t.no_part_title}</div>
+        <div className="empty-state-sub">{t.empty_lb_sub||t.no_part_sub}</div>
+      </div>
     </div></div>
   );
 
