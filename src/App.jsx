@@ -792,6 +792,12 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
     {rank:3,lbl:t.prize3,col:'#9a7050',    name:t.prize3_name, price:t.prize3_price, url:t.prize3_url},
   ];
 
+  // Top team by points
+  const topTeam=Object.entries(resultsMap||{})
+    .map(([team,r])=>({team,pts:calcTotal(r)}))
+    .filter(x=>x.pts>0)
+    .sort((a,b)=>b.pts-a.pts)[0]||null;
+
   // My position summary
   const myRank=myParticipant?(participantsSorted||[]).findIndex(p=>p.name===myParticipant.name)+1:0;
   const myTotal=myParticipant?(participantsSorted||[]).find(p=>p.name===myParticipant.name)?.total??0:0;
@@ -843,6 +849,13 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
         <div className="hero-grid">
           <div className="hero-stat"><div className="hero-stat-val">{participants.length}</div><div className="hero-stat-lbl">{t.participants}</div></div>
           <div className="hero-stat"><div className="hero-stat-val">7</div><div className="hero-stat-lbl">{t.teams_entry}</div></div>
+          <div className="hero-stat">
+            <div className="hero-stat-val" style={{color:'var(--gold)'}}>{topTeam?topTeam.pts:'—'}</div>
+            <div className="hero-stat-lbl" style={{display:'flex',alignItems:'center',gap:3,marginTop:3}}>
+              {topTeam&&<FlagChip team={topTeam.team} size={13}/>}
+              <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:72,textTransform:'none'}}>{topTeam?topTeam.team:'mejor equipo'}</span>
+            </div>
+          </div>
         </div>
         {open&&countdown&&(
           <div style={{marginTop:20,padding:'14px 16px',background:'rgba(245,183,49,0.07)',border:'1px solid rgba(245,183,49,0.2)',borderRadius:10}}>
