@@ -469,7 +469,7 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .lang-btn:hover{color:var(--txt);border-color:var(--brd)}
 .lang-btn.active{color:var(--gold);border-color:rgba(245,183,49,0.45);background:rgba(245,183,49,0.08)}
 .lang-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:5px}
-.app-footer{text-align:center;padding:32px 20px 24px;font-size:11px;color:var(--mut);letter-spacing:1px;border-top:1px solid var(--brd);margin-top:8px}
+.app-footer{text-align:center;padding:32px 20px calc(72px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--mut);letter-spacing:0.5px;border-top:1px solid var(--brd);margin-top:8px}
 .nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
 .nav-btn{font-family:var(--f-ui);font-weight:600;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--mut);padding:10px 16px;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s;min-height:44px;touch-action:manipulation}
