@@ -451,7 +451,7 @@ const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a1628;--sur:#132040;--sur2:#1a2d52;--sur3:#0e1d3a;--brd:rgba(255,255,255,0.08);--brd2:rgba(255,255,255,0.16);--gold:#F5B731;--gold2:#c98e15;--gold-glow:rgba(245,183,49,0.18);--green:#4ADE80;--blue:#60AAFF;--pink:#FF4D6D;--txt:#f8fafc;--mut:#94A3B8;--white:#f8fafc;--r:16px;--tr:all .18s ease;--f-mono:'Geist Mono',ui-monospace,'SF Mono',monospace}
 html{scroll-behavior:smooth}
-html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .skeleton{background:linear-gradient(90deg,var(--sur) 25%,var(--sur2) 50%,var(--sur) 75%);background-size:200% 100%;animation:shimmer 1.6s ease-in-out infinite;border-radius:8px}
@@ -623,7 +623,7 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .sheet{background:var(--sur);width:100%;max-height:82vh;overflow:auto;border-radius:22px 22px 0 0;padding:14px 18px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--brd2);animation:sheetUp .25s ease}
 .sheet-grab{width:40px;height:4px;border-radius:99px;background:var(--brd2);margin:0 auto 16px}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-@media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}}
+@media(max-width:480px){.page{padding:16px 14px 90px}.card{padding:16px}.hero{padding:28px 16px}.hero-title{font-size:34px;letter-spacing:2px}.teams-grid{grid-template-columns:repeat(2,1fr)}.scoring-grid{grid-template-columns:1fr}.award-grid{grid-template-columns:1fr}.award-dropdown{max-width:calc(100vw - 48px)}.sel-progress{gap:5px}.sel-prog-count{font-size:22px}.sel-prog-g{font-size:10px}.hdr-name{font-size:20px;letter-spacing:2px}.podium{gap:8px}.podium-name{font-size:14px}.podium-pts{font-size:24px}.podium-card{padding:14px 8px}.lang-btn{font-size:10px;padding:3px 5px}.hdr-bote{display:none}.hdr-logout-txt{display:none}.hdr-logout{padding:6px 8px}.hdr-sub{display:none}}
 @media(max-width:360px){.teams-grid{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:28px}}
 .admin-log{margin-top:10px;padding:10px 14px;background:var(--sur2);border:1px solid var(--brd);border-radius:8px;font-size:12px;color:var(--txt);font-family:monospace;line-height:1.6;white-space:pre-wrap}
 .admin-divider{border:none;border-top:1px solid var(--brd);margin:20px 0}
@@ -2284,7 +2284,7 @@ export default function App() {
               </div>
             )}
             <button className="hdr-logout" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión">
-              <Icon name="power" size={14}/> Salir
+              <Icon name="power" size={14}/><span className="hdr-logout-txt"> Salir</span>
             </button>
           </div>
         </div>
