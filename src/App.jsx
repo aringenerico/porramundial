@@ -849,6 +849,97 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
   const rivalAbove=myRank>1?(participantsSorted||[])[myRank-2]:null;
   const rivalGap=rivalAbove?(rivalAbove.total||0)-myTotal:0;
 
+  // 4.2 — Share position as image (Canvas API, no external deps)
+  const [sharing,setSharing]=useState(false);
+  async function handleShare() {
+    if(!myParticipant||myRank<=0||sharing)return;
+    setSharing(true);
+    try {
+      await document.fonts.ready;
+      const SIZE=1080;
+      const canvas=document.createElement('canvas');
+      canvas.width=SIZE; canvas.height=SIZE;
+      const ctx=canvas.getContext('2d');
+
+      // Background
+      ctx.fillStyle='#0a1628';
+      ctx.fillRect(0,0,SIZE,SIZE);
+
+      // Subtle grid dots
+      ctx.fillStyle='rgba(255,255,255,0.03)';
+      for(let x=60;x<SIZE;x+=60)for(let y=60;y<SIZE;y+=60){ctx.beginPath();ctx.arc(x,y,1.5,0,Math.PI*2);ctx.fill();}
+
+      // Top accent bar
+      const grad=ctx.createLinearGradient(0,0,SIZE,0);
+      grad.addColorStop(0,'#F5B731'); grad.addColorStop(1,'#c98e15');
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,SIZE,6);
+
+      // App title
+      ctx.fillStyle='#A8BCCE';
+      ctx.font='500 32px "Geist",Inter,system-ui,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('TS WORLD CUP POOL 2026',SIZE/2,90);
+
+      // Rank number (big)
+      const rankHex=myRank===1?'#F5B731':myRank===2?'#b0b8cc':myRank===3?'#9a7050':'#60AAFF';
+      ctx.font=`900 ${myRank>=100?220:260}px "Archivo Black","Arial Black",sans-serif`;
+      ctx.fillStyle=rankHex;
+      ctx.globalAlpha=0.12;
+      ctx.fillText(`#${myRank}`,SIZE/2,560);
+      ctx.globalAlpha=1;
+      ctx.fillText(`#${myRank}`,SIZE/2,540);
+
+      // Name
+      const nameSize=myParticipant.name.length>14?64:myParticipant.name.length>10?76:88;
+      ctx.font=`900 ${nameSize}px "Archivo Black","Arial Black",sans-serif`;
+      ctx.fillStyle='#f8fafc';
+      ctx.fillText(myParticipant.name.toUpperCase(),SIZE/2,640);
+
+      // Points
+      ctx.font='700 56px "Geist Mono","Courier New",monospace';
+      ctx.fillStyle=rankHex;
+      ctx.fillText(`${myTotal} pts`,SIZE/2,718);
+
+      // Gap to leader
+      if(myRank>1&&leaderTotal>0){
+        ctx.font='400 36px "Geist",Inter,system-ui,sans-serif';
+        ctx.fillStyle='#A8BCCE';
+        ctx.fillText(`+${leaderTotal-myTotal} pts ${t.for_leader}`,SIZE/2,780);
+      }
+      if(myRank===1){
+        ctx.font='500 36px "Geist",Inter,system-ui,sans-serif';
+        ctx.fillStyle='#F5B731';
+        ctx.fillText(t.you_lead,SIZE/2,780);
+      }
+
+      // Branding footer
+      ctx.fillStyle='rgba(168,188,206,0.5)';
+      ctx.font='400 28px "Geist",Inter,system-ui,sans-serif';
+      ctx.fillText('porramundial.vercel.app',SIZE/2,980);
+
+      // Bottom accent bar
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,SIZE-6,SIZE,6);
+
+      canvas.toBlob(async(blob)=>{
+        if(!blob){setSharing(false);return;}
+        const file=new File([blob],'mi-posicion.png',{type:'image/png'});
+        try {
+          if(navigator.share&&navigator.canShare?.({files:[file]})){
+            await navigator.share({files:[file],title:`#${myRank} en la porra · ${myTotal} pts`});
+          } else {
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');
+            a.href=url; a.download='mi-posicion.png'; a.click();
+            setTimeout(()=>URL.revokeObjectURL(url),5000);
+          }
+        } catch(e){if(e?.name!=='AbortError')console.warn('share error',e);}
+        setSharing(false);
+      },'image/png',0.95);
+    } catch(e){console.error('canvas share error',e);setSharing(false);}
+  }
+
   // Rank delta vs. last visit (localStorage)
   const rankKey=myParticipant?`prev_rank_${myParticipant.name}`:null;
   const [prevRank]=useState(()=>rankKey?parseInt(localStorage.getItem(rankKey)||'0'):0);
@@ -886,7 +977,12 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
                 </div>
               )}
             </div>
-            <button className="btn-ghost" style={{flexShrink:0}} onClick={()=>goTo('seleccion')}>Ver →</button>
+            <div style={{display:'flex',flexDirection:'column',gap:6,flexShrink:0}}>
+              <button className="btn-ghost" style={{minWidth:72}} onClick={()=>goTo('seleccion')}>Ver →</button>
+              <button className="btn-ghost" style={{minWidth:72,display:'flex',alignItems:'center',justifyContent:'center',gap:4}} onClick={handleShare} disabled={sharing}>
+                {sharing?'…':<><Icon name="share" size={13}/> {t.share_btn||'Compartir'}</>}
+              </button>
+            </div>
           </div>
           <div className="mini-squad">
             {(myParticipant.teams||[]).map(tm => {
