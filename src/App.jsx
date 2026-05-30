@@ -73,7 +73,7 @@ function teamStatus(team, resultsMap) {
   return { state:'out', reachedIdx, label:`Cayó en ${ROUND_LABEL[ROUND_ORDER[reachedIdx]]||'grupos'}` };
 }
 
-const ADMIN_PIN = 'Arin2026!';
+// Admin access is controlled server-side via the `admins` table in Supabase (Phase 3).
 const FD_TEAM_MAP = {
   'Korea Republic':'South Korea',"Côte d'Ivoire":'Ivory Coast','IR Iran':'Iran',
   'Congo DR':'DR Congo','Democratic Republic of Congo':'DR Congo','Curaçao':'Curacao',
@@ -1494,21 +1494,10 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
   );
 }
 
-function FooterPin({ onUnlock }) {
-  const [show,setShow]=useState(false);
-  const [pin,setPin]=useState('');
-  const [err,setErr]=useState(false);
-  const tryPin=()=>{if(pin===ADMIN_PIN){onUnlock();setShow(false);setPin('');}else{setErr(true);setPin('');setTimeout(()=>setErr(false),1200);}};
+function AppFooter() {
   return(
     <div className="app-footer">
       Created by Aitor Alegría &amp; Gorka Barroso
-      <span style={{cursor:'pointer',marginLeft:10,opacity:0.25,userSelect:'none'}} onClick={()=>{setShow(s=>!s);setPin('');setErr(false);}}>🔐</span>
-      {show&&(
-        <div style={{marginTop:10,display:'flex',gap:8,justifyContent:'center'}}>
-          <input className={`pin-input ${err?'err':''}`} type="password" placeholder="Admin PIN" value={pin} onChange={e=>setPin(e.target.value)} onKeyDown={e=>e.key==='Enter'&&tryPin()} autoFocus/>
-          <button className="btn-ghost" onClick={tryPin}>Enter</button>
-        </div>
-      )}
     </div>
   );
 }
@@ -2112,6 +2101,13 @@ export default function App() {
       .then(({data})=>setMyParticipant(data||null));
   },[session]);
 
+  // Check if logged-in user is an admin (via admins table — server-side gated)
+  useEffect(()=>{
+    if(!session?.user?.id){setAdminMode(false);return;}
+    supabase.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle()
+      .then(({data,error})=>setAdminMode(!error&&!!data));
+  },[session]);
+
   useEffect(()=>{loadData();},[]);
 
   async function loadData() {
@@ -2296,7 +2292,7 @@ export default function App() {
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch}/>}
-      <FooterPin onUnlock={()=>{setAdminMode(true);setTab('admin');}}/>
+      <AppFooter/>
       <nav className="bnav">
         {navItems.map(nt=>(
           <button key={nt.id} className={`bnav-btn ${tab===nt.id?'on':''}`}
