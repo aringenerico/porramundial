@@ -1,0 +1,19 @@
+{
+  "name": "TS World Cup Pool 2026",
+  "short_name": "Porra 2026",
+  "description": "Porra del Mundial de Fútbol 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1628",
+  "theme_color": "#F5B731",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -73,6 +73,22 @@ function teamStatus(team, resultsMap) {
   return { state:'out', reachedIdx, label:`Cayó en ${ROUND_LABEL[ROUND_ORDER[reachedIdx]]||'grupos'}` };
 }
 
+// ── Tiebreaker scoring (same formula as Porra Dani) ──────────
+// +0.5 home goals exact · +0.5 away goals exact · +1 result (W/D/L) · +1 exact score bonus
+// Max 3 pts per match. Does NOT add to general score — only used for tie-breaking.
+function calcTbScore(pred, match) {
+  if (!match || match.home_goals == null || match.away_goals == null) return { total: 0, exact: 0 };
+  let pts = 0;
+  if (pred.home_goals === match.home_goals) pts += 0.5;
+  if (pred.away_goals === match.away_goals) pts += 0.5;
+  const ps = Math.sign(pred.home_goals - pred.away_goals);
+  const ms = Math.sign(match.home_goals - match.away_goals);
+  if (ps === ms) pts += 1;
+  const exact = pred.home_goals === match.home_goals && pred.away_goals === match.away_goals;
+  if (exact) pts += 1;
+  return { total: pts, exact: exact ? 1 : 0 };
+}
+
 // Admin access is controlled server-side via the `admins` table in Supabase (Phase 3).
 const FD_TEAM_MAP = {
   'Korea Republic':'South Korea',"Côte d'Ivoire":'Ivory Coast','IR Iran':'Iran',
@@ -302,6 +318,17 @@ const LANGS = {
     onboard_cta:'Inscribirme ahora',
     empty_soon:'El torneo arranca el 11 de junio de 2026',
     empty_lb_sub:'Inscríbete para aparecer en la clasificación',
+    tb_title:'DESEMPATE', tb_subtitle:'Pronósticos de Semifinal y Final',
+    tb_desc:'Predice el marcador exacto de las Semifinales y la Final. Si empatas a puntos con otro jugador, tus aciertos en estos partidos decidirán quién gana.',
+    tb_rules_btn:'Ver normas', tb_preds_btn:'Mis pronósticos',
+    tb_locked:'Partido en juego — pronósticos cerrados',
+    tb_pending:'Los pronósticos se abrirán cuando se determinen los cruces de Semifinales.',
+    tb_save:'Guardar pronóstico', tb_saved:'✅ Guardado',
+    tb_note:'No suma a tu puntuación · Solo sirve para desempatar',
+    tb_section_title:'⚖️ Pronósticos de Desempate',
+    tb_rules_title:'⚖️ Sistema de Desempate',
+    tb_rules_desc:'Si dos jugadores terminan empatados a puntos, se aplica el sistema de desempate basado en los pronósticos de Semifinales y Final:',
+    tb_rules_max:'Máx. 3 pts por partido · 2 Semifinales + 1 Final = 9 pts máx. de desempate. Los pronósticos se abren fase a fase y cualquier usuario registrado puede participar aunque no haya inscrito sus equipos.',
   },
   en: {
     pot:'Participants', nav_home:'Home', nav_rules:'Rules', nav_teams:'My Teams',
@@ -384,6 +411,17 @@ const LANGS = {
     onboard_cta:'Register now',
     empty_soon:'The tournament starts on June 11, 2026',
     empty_lb_sub:'Register to appear on the leaderboard',
+    tb_title:'TIEBREAKER', tb_subtitle:'Semi-final & Final Predictions',
+    tb_desc:'Predict the exact score of the Semi-finals and Final. If you are level on points with another player, your accuracy in these matches will decide the winner.',
+    tb_rules_btn:'View rules', tb_preds_btn:'My predictions',
+    tb_locked:'Match in play — predictions closed',
+    tb_pending:'Predictions will open once the Semi-final draw is made.',
+    tb_save:'Save prediction', tb_saved:'✅ Saved',
+    tb_note:'Does not add to your score · Only used for tie-breaking',
+    tb_section_title:'⚖️ Tiebreaker Predictions',
+    tb_rules_title:'⚖️ Tiebreaker System',
+    tb_rules_desc:'If two players finish level on points, the tiebreaker system based on Semi-final and Final predictions applies:',
+    tb_rules_max:'Max. 3 pts per match · 2 Semi-finals + 1 Final = 9 pts max. tiebreaker. Predictions open phase by phase and any registered user may participate even without picking teams.',
   },
   pt: {
     pot:'Participantes', nav_home:'Início', nav_rules:'Regras', nav_teams:'Meus Times',
@@ -466,6 +504,16 @@ const LANGS = {
     onboard_cta:'Inscrever-me agora',
     empty_soon:'O torneio começa em 11 de junho de 2026',
     empty_lb_sub:'Inscreva-se para aparecer na classificação',
+    tb_title:'DESEMPATE', tb_subtitle:'Previsões de Semifinal e Final',
+    tb_desc:'Preveja o placar exato das Semifinais e da Final. Se empatar em pontos com outro jogador, seus acertos nesses jogos decidirão o vencedor.',
+    tb_rules_btn:'Ver regras', tb_preds_btn:'Minhas previsões',
+    tb_locked:'Bloqueado · resultado oficial', tb_pending:'Os jogos de Semifinal e Final ainda não estão disponíveis. Volte quando as equipas estiverem definidas!',
+    tb_save:'Guardar previsão', tb_saved:'✓ Salvo!',
+    tb_note:'Estes pontos não se somam à pontuação geral — servem apenas para desempate.',
+    tb_section_title:'⚖️ Previsões de Desempate',
+    tb_rules_title:'⚖️ Sistema de Desempate',
+    tb_rules_desc:'Se dois jogadores terminarem com a mesma pontuação, o sistema de desempate baseado nas previsões de Semifinal e Final aplica-se:',
+    tb_rules_max:'Máx. 3 pts por jogo · 2 Semifinais + 1 Final = 9 pts máx. de desempate. Previsões abertas fase a fase e qualquer utilizador registado pode participar mesmo sem escolher equipas.',
   },
 };
 
@@ -822,6 +870,100 @@ function useCountdown(target) {
   return time;
 }
 
+// ── Tiebreaker components ─────────────────────────────────────
+function TbMatchRow({ match, saved, onSave, t }) {
+  const [hg,setHg]=useState(saved?.home_goals?.toString()??'');
+  const [ag,setAg]=useState(saved?.away_goals?.toString()??'');
+  const [saving,setSaving]=useState(false);
+  const [flash,setFlash]=useState(false);
+  const locked=match.home_goals!=null;
+  const roundLabel=match.round_col==='final'?'Final':'Semifinal';
+  const changed=hg!==(saved?.home_goals?.toString()??'')||ag!==(saved?.away_goals?.toString()??'');
+  const canSave=!locked&&hg!==''&&ag!==''&&(changed||!saved);
+
+  // pts breakdown if match is finished
+  const tbPts=locked&&saved?calcTbScore(saved,match):null;
+
+  const save=async()=>{
+    if(!canSave||saving)return;
+    setSaving(true);
+    const err=await onSave({match_id:match.id,home_goals:parseInt(hg),away_goals:parseInt(ag)});
+    setSaving(false);
+    if(!err){setFlash(true);setTimeout(()=>setFlash(false),2200);}
+  };
+
+  return(
+    <div style={{padding:'14px 0',borderBottom:'1px solid var(--brd)'}}>
+      {/* Round label + pts */}
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+        <span style={{fontSize:10,fontWeight:800,color:'var(--blue)',textTransform:'uppercase',letterSpacing:1,background:'rgba(96,170,255,0.12)',padding:'2px 8px',borderRadius:4}}>{roundLabel}</span>
+        {tbPts&&tbPts.total>0&&(
+          <span style={{fontSize:11,fontWeight:700,color:tbPts.exact?'var(--gold)':'var(--green)',marginLeft:2}}>
+            ⚖️ +{tbPts.total} pts{tbPts.exact?' · Exacto ✓':''}
+          </span>
+        )}
+        {tbPts&&tbPts.total===0&&saved&&<span style={{fontSize:11,color:'var(--mut)'}}>⚖️ 0 pts</span>}
+        {locked&&<span style={{fontSize:10,color:'var(--mut)',marginLeft:'auto'}}>🔒 {t.tb_locked}</span>}
+      </div>
+      {/* Match row */}
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        {/* Home */}
+        <div style={{flex:1,display:'flex',alignItems:'center',gap:7,justifyContent:'flex-end',minWidth:0}}>
+          <span style={{fontSize:13,color:'var(--white)',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'right'}}>{match.home_team}</span>
+          <FlagChip team={match.home_team} size={28}/>
+        </div>
+        {/* Inputs */}
+        <div style={{display:'flex',alignItems:'center',gap:5,flexShrink:0}}>
+          <input type="number" min="0" max="99" value={hg}
+            onChange={e=>{setHg(e.target.value.replace(/\D/g,'').slice(0,2));setFlash(false);}}
+            disabled={locked}
+            style={{width:46,height:42,textAlign:'center',fontSize:20,fontWeight:700,fontFamily:'var(--f-mono)',background:'var(--sur2)',border:`1px solid ${hg!==''?'var(--blue)':'var(--brd)'}`,borderRadius:8,color:'var(--white)',appearance:'textfield'}}/>
+          <span style={{color:'var(--mut)',fontWeight:700,fontSize:18,lineHeight:1}}>–</span>
+          <input type="number" min="0" max="99" value={ag}
+            onChange={e=>{setAg(e.target.value.replace(/\D/g,'').slice(0,2));setFlash(false);}}
+            disabled={locked}
+            style={{width:46,height:42,textAlign:'center',fontSize:20,fontWeight:700,fontFamily:'var(--f-mono)',background:'var(--sur2)',border:`1px solid ${ag!==''?'var(--blue)':'var(--brd)'}`,borderRadius:8,color:'var(--white)',appearance:'textfield'}}/>
+        </div>
+        {/* Away */}
+        <div style={{flex:1,display:'flex',alignItems:'center',gap:7,minWidth:0}}>
+          <FlagChip team={match.away_team} size={28}/>
+          <span style={{fontSize:13,color:'var(--white)',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{match.away_team}</span>
+        </div>
+      </div>
+      {/* Save button */}
+      {!locked&&(
+        <div style={{marginTop:10,display:'flex',justifyContent:'flex-end'}}>
+          <button className="btn-primary" style={{minWidth:160,height:36,fontSize:12}}
+            onClick={save} disabled={!canSave||saving}>
+            {flash?t.tb_saved:saving?'…':t.tb_save}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TiebreakerSection({ matches, tbPreds, session, onSaveTbPred, t }) {
+  const tbMatches=(matches||[]).filter(m=>['sf','final'].includes(m.round_col)&&m.home_team&&m.away_team)
+    .sort((a,b)=>{ const o=['sf','final']; return o.indexOf(a.round_col)-o.indexOf(b.round_col)||(a.id-b.id); });
+  const myPreds=(tbPreds||[]).filter(p=>p.user_id===session?.user?.id);
+
+  return(
+    <div className="card" style={{border:'1px solid rgba(96,170,255,0.3)',background:'rgba(96,170,255,0.03)'}}>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+        <div className="sect-title" style={{color:'var(--blue)',marginBottom:0}}>{t.tb_section_title}</div>
+      </div>
+      <div style={{fontSize:12,color:'var(--mut)',marginBottom:tbMatches.length?14:0,lineHeight:1.5}}>{t.tb_note}</div>
+      {tbMatches.length===0?(
+        <div style={{textAlign:'center',padding:'20px 0',color:'var(--mut)',fontSize:13}}>{t.tb_pending}</div>
+      ):tbMatches.map(m=>{
+        const saved=myPreds.find(p=>p.match_id===m.id);
+        return <TbMatchRow key={m.id} match={m} saved={saved} onSave={onSaveTbPred} t={t}/>;
+      })}
+    </div>
+  );
+}
+
 function HomePage({ participants, goTo, t, myParticipant, participantsSorted, resultsMap }) {
   const open=isRegistrationOpen();
   const countdown=useCountdown(DEADLINE);
@@ -1075,6 +1217,21 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
           ))}
         </div>
       </div>
+      {/* DESEMPATE card */}
+      <div className="card" style={{border:'1px solid rgba(96,170,255,0.35)',background:'linear-gradient(135deg,rgba(96,170,255,0.06),rgba(96,170,255,0.02))'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+          <div style={{background:'rgba(96,170,255,0.15)',border:'1px solid rgba(96,170,255,0.4)',borderRadius:8,padding:'6px 10px',fontSize:18,lineHeight:1}}>⚖️</div>
+          <div>
+            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:16,color:'var(--blue)',letterSpacing:1}}>¡{t.tb_title}!</div>
+            <div style={{fontSize:11,color:'var(--mut)'}}>{t.tb_subtitle}</div>
+          </div>
+        </div>
+        <div style={{fontSize:13,color:'var(--mut)',lineHeight:1.6,marginBottom:14}}>{t.tb_desc}</div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn-ghost" style={{flex:1,fontSize:12}} onClick={()=>goTo('normas')}>{t.tb_rules_btn} →</button>
+          <button className="btn-primary" style={{flex:1,fontSize:12}} onClick={()=>goTo('seleccion')}>{t.tb_preds_btn}</button>
+        </div>
+      </div>
       {!open&&<div style={{textAlign:'center',padding:'14px 0',fontSize:13,color:'var(--mut)'}}>{t.reg_closed_msg}</div>}
     </div>
   );
@@ -1148,6 +1305,27 @@ function RulesPage({ t }) {
             <span style={{fontSize:12,color:'var(--mut)'}}>{f.detail}</span>
           </div>
         ))}
+      </div>
+      {/* Tiebreaker rules */}
+      <div className="card" style={{border:'1px solid rgba(96,170,255,0.3)',background:'rgba(96,170,255,0.03)'}}>
+        <div className="sect-title" style={{color:'var(--blue)'}}>{t.tb_rules_title}</div>
+        <div style={{fontSize:13,color:'var(--mut)',marginBottom:14,lineHeight:1.6}}>{t.tb_rules_desc}</div>
+        <div className="scoring-grid">
+          {[
+            {icon:'goal', lbl:'Gol exacto (local o visitante)', pts:'0.5', note:'Por cada gol acertado individualmente'},
+            {icon:'win',  lbl:'Resultado correcto (V/E/D)',     pts:'1',   note:'Independiente de si los goles son exactos'},
+            {icon:'star', lbl:'Marcador exacto (bonus)',        pts:'1',   note:'Extra si ambos goles son exactos'},
+          ].map((s,i)=>(
+            <div className="scoring-item" key={i} style={{background:'rgba(96,170,255,0.06)',border:'1px solid rgba(96,170,255,0.15)'}}>
+              <span className="scoring-icon"><Icon name={s.icon} size={22} color="var(--blue)"/></span>
+              <div><div className="scoring-lbl">{s.lbl}</div>{s.note&&<div className="scoring-note">{s.note}</div>}</div>
+              <div className="scoring-pts" style={{color:'var(--blue)'}}>+{s.pts}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:12,padding:'10px 14px',background:'rgba(96,170,255,0.08)',border:'1px solid rgba(96,170,255,0.2)',borderRadius:8,fontSize:12,color:'var(--mut)',lineHeight:1.6}}>
+          {t.tb_rules_max}
+        </div>
       </div>
     </div>
   );
@@ -1527,7 +1705,9 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
   const topRef=useRef(null);
   useEffect(()=>{ window.scrollTo({ top: (topRef.current?.offsetTop ?? 0) - 80, behavior:'smooth' }); },[page]);
   const changePage=(n)=>{ setPage(n); };
-  const sorted=[...participants].sort((a,b)=>b.total-a.total);
+  const sorted=[...participants].sort((a,b)=>
+    b.total-a.total||b.tb_total-a.tb_total||b.tb_exact-a.tb_exact||(a.name<b.name?-1:1)
+  );
   const pot=participants.length*10;
   const top3=sorted.slice(0,3);
   const prizeByRank=[
@@ -1569,6 +1749,19 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
   const BonusBadge=({p})=>{
     const b=AWARD_CONFIG.filter(a=>winnersMap[a.key]&&norm(p[a.col])===norm(winnersMap[a.key])).length*AWARD_BONUS;
     return b>0?<span className="bonus-badge">+{b} BONUS</span>:null;
+  };
+
+  const TbBadge=({p,idx})=>{
+    if(!(p.tb_total>0))return null;
+    const prev=idx>0?sorted[idx-1]:null;
+    const next=idx<sorted.length-1?sorted[idx+1]:null;
+    const tied=(prev&&prev.total===p.total)||(next&&next.total===p.total);
+    if(!tied)return null;
+    return(
+      <span title={`Desempate: ${p.tb_total} pts TB`} style={{display:'inline-flex',alignItems:'center',gap:2,fontSize:10,fontWeight:700,color:'var(--blue)',background:'rgba(96,170,255,0.12)',border:'1px solid rgba(96,170,255,0.25)',borderRadius:4,padding:'1px 6px',letterSpacing:0.3}}>
+        ⚖️ {p.tb_total}
+      </span>
+    );
   };
 
   return(
@@ -1619,7 +1812,8 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
           <span><i style={{background:'var(--green)'}}/>Bonus</span>
         </div>
         {listRows.map((p,i)=>{
-          const pos=pageStart+(isFirstPage&&showPodium?3:0)+i+1;
+          const sortedIdx=pageStart+(isFirstPage&&showPodium?3:0)+i;
+          const pos=sortedIdx+1;
           const isMe=myParticipant&&p.name===myParticipant.name;
           return(
             <div className={`clasif-row${isMe?' me':''}`} id={isMe?'me-row':undefined} key={p.name} onClick={()=>setDetail(p)}>
@@ -1633,6 +1827,7 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
                   <span className="clasif-name">{p.name}</span>
                   {isMe&&<span className="me-pin">TÚ</span>}
                   <BonusBadge p={p}/>
+                  <TbBadge p={p} idx={sortedIdx}/>
                 </div>
                 <ContribBar participant={p} resultsMap={resultsMap} winnersMap={winnersMap}/>
                 <PickChips p={p}/>
@@ -2033,14 +2228,17 @@ function SquadCard({ team, result, resultsMap, maxPts }) {
   );
 }
 
-function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t }) {
+function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t, matches, tbPreds, session, onSaveTbPred }) {
   if(!myParticipant)return(
-    <div className="page"><div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
-      <div style={{marginBottom:14}}><Icon name="rules" size={44} color="var(--mut)"/></div>
-      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>AÚN NO ESTÁS INSCRITO</div>
-      <div style={{fontSize:13,color:'var(--mut)',marginTop:8,marginBottom:20}}>Regístrate para ver tus resultados aquí.</div>
-      <button className="btn-primary" style={{maxWidth:260,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
-    </div></div>
+    <div className="page">
+      <div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
+        <div style={{marginBottom:14}}><Icon name="rules" size={44} color="var(--mut)"/></div>
+        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700,fontSize:18,color:'var(--mut)',letterSpacing:1}}>AÚN NO ESTÁS INSCRITO</div>
+        <div style={{fontSize:13,color:'var(--mut)',marginTop:8,marginBottom:20}}>Regístrate para ver tus resultados aquí.</div>
+        <button className="btn-primary" style={{maxWidth:260,margin:'0 auto'}} onClick={()=>goTo('seleccion')}>{t.register_btn}</button>
+      </div>
+      <TiebreakerSection matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={onSaveTbPred} t={t}/>
+    </div>
   );
 
   const rows=(myParticipant.teams||[]).map(tm=>({
@@ -2158,6 +2356,9 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
           })}
         </div>
       </div>
+
+      {/* Tiebreaker predictions */}
+      <TiebreakerSection matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={onSaveTbPred} t={t}/>
     </div>
   );
 }
@@ -2252,6 +2453,7 @@ export default function App() {
   const [resultsMap,setResultsMap]=useState({});
   const [winnersMap,setWinnersMap]=useState({});
   const [matches,setMatches]=useState([]);
+  const [tbPreds,setTbPreds]=useState([]);
   const [loading,setLoading]=useState(true);
   const [adminMode,setAdminMode]=useState(false);
   const [lang,setLang]=useState(()=>{ try{return localStorage.getItem('lang')||'es';}catch{return 'es';} });
@@ -2283,11 +2485,12 @@ export default function App() {
   useEffect(()=>{loadData();},[]);
 
   async function loadData() {
-    const [{data:parts},{data:res},{data:winners},{data:mats}]=await Promise.all([
+    const [{data:parts},{data:res},{data:winners},{data:mats},{data:tbps}]=await Promise.all([
       supabase.from('participants').select('*').order('created_at'),
       supabase.from('results').select('*'),
       supabase.from('award_winners').select('*'),
       supabase.from('matches').select('*').order('id'),
+      supabase.from('tiebreaker_predictions').select('*'),
     ]);
     setParticipants(parts||[]);
     const map={};(res||[]).forEach(r=>{map[r.team]=r;});setResultsMap(map);
@@ -2312,13 +2515,34 @@ export default function App() {
     }
     setWinnersMap(wm);
     setMatches(mats||[]);
+    setTbPreds(tbps||[]);
     setLoading(false);
   }
 
   const calcBonus=(p)=>AWARD_CONFIG.filter(a=>winnersMap[a.key]&&norm(p[a.col])===norm(winnersMap[a.key])).length*AWARD_BONUS;
   const calcTeamPts=(teams)=>(teams||[]).reduce((sum,team)=>sum+calcTotal(resultsMap[team]||{}),0);
-  const participantsWithTotals=participants.map(p=>({...p,total:calcTeamPts(p.teams)+calcBonus(p)}));
-  const participantsSorted=participantsWithTotals.slice().sort((a,b)=>b.total-a.total);
+
+  // Tiebreaker pts per user_id (computed from tbPreds + matches)
+  const tbScoreByUser={};
+  (tbPreds||[]).forEach(pred=>{
+    const match=(matches||[]).find(m=>m.id===pred.match_id);
+    if(!match)return;
+    const sc=calcTbScore(pred,match);
+    if(!tbScoreByUser[pred.user_id])tbScoreByUser[pred.user_id]={total:0,exact:0};
+    tbScoreByUser[pred.user_id].total+=sc.total;
+    tbScoreByUser[pred.user_id].exact+=sc.exact;
+  });
+
+  const participantsWithTotals=participants.map(p=>({
+    ...p,
+    total:calcTeamPts(p.teams)+calcBonus(p),
+    tb_total:tbScoreByUser[p.user_id]?.total||0,
+    tb_exact:tbScoreByUser[p.user_id]?.exact||0,
+  }));
+  // Primary: total pts. Tiebreaker: tb_total → tb_exact → alphabetical
+  const participantsSorted=participantsWithTotals.slice().sort((a,b)=>
+    b.total-a.total||b.tb_total-a.tb_total||b.tb_exact-a.tb_exact||(a.name<b.name?-1:1)
+  );
 
   async function handleRegister({name,teams,picks,userId}) {
     const {data:existing}=await supabase.from('participants').select('id').eq('name',name).maybeSingle();
@@ -2338,6 +2562,17 @@ export default function App() {
       setMyParticipant(mine||null);
     }
     setTimeout(()=>setTab('clasificacion'),1500);return true;
+  }
+
+  async function handleSaveTbPred({match_id,home_goals,away_goals}) {
+    const userId=session?.user?.id;
+    if(!userId)return 'No autenticado';
+    const {error}=await supabase.from('tiebreaker_predictions')
+      .upsert({user_id:userId,match_id,home_goals,away_goals},{onConflict:'user_id,match_id'});
+    if(error){console.error('TB pred error:',error);return error.message;}
+    const {data:tbps}=await supabase.from('tiebreaker_predictions').select('*');
+    setTbPreds(tbps||[]);
+    return null;
   }
 
   async function recalcAndSaveResults() {
@@ -2459,8 +2694,8 @@ export default function App() {
       </div>
       {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}/>}
       {tab==='normas'        &&<RulesPage        t={t}/>}
-      {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t}/>}
-      {tab==='seleccion'     &&!myParticipant    &&<RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/>}
+      {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t} matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred}/>}
+      {tab==='seleccion'     &&!myParticipant    &&<><RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/><div className="page" style={{paddingTop:0}}><TiebreakerSection matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred} t={t}/></div></>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch}/>}
