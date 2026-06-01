@@ -337,8 +337,8 @@ const LANGS = {
     tb_pending:'Los pronósticos se abrirán cuando se determinen los cruces de Semifinales.',
     tb_save:'Guardar pronóstico', tb_saved:'✅ Guardado',
     tb_note:'No suma a tu puntuación · Solo sirve para desempatar',
-    tb_section_title:'⚖️ Pronósticos de Desempate',
-    tb_rules_title:'⚖️ Sistema de Desempate',
+    tb_section_title:'Pronósticos de Desempate',
+    tb_rules_title:'Sistema de Desempate',
     tb_rules_desc:'Si dos jugadores terminan empatados a puntos, se aplica el sistema de desempate basado en los pronósticos de Semifinales y Final:',
     tb_rules_max:'Máx. 3 pts por partido · 2 Semifinales + 1 Final = 9 pts máx. de desempate. Los pronósticos se abren fase a fase y cualquier usuario registrado puede participar aunque no haya inscrito sus equipos.',
   },
@@ -430,8 +430,8 @@ const LANGS = {
     tb_pending:'Predictions will open once the Semi-final draw is made.',
     tb_save:'Save prediction', tb_saved:'✅ Saved',
     tb_note:'Does not add to your score · Only used for tie-breaking',
-    tb_section_title:'⚖️ Tiebreaker Predictions',
-    tb_rules_title:'⚖️ Tiebreaker System',
+    tb_section_title:'Tiebreaker Predictions',
+    tb_rules_title:'Tiebreaker System',
     tb_rules_desc:'If two players finish level on points, the tiebreaker system based on Semi-final and Final predictions applies:',
     tb_rules_max:'Max. 3 pts per match · 2 Semi-finals + 1 Final = 9 pts max. tiebreaker. Predictions open phase by phase and any registered user may participate even without picking teams.',
   },
@@ -522,8 +522,8 @@ const LANGS = {
     tb_locked:'Bloqueado · resultado oficial', tb_pending:'Os jogos de Semifinal e Final ainda não estão disponíveis. Volte quando as equipas estiverem definidas!',
     tb_save:'Guardar previsão', tb_saved:'✓ Salvo!',
     tb_note:'Estes pontos não se somam à pontuação geral — servem apenas para desempate.',
-    tb_section_title:'⚖️ Previsões de Desempate',
-    tb_rules_title:'⚖️ Sistema de Desempate',
+    tb_section_title:'Previsões de Desempate',
+    tb_rules_title:'Sistema de Desempate',
     tb_rules_desc:'Se dois jogadores terminarem com a mesma pontuação, o sistema de desempate baseado nas previsões de Semifinal e Final aplica-se:',
     tb_rules_max:'Máx. 3 pts por jogo · 2 Semifinais + 1 Final = 9 pts máx. de desempate. Previsões abertas fase a fase e qualquer utilizador registado pode participar mesmo sem escolher equipas.',
   },
@@ -912,11 +912,11 @@ function TbMatchRow({ item, saved, onSave, t }) {
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
         <span style={{fontSize:10,fontWeight:800,color:'var(--blue)',textTransform:'uppercase',letterSpacing:1,background:'rgba(96,170,255,0.12)',padding:'2px 8px',borderRadius:4}}>{roundLabel}</span>
         {tbPts&&tbPts.total>0&&(
-          <span style={{fontSize:11,fontWeight:700,color:tbPts.exact?'var(--gold)':'var(--green)',marginLeft:2}}>
-            ⚖️ +{tbPts.total} pts{tbPts.exact?' · Exacto ✓':''}
+          <span style={{display:'inline-flex',alignItems:'center',gap:3,fontSize:11,fontWeight:700,color:tbPts.exact?'var(--gold)':'var(--green)',marginLeft:2}}>
+            <Icon name="balance" size={11} color="currentColor"/> +{tbPts.total} pts{tbPts.exact?' · Exacto ✓':''}
           </span>
         )}
-        {tbPts&&tbPts.total===0&&saved&&<span style={{fontSize:11,color:'var(--mut)'}}>⚖️ 0 pts</span>}
+        {tbPts&&tbPts.total===0&&saved&&<span style={{display:'inline-flex',alignItems:'center',gap:3,fontSize:11,color:'var(--mut)'}}><Icon name="balance" size={11} color="currentColor"/> 0 pts</span>}
         {locked&&<span style={{fontSize:10,color:'var(--mut)',marginLeft:'auto'}}>🔒 {t.tb_locked}</span>}
       </div>
       {/* Match row */}
@@ -981,6 +981,7 @@ function TiebreakerSection({ matches, tbPreds, session, onSaveTbPred, t }) {
   return(
     <div className="card" style={{border:'1px solid rgba(96,170,255,0.3)',background:'rgba(96,170,255,0.03)'}}>
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+        <Icon name="balance" size={16} color="var(--blue)"/>
         <div className="sect-title" style={{color:'var(--blue)',marginBottom:0}}>{t.tb_section_title}</div>
       </div>
       <div style={{fontSize:12,color:'var(--mut)',marginBottom:tbItems.length?14:0,lineHeight:1.5}}>{t.tb_note}</div>
@@ -1170,6 +1171,23 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
           </div>
         </div>
       )}
+      {/* DESEMPATE card — always visible, below participant summary */}
+      <div className="card" style={{border:'1px solid rgba(96,170,255,0.35)',background:'linear-gradient(135deg,rgba(96,170,255,0.06),rgba(96,170,255,0.02))'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+          <div style={{background:'rgba(96,170,255,0.15)',border:'1px solid rgba(96,170,255,0.4)',borderRadius:8,padding:'8px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <Icon name="balance" size={20} color="var(--blue)"/>
+          </div>
+          <div>
+            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:16,color:'var(--blue)',letterSpacing:1}}>¡{t.tb_title}!</div>
+            <div style={{fontSize:11,color:'var(--mut)'}}>{t.tb_subtitle}</div>
+          </div>
+        </div>
+        <div style={{fontSize:13,color:'var(--mut)',lineHeight:1.6,marginBottom:14}}>{t.tb_desc}</div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn-ghost" style={{flex:1,fontSize:12}} onClick={()=>goTo('normas')}>{t.tb_rules_btn} →</button>
+          <button className="btn-primary" style={{flex:1,fontSize:12}} onClick={()=>goTo('seleccion')}>{t.tb_preds_btn}</button>
+        </div>
+      </div>
       {!myParticipant&&open&&(
         <div className="onboard-card">
           <div style={{fontFamily:"var(--f-display)",fontWeight:900,fontSize:20,color:'var(--gold)',letterSpacing:1,marginBottom:4}}>{t.onboard_title}</div>
@@ -1245,21 +1263,6 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
               <a className="premio-link" href={p.url} target="_blank" rel="noopener noreferrer">smartbox.com ↗</a>
             </div>
           ))}
-        </div>
-      </div>
-      {/* DESEMPATE card */}
-      <div className="card" style={{border:'1px solid rgba(96,170,255,0.35)',background:'linear-gradient(135deg,rgba(96,170,255,0.06),rgba(96,170,255,0.02))'}}>
-        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-          <div style={{background:'rgba(96,170,255,0.15)',border:'1px solid rgba(96,170,255,0.4)',borderRadius:8,padding:'6px 10px',fontSize:18,lineHeight:1}}>⚖️</div>
-          <div>
-            <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:900,fontSize:16,color:'var(--blue)',letterSpacing:1}}>¡{t.tb_title}!</div>
-            <div style={{fontSize:11,color:'var(--mut)'}}>{t.tb_subtitle}</div>
-          </div>
-        </div>
-        <div style={{fontSize:13,color:'var(--mut)',lineHeight:1.6,marginBottom:14}}>{t.tb_desc}</div>
-        <div style={{display:'flex',gap:8}}>
-          <button className="btn-ghost" style={{flex:1,fontSize:12}} onClick={()=>goTo('normas')}>{t.tb_rules_btn} →</button>
-          <button className="btn-primary" style={{flex:1,fontSize:12}} onClick={()=>goTo('seleccion')}>{t.tb_preds_btn}</button>
         </div>
       </div>
       {!open&&<div style={{textAlign:'center',padding:'14px 0',fontSize:13,color:'var(--mut)'}}>{t.reg_closed_msg}</div>}
@@ -1338,7 +1341,7 @@ function RulesPage({ t }) {
       </div>
       {/* Tiebreaker rules */}
       <div className="card" style={{border:'1px solid rgba(96,170,255,0.3)',background:'rgba(96,170,255,0.03)'}}>
-        <div className="sect-title" style={{color:'var(--blue)'}}>{t.tb_rules_title}</div>
+        <div className="sect-title" style={{color:'var(--blue)',display:'flex',alignItems:'center',gap:8}}><Icon name="balance" size={16} color="var(--blue)"/>{t.tb_rules_title}</div>
         <div style={{fontSize:13,color:'var(--mut)',marginBottom:14,lineHeight:1.6}}>{t.tb_rules_desc}</div>
         <div className="scoring-grid">
           {[
@@ -1788,8 +1791,8 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
     const tied=(prev&&prev.total===p.total)||(next&&next.total===p.total);
     if(!tied)return null;
     return(
-      <span title={`Desempate: ${p.tb_total} pts TB`} style={{display:'inline-flex',alignItems:'center',gap:2,fontSize:10,fontWeight:700,color:'var(--blue)',background:'rgba(96,170,255,0.12)',border:'1px solid rgba(96,170,255,0.25)',borderRadius:4,padding:'1px 6px',letterSpacing:0.3}}>
-        ⚖️ {p.tb_total}
+      <span title={`Desempate: ${p.tb_total} pts TB`} style={{display:'inline-flex',alignItems:'center',gap:3,fontSize:10,fontWeight:700,color:'var(--blue)',background:'rgba(96,170,255,0.12)',border:'1px solid rgba(96,170,255,0.25)',borderRadius:4,padding:'1px 6px',letterSpacing:0.3}}>
+        <Icon name="balance" size={10} color="var(--blue)"/> {p.tb_total}
       </span>
     );
   };

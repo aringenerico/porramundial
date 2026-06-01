@@ -25,6 +25,7 @@ export function Icon({ name, size = 18, color = 'currentColor', stroke = 1.8 }) 
     settings:<><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2.5-1.4L14 3h-4l-.5 2.7a7 7 0 0 0-2.5 1.4l-2.4-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2.5 1.4L10 21h4l.5-2.6a7 7 0 0 0 2.5-1.4l2.4 1 2-3.4z"/></>,
     power:   <><path d="M12 4v8"/><path d="M7.5 7a7 7 0 1 0 9 0"/></>,
     share:   <><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></>,
+    balance: <><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></>,
   };
   return <svg {...p}>{P[name] || null}</svg>;
 }
