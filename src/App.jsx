@@ -206,6 +206,14 @@ const TOURNEY_GROUPS = {
 
 // Full knockout bracket template
 // Slot codes: 'A1'=Group A winner, 'B2'=runner-up, 'T1'-'T8'=best 3rd-place
+// Tiebreaker slot definitions — maps slot name to bracket match + round
+// Used to resolve teams from results without requiring a matches DB row
+const TB_SLOTS = [
+  { slot:'sf_1',  round_col:'sf',    bm:null }, // populated below after BRACKET
+  { slot:'sf_2',  round_col:'sf',    bm:null },
+  { slot:'final', round_col:'final', bm:null },
+];
+
 // 'r32_Nw'=winner of r32 match N, etc.
 const BRACKET = {
   r32:[
@@ -235,6 +243,10 @@ const BRACKET = {
     {n:1,home:'sf_1w',away:'sf_2w'},
   ],
 };
+// Wire TB_SLOTS to actual bracket match objects
+TB_SLOTS[0].bm = BRACKET.sf[0];
+TB_SLOTS[1].bm = BRACKET.sf[1];
+TB_SLOTS[2].bm = BRACKET.final[0];
 
 const LANGS = {
   es: {
@@ -871,23 +883,25 @@ function useCountdown(target) {
 }
 
 // ── Tiebreaker components ─────────────────────────────────────
-function TbMatchRow({ match, saved, onSave, t }) {
+// item = { slot, round_col, home_team, away_team, home_goals, away_goals }
+// home_goals / away_goals are non-null only when the match is finished
+function TbMatchRow({ item, saved, onSave, t }) {
   const [hg,setHg]=useState(saved?.home_goals?.toString()??'');
   const [ag,setAg]=useState(saved?.away_goals?.toString()??'');
   const [saving,setSaving]=useState(false);
   const [flash,setFlash]=useState(false);
-  const locked=match.home_goals!=null;
-  const roundLabel=match.round_col==='final'?'Final':'Semifinal';
+  const locked=item.home_goals!=null;
+  const roundLabel=item.round_col==='final'?'Final':'Semifinal';
   const changed=hg!==(saved?.home_goals?.toString()??'')||ag!==(saved?.away_goals?.toString()??'');
   const canSave=!locked&&hg!==''&&ag!==''&&(changed||!saved);
 
   // pts breakdown if match is finished
-  const tbPts=locked&&saved?calcTbScore(saved,match):null;
+  const tbPts=locked&&saved?calcTbScore(saved,item):null;
 
   const save=async()=>{
     if(!canSave||saving)return;
     setSaving(true);
-    const err=await onSave({match_id:match.id,home_goals:parseInt(hg),away_goals:parseInt(ag)});
+    const err=await onSave({slot:item.slot,home_goals:parseInt(hg),away_goals:parseInt(ag)});
     setSaving(false);
     if(!err){setFlash(true);setTimeout(()=>setFlash(false),2200);}
   };
@@ -909,8 +923,8 @@ function TbMatchRow({ match, saved, onSave, t }) {
       <div style={{display:'flex',alignItems:'center',gap:8}}>
         {/* Home */}
         <div style={{flex:1,display:'flex',alignItems:'center',gap:7,justifyContent:'flex-end',minWidth:0}}>
-          <span style={{fontSize:13,color:'var(--white)',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'right'}}>{match.home_team}</span>
-          <FlagChip team={match.home_team} size={28}/>
+          <span style={{fontSize:13,color:'var(--white)',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'right'}}>{item.home_team}</span>
+          <FlagChip team={item.home_team} size={28}/>
         </div>
         {/* Inputs */}
         <div style={{display:'flex',alignItems:'center',gap:5,flexShrink:0}}>
@@ -926,8 +940,8 @@ function TbMatchRow({ match, saved, onSave, t }) {
         </div>
         {/* Away */}
         <div style={{flex:1,display:'flex',alignItems:'center',gap:7,minWidth:0}}>
-          <FlagChip team={match.away_team} size={28}/>
-          <span style={{fontSize:13,color:'var(--white)',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{match.away_team}</span>
+          <FlagChip team={item.away_team} size={28}/>
+          <span style={{fontSize:13,color:'var(--white)',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.away_team}</span>
         </div>
       </div>
       {/* Save button */}
@@ -944,21 +958,37 @@ function TbMatchRow({ match, saved, onSave, t }) {
 }
 
 function TiebreakerSection({ matches, tbPreds, session, onSaveTbPred, t }) {
-  const tbMatches=(matches||[]).filter(m=>['sf','final'].includes(m.round_col)&&m.home_team&&m.away_team)
-    .sort((a,b)=>{ const o=['sf','final']; return o.indexOf(a.round_col)-o.indexOf(b.round_col)||(a.id-b.id); });
   const myPreds=(tbPreds||[]).filter(p=>p.user_id===session?.user?.id);
+
+  // Resolve each slot to actual teams using existing results (same logic as AdminPage bracket)
+  const tbItems=TB_SLOTS.map(({slot,round_col,bm})=>{
+    const h=resolveSlot(bm.home,matches);
+    const a=resolveSlot(bm.away,matches);
+    if(!h.ready||!a.ready)return null;
+    // Find result row if match has been played
+    const resultRow=(matches||[]).find(m=>
+      m.round_col===round_col&&m.home_goals!=null&&
+      ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
+    );
+    return{
+      slot,round_col,
+      home_team:h.team,away_team:a.team,
+      home_goals:resultRow?resultRow.home_goals:null,
+      away_goals:resultRow?resultRow.away_goals:null,
+    };
+  }).filter(Boolean);
 
   return(
     <div className="card" style={{border:'1px solid rgba(96,170,255,0.3)',background:'rgba(96,170,255,0.03)'}}>
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
         <div className="sect-title" style={{color:'var(--blue)',marginBottom:0}}>{t.tb_section_title}</div>
       </div>
-      <div style={{fontSize:12,color:'var(--mut)',marginBottom:tbMatches.length?14:0,lineHeight:1.5}}>{t.tb_note}</div>
-      {tbMatches.length===0?(
+      <div style={{fontSize:12,color:'var(--mut)',marginBottom:tbItems.length?14:0,lineHeight:1.5}}>{t.tb_note}</div>
+      {tbItems.length===0?(
         <div style={{textAlign:'center',padding:'20px 0',color:'var(--mut)',fontSize:13}}>{t.tb_pending}</div>
-      ):tbMatches.map(m=>{
-        const saved=myPreds.find(p=>p.match_id===m.id);
-        return <TbMatchRow key={m.id} match={m} saved={saved} onSave={onSaveTbPred} t={t}/>;
+      ):tbItems.map(item=>{
+        const saved=myPreds.find(p=>p.slot===item.slot);
+        return <TbMatchRow key={item.slot} item={item} saved={saved} onSave={onSaveTbPred} t={t}/>;
       })}
     </div>
   );
@@ -2522,10 +2552,18 @@ export default function App() {
   const calcBonus=(p)=>AWARD_CONFIG.filter(a=>winnersMap[a.key]&&norm(p[a.col])===norm(winnersMap[a.key])).length*AWARD_BONUS;
   const calcTeamPts=(teams)=>(teams||[]).reduce((sum,team)=>sum+calcTotal(resultsMap[team]||{}),0);
 
-  // Tiebreaker pts per user_id (computed from tbPreds + matches)
+  // Tiebreaker pts per user_id — resolved via slot → bracket → match result
   const tbScoreByUser={};
   (tbPreds||[]).forEach(pred=>{
-    const match=(matches||[]).find(m=>m.id===pred.match_id);
+    const slotDef=TB_SLOTS.find(s=>s.slot===pred.slot);
+    if(!slotDef)return;
+    const h=resolveSlot(slotDef.bm.home,matches);
+    const a=resolveSlot(slotDef.bm.away,matches);
+    if(!h.team||!a.team)return;
+    const match=(matches||[]).find(m=>
+      m.round_col===slotDef.round_col&&m.home_goals!=null&&
+      ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
+    );
     if(!match)return;
     const sc=calcTbScore(pred,match);
     if(!tbScoreByUser[pred.user_id])tbScoreByUser[pred.user_id]={total:0,exact:0};
@@ -2564,11 +2602,11 @@ export default function App() {
     setTimeout(()=>setTab('clasificacion'),1500);return true;
   }
 
-  async function handleSaveTbPred({match_id,home_goals,away_goals}) {
+  async function handleSaveTbPred({slot,home_goals,away_goals}) {
     const userId=session?.user?.id;
     if(!userId)return 'No autenticado';
     const {error}=await supabase.from('tiebreaker_predictions')
-      .upsert({user_id:userId,match_id,home_goals,away_goals},{onConflict:'user_id,match_id'});
+      .upsert({user_id:userId,slot,home_goals,away_goals},{onConflict:'user_id,slot'});
     if(error){console.error('TB pred error:',error);return error.message;}
     const {data:tbps}=await supabase.from('tiebreaker_predictions').select('*');
     setTbPreds(tbps||[]);
