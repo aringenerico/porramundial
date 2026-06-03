@@ -1732,13 +1732,23 @@ function PlayerSheet({ participant, resultsMap, winnersMap, onClose }) {
   );
 }
 
-function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, onRefresh, t }) {
+function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, onRefresh, t, myGroups=[], groupMembersById={} }) {
   const [page,setPage]=useState(1);
   const [detail,setDetail]=useState(null);
+  const [groupFilterId,setGroupFilterId]=useState(null); // null = General; otherwise group.id
   const topRef=useRef(null);
   useEffect(()=>{ window.scrollTo({ top: (topRef.current?.offsetTop ?? 0) - 80, behavior:'smooth' }); },[page]);
+  useEffect(()=>{ setPage(1); },[groupFilterId]);
   const changePage=(n)=>{ setPage(n); };
-  const sorted=[...participants].sort((a,b)=>
+
+  // Apply group filter to participants. Pot/prizes stay computed on the global list.
+  const filteredParticipants=(()=>{
+    if(!groupFilterId)return participants;
+    const memberIds=groupMembersById[groupFilterId]||new Set();
+    return participants.filter(p=>p.user_id&&memberIds.has(p.user_id));
+  })();
+
+  const sorted=[...filteredParticipants].sort((a,b)=>
     b.total-a.total||b.tb_total-a.tb_total||b.tb_exact-a.tb_exact||(a.name<b.name?-1:1)
   );
   const pot=participants.length*10;
@@ -1810,6 +1820,32 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
               </div>
             ))}
           </div>
+        </div>
+      )}
+      {myGroups.length>0&&(
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',padding:'0 4px',marginBottom:12}}>
+          <button
+            onClick={()=>setGroupFilterId(null)}
+            style={{
+              fontSize:12,fontWeight:700,padding:'6px 12px',borderRadius:999,cursor:'pointer',
+              border:'1px solid '+(groupFilterId===null?'var(--gold)':'var(--brd)'),
+              background:groupFilterId===null?'rgba(245,183,49,0.15)':'transparent',
+              color:groupFilterId===null?'var(--gold)':'var(--mut)',
+            }}>
+            🌐 General
+          </button>
+          {myGroups.map(g=>(
+            <button key={g.id}
+              onClick={()=>setGroupFilterId(g.id)}
+              style={{
+                fontSize:12,fontWeight:700,padding:'6px 12px',borderRadius:999,cursor:'pointer',
+                border:'1px solid '+(groupFilterId===g.id?'var(--gold)':'var(--brd)'),
+                background:groupFilterId===g.id?'rgba(245,183,49,0.15)':'transparent',
+                color:groupFilterId===g.id?'var(--gold)':'var(--mut)',
+              }}>
+              🏢 {g.name}
+            </button>
+          ))}
         </div>
       )}
       <JumpToMeFab myParticipant={myParticipant} sorted={sorted} page={page} setPage={setPage}/>
@@ -2142,10 +2178,83 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
   );
 }
 
-function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch }) {
+function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch, onGroupsChange }) {
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
+
+  // ── Groups admin state ─────────────────────────────────────────────────────
+  const [allGroups,setAllGroups]=useState([]);
+  const [allMembers,setAllMembers]=useState({}); // { group_id: [{user_id, name}] }
+  const [allParticipants,setAllParticipants]=useState([]);
+  const [newGroupName,setNewGroupName]=useState('');
+  const [expandedGroup,setExpandedGroup]=useState({});
+  const [addPick,setAddPick]=useState({});
+  const [groupBusy,setGroupBusy]=useState(false);
+  const [groupErr,setGroupErr]=useState('');
+
+  const loadGroupsAdmin=async()=>{
+    const [gRes,mRes,pRes]=await Promise.all([
+      supabase.from('groups').select('*').order('name'),
+      supabase.from('group_members').select('group_id, user_id'),
+      supabase.from('participants').select('user_id, name').order('name'),
+    ]);
+    setAllGroups(gRes.data||[]);
+    setAllParticipants((pRes.data||[]).filter(p=>p.user_id));
+    const partsByUid=new Map((pRes.data||[]).map(p=>[p.user_id,p.name]));
+    const memMap={};
+    (mRes.data||[]).forEach(r=>{
+      if(!memMap[r.group_id])memMap[r.group_id]=[];
+      memMap[r.group_id].push({user_id:r.user_id,name:partsByUid.get(r.user_id)||'(sin participante)'});
+    });
+    Object.values(memMap).forEach(arr=>arr.sort((a,b)=>a.name.localeCompare(b.name)));
+    setAllMembers(memMap);
+  };
+  useEffect(()=>{loadGroupsAdmin();},[]);
+
+  const createGroup=async()=>{
+    const name=newGroupName.trim();
+    if(!name)return;
+    setGroupBusy(true);setGroupErr('');
+    const {error}=await supabase.from('groups').insert({name});
+    setGroupBusy(false);
+    if(error){setGroupErr(error.message);return;}
+    setNewGroupName('');
+    await loadGroupsAdmin();
+    if(onGroupsChange)onGroupsChange();
+  };
+
+  const deleteGroup=async(id,name)=>{
+    if(!window.confirm(`¿Borrar el grupo "${name}"? Se eliminarán todas las pertenencias.`))return;
+    setGroupBusy(true);setGroupErr('');
+    const {error}=await supabase.from('groups').delete().eq('id',id);
+    setGroupBusy(false);
+    if(error){setGroupErr(error.message);return;}
+    await loadGroupsAdmin();
+    if(onGroupsChange)onGroupsChange();
+  };
+
+  const addMember=async(groupId)=>{
+    const userId=addPick[groupId];
+    if(!userId)return;
+    setGroupBusy(true);setGroupErr('');
+    const {error}=await supabase.from('group_members').insert({group_id:groupId,user_id:userId});
+    setGroupBusy(false);
+    if(error){setGroupErr(error.message);return;}
+    setAddPick(p=>({...p,[groupId]:''}));
+    await loadGroupsAdmin();
+    if(onGroupsChange)onGroupsChange();
+  };
+
+  const removeMember=async(groupId,userId)=>{
+    setGroupBusy(true);setGroupErr('');
+    const {error}=await supabase.from('group_members').delete()
+      .eq('group_id',groupId).eq('user_id',userId);
+    setGroupBusy(false);
+    if(error){setGroupErr(error.message);return;}
+    await loadGroupsAdmin();
+    if(onGroupsChange)onGroupsChange();
+  };
   useEffect(()=>{setWinners({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});},[winnersMap.top_scorer,winnersMap.mvp,winnersMap.best_young,winnersMap.best_goalkeeper]);
   const [saving,setSaving]=useState(false);
   const [saved,setSaved]=useState(false);
@@ -2215,6 +2324,81 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
           ));
         })()}
         {matchTab==='elim'&&<AutoKnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}/>}
+
+        {/* ── GROUPS ──────────────────────────────────────────────────────── */}
+        <hr className="admin-divider"/>
+        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:6}}>🏢 Grupos</div>
+        <div style={{fontSize:12,color:'var(--mut)',marginBottom:14}}>
+          Crea subgrupos (oficinas, equipos…) y asigna usuarios. Cada usuario verá una clasificación filtrada de los grupos a los que pertenece.
+        </div>
+
+        <div style={{display:'flex',gap:8,marginBottom:14}}>
+          <input className="inp" style={{marginBottom:0,flex:1}}
+            placeholder="Nombre del nuevo grupo (ej. Bilbao)"
+            value={newGroupName}
+            onChange={e=>setNewGroupName(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter')createGroup();}}/>
+          <button className="btn-primary" onClick={createGroup} disabled={groupBusy||!newGroupName.trim()}>
+            + Crear
+          </button>
+        </div>
+        {groupErr&&<div style={{marginBottom:10,fontSize:12,color:'#e55',background:'rgba(229,85,85,0.1)',border:'1px solid rgba(229,85,85,0.3)',borderRadius:6,padding:'6px 10px'}}>❌ {groupErr}</div>}
+
+        {allGroups.length===0&&(
+          <div style={{fontSize:12,color:'var(--mut)',fontStyle:'italic',padding:'12px 0'}}>Aún no hay grupos.</div>
+        )}
+
+        {allGroups.map(g=>{
+          const members=allMembers[g.id]||[];
+          const memberIds=new Set(members.map(m=>m.user_id));
+          const available=allParticipants.filter(p=>!memberIds.has(p.user_id));
+          const isOpen=!!expandedGroup[g.id];
+          return(
+            <div key={g.id} style={{border:'1px solid var(--brd)',borderRadius:8,marginBottom:10,overflow:'hidden'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:'rgba(255,255,255,0.02)',cursor:'pointer'}}
+                   onClick={()=>setExpandedGroup(e=>({...e,[g.id]:!isOpen}))}>
+                <span style={{fontSize:13,color:'var(--mut)'}}>{isOpen?'▾':'▸'}</span>
+                <span style={{flex:1,fontWeight:700,fontSize:14}}>{g.name}</span>
+                <span style={{fontSize:11,color:'var(--mut)'}}>· {members.length} {members.length===1?'miembro':'miembros'}</span>
+                <button onClick={e=>{e.stopPropagation();deleteGroup(g.id,g.name);}}
+                  disabled={groupBusy}
+                  style={{background:'transparent',border:'none',color:'#e55',cursor:'pointer',fontSize:14,padding:'2px 6px'}}>
+                  🗑
+                </button>
+              </div>
+              {isOpen&&(
+                <div style={{padding:'8px 12px 12px'}}>
+                  {members.length===0&&(
+                    <div style={{fontSize:12,color:'var(--mut)',fontStyle:'italic',padding:'4px 0 8px'}}>Sin miembros.</div>
+                  )}
+                  {members.map(m=>(
+                    <div key={m.user_id} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',fontSize:13}}>
+                      <span style={{flex:1}}>{m.name}</span>
+                      <button onClick={()=>removeMember(g.id,m.user_id)}
+                        disabled={groupBusy}
+                        style={{background:'transparent',border:'none',color:'var(--mut)',cursor:'pointer',fontSize:14,padding:'2px 6px'}}
+                        title="Quitar del grupo">✕</button>
+                    </div>
+                  ))}
+                  <div style={{display:'flex',gap:6,marginTop:10}}>
+                    <select className="inp" style={{marginBottom:0,flex:1,fontSize:13}}
+                      value={addPick[g.id]||''}
+                      onChange={e=>setAddPick(p=>({...p,[g.id]:e.target.value}))}>
+                      <option value="">— Selecciona usuario —</option>
+                      {available.map(p=>(
+                        <option key={p.user_id} value={p.user_id}>{p.name}</option>
+                      ))}
+                    </select>
+                    <button className="btn-primary" onClick={()=>addMember(g.id)}
+                      disabled={groupBusy||!addPick[g.id]}>
+                      + Añadir
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -2492,6 +2676,8 @@ export default function App() {
   const [lang,setLang]=useState(()=>{ try{return localStorage.getItem('lang')||'es';}catch{return 'es';} });
   const [session,setSession]=useState(undefined); // undefined = loading, null = no session
   const [myParticipant,setMyParticipant]=useState(null);
+  const [myGroups,setMyGroups]=useState([]);                 // [{id, name}] groups I belong to
+  const [groupMembersById,setGroupMembersById]=useState({}); // { group_id: Set<user_id> }
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
   const t=LANGS[lang];
 
@@ -2514,6 +2700,25 @@ export default function App() {
     supabase.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle()
       .then(({data,error})=>setAdminMode(!error&&!!data));
   },[session]);
+
+  // Load groups I belong to + their member ids (RLS limits to my groups for non-admins)
+  const loadGroups=async()=>{
+    if(!session?.user?.id){setMyGroups([]);setGroupMembersById({});return;}
+    const {data,error}=await supabase
+      .from('group_members')
+      .select('group_id, user_id, groups(id, name)');
+    if(error||!data){setMyGroups([]);setGroupMembersById({});return;}
+    const grpMap=new Map();
+    const memMap={};
+    data.forEach(row=>{
+      if(row.groups)grpMap.set(row.groups.id,row.groups);
+      if(!memMap[row.group_id])memMap[row.group_id]=new Set();
+      memMap[row.group_id].add(row.user_id);
+    });
+    setMyGroups([...grpMap.values()].sort((a,b)=>a.name.localeCompare(b.name)));
+    setGroupMembersById(memMap);
+  };
+  useEffect(()=>{loadGroups();},[session]);
 
   useEffect(()=>{loadData();},[]);
 
@@ -2738,8 +2943,8 @@ export default function App() {
       {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t} matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred}/>}
       {tab==='seleccion'     &&!myParticipant    &&<><RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/><div className="page" style={{paddingTop:0}}><TiebreakerSection matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred} t={t}/></div></>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
-      {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t}/>}
-      {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch}/>}
+      {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t} myGroups={myGroups} groupMembersById={groupMembersById}/>}
+      {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch} onGroupsChange={loadGroups}/>}
       <AppFooter/>
       <nav className="bnav">
         {navItems.map(nt=>(
