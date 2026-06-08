@@ -7,7 +7,7 @@ const SUPABASE_URL = "https://kvdtuogpkpklnqmbcjvo.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2ZHR1b2dwa3BrbG5xbWJjanZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODY2MTQsImV4cCI6MjA5Mjk2MjYxNH0.wad92BnQtbkhH-J8Y1Zlas8_Kxk5wfULd1F9UXJzwNw";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const DEADLINE    = new Date('2026-06-07T23:59:59');
+const DEADLINE = new Date('2026-06-10T23:59:59');
 const AWARD_BONUS = 10;
 const PAGE_SIZE   = 20;
 const norm = s => (s||'').trim().toLowerCase();
