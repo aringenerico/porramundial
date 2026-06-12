@@ -94,6 +94,7 @@ const FD_TEAM_MAP = {
   'Korea Republic':'South Korea',"Côte d'Ivoire":'Ivory Coast','IR Iran':'Iran',
   'Congo DR':'DR Congo','Democratic Republic of Congo':'DR Congo','Curaçao':'Curacao',
   'Bosnia-Herzegovina':'Bosnia and Herzegovina','USA':'United States',
+  'Czechia':'Czech Republic',
 };
 const normTeam = n => FD_TEAM_MAP[n] || n;
 const STAGE_COL = {
