@@ -1,5 +1,4 @@
 import { country } from './flags';
-
 function bg(c) {
   const [a, b, d] = c.colors;
   switch (c.stripes) {
@@ -12,7 +11,6 @@ function bg(c) {
     default:        return a;
   }
 }
-
 export function FlagChip({ team, size = 28, style = {} }) {
   const c = country(team);
   const [, b] = c.colors;
@@ -39,7 +37,6 @@ export function FlagChip({ team, size = 28, style = {} }) {
     </span>
   );
 }
-
 export function TeamTag({ team, size = 22, showName = false, style = {} }) {
   const c = country(team);
   return (
