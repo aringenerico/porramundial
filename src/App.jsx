@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { FlagChip } from './design/FlagChip';
 import { Icon } from './design/Icon';
@@ -47,12 +47,13 @@ const TEAM_TIER = (() => {
 })();
 const tierOf = team => GROUPS[TEAM_TIER[team]] || null;
 
-// ── Team status helpers ───────────────────────────────────────
+// ── Round constants ───────────────────────────────────────────
 const ROUND_ORDER = ['j1','j2','j3','r32','r16','qf','sf','final'];
 const ROUND_LABEL = {
   j1:'Jornada 1', j2:'Jornada 2', j3:'Jornada 3',
   r32:'Dieciseisavos', r16:'Octavos', qf:'Cuartos', sf:'Semifinal', final:'Final',
 };
+
 function tournamentStage(resultsMap) {
   let maxIdx = -1;
   Object.values(resultsMap||{}).forEach(r => {
@@ -60,17 +61,75 @@ function tournamentStage(resultsMap) {
   });
   return maxIdx;
 }
-function teamStatus(team, resultsMap) {
-  const r = resultsMap?.[team];
-  const stageIdx = tournamentStage(resultsMap);
-  if (stageIdx < 0 || !r) return { state:'pending', reachedIdx:-1, label:'Por empezar' };
-  let reachedIdx = -1;
-  ROUND_ORDER.forEach((col,i) => { if ((r[col]||0) > 0) reachedIdx = i; });
-  if ((r.final||0) > 0 && stageIdx === ROUND_ORDER.length - 1)
-    return { state:'champion', reachedIdx, label:'Campeón' };
-  if (reachedIdx >= stageIdx)
-    return { state:'alive', reachedIdx, label: ROUND_LABEL[ROUND_ORDER[reachedIdx]] || '—' };
-  return { state:'out', reachedIdx, label:`Cayó en ${ROUND_LABEL[ROUND_ORDER[reachedIdx]]||'grupos'}` };
+
+// Has any match in the whole tournament been played?
+function tournamentHasStarted(matches) {
+  return (matches||[]).some(m => m.home_goals != null && m.away_goals != null);
+}
+
+// Describe a single played match from `team`'s point of view
+function describeTeamMatch(team, m) {
+  const isHome = m.home_team === team;
+  const gf = isHome ? m.home_goals : m.away_goals;
+  const ga = isHome ? m.away_goals : m.home_goals;
+  const opp = isHome ? m.away_team : m.home_team;
+  const result = gf > ga ? 'W' : gf < ga ? 'L' : 'D';
+  return { gf, ga, opp, result, round: m.round_col };
+}
+
+// ── Team status — derived from REAL played matches (`matches`), not from the
+// points table. A team is only "out" once its group has finished all 3
+// matchdays and it placed 3rd/4th, or it lost a knockout match outright.
+function teamStatus(team, matches) {
+  matches = matches || [];
+  const idxOf = c => ROUND_ORDER.indexOf(c);
+  const myPlayed = matches
+    .filter(m => (m.home_team===team || m.away_team===team) && m.home_goals!=null && m.away_goals!=null)
+    .sort((a,b) => idxOf(a.round_col) - idxOf(b.round_col));
+  const last = myPlayed[myPlayed.length-1] || null;
+  const lastDesc = last ? describeTeamMatch(team, last) : null;
+
+  const groupKey = Object.keys(TOURNEY_GROUPS||{}).find(g => TOURNEY_GROUPS[g].includes(team));
+
+  // ── Fase de grupos ──
+  if (groupKey) {
+    const standings = calcGroupStandings(groupKey, matches);
+    const myRow = standings.find(s => s.team === team);
+    const groupDone = standings.length === 4 && standings.every(s => s.played === 3);
+    const played = myRow ? myRow.played : 0;
+
+    if (!groupDone) {
+      return {
+        state: played === 0 ? 'pending' : 'alive',
+        label: played === 0 ? 'Por debutar' : `Fase de grupos · ${played}/3 jugados`,
+        lastMatch: lastDesc,
+      };
+    }
+    const idx = standings.findIndex(s => s.team === team);
+    if (idx > 1) {
+      return { state:'out', label:'Eliminado en fase de grupos', lastMatch: lastDesc };
+    }
+    // 1º o 2º de grupo → sigue vivo, comprobamos eliminatorias abajo
+  }
+
+  // ── Eliminatorias ──
+  for (const { col, label } of KNOCKOUT_ROUNDS) {
+    const m = myPlayed.find(mm => mm.round_col === col);
+    if (!m) {
+      return { state:'alive', label:`Clasificado a ${label}`, lastMatch: lastDesc };
+    }
+    const d = describeTeamMatch(team, m);
+    const wonOnPens  = d.result === 'D' && m.penalty_winner === team;
+    const lostOnPens = d.result === 'D' && m.penalty_winner && m.penalty_winner !== team;
+    if (d.result === 'L' || lostOnPens) {
+      return { state:'out', label:`Eliminado en ${label}`, lastMatch: d };
+    }
+    if (col === 'final' && (d.result === 'W' || wonOnPens)) {
+      return { state:'champion', label:'Campeón del Mundo', lastMatch: d };
+    }
+  }
+
+  return { state:'alive', label:'En competición', lastMatch: lastDesc };
 }
 
 // ── Tiebreaker scoring (same formula as Porra Dani) ──────────
@@ -90,13 +149,6 @@ function calcTbScore(pred, match) {
 }
 
 // ─── CHRONICLE TEMPLATES (cachondeo, adapted to team-pick scoring) ──────────
-const ROUND_LABEL = {
-  j1:'Jornada 1', j2:'Jornada 2', j3:'Jornada 3',
-  r32:'Dieciseisavos', r16:'Octavos', qf:'Cuartos',
-  sf:'Semifinales', '3rd':'Tercer Puesto', final:'Final',
-};
-const ROUND_ORDER = ['j1','j2','j3','r32','r16','qf','sf','3rd','final'];
-
 const CHRONICLE_TEMPLATES_PM = {
   king_blowout: [
     '{name} se saca {pts} pts esta ronda. Insufrible toda la semana.',
@@ -319,7 +371,6 @@ function calcAchievementsPM(participant, { participants, resultsMap, winnersMap 
   if (winnersMap?.champion && myTeams.includes(winnersMap.champion)) got.add('champion_pick');
 
   // 2-5. award picks
-  const norm = s => (s||'').toString().trim().toLowerCase();
   if (winnersMap?.top_scorer      && norm(participant.top_scorer)      === norm(winnersMap.top_scorer))      got.add('top_scorer_pick');
   if (winnersMap?.mvp             && norm(participant.mvp)             === norm(winnersMap.mvp))             got.add('mvp_pick');
   if (winnersMap?.best_young      && norm(participant.best_young)      === norm(winnersMap.best_young))      got.add('young_pick');
@@ -549,7 +600,7 @@ const LANGS = {
     login_sent_title:'¡Revisa tu correo!', login_sent_desc:'Te hemos enviado un enlace. Haz clic en él para acceder.',
     logout:'Cerrar sesión',
     register_btn:'Inscribirme y elegir mis equipos',
-    reg_closed_msg:'Inscripción cerrada el 7 de junio de 2026',
+    reg_closed_msg:'Inscripción cerrada el 10 de junio de 2026',
     team_selection:'Selección de Equipos', group_label:'Grupo',
     pick_team:'Elige', pick_team_s:'equipo', pick_team_p:'equipos',
     teams_available:'equipos disponibles',
@@ -574,7 +625,7 @@ const LANGS = {
       {phase:'Semifinales',detail:'4 equipos → 2'},
       {phase:'Final',detail:'Campeón del Mundo'},
     ],
-    reg_closed_title:'INSCRIPCIONES CERRADAS', reg_closed_date:'La inscripción terminó el', reg_closed_end:'7 de junio de 2026',
+    reg_closed_title:'INSCRIPCIONES CERRADAS', reg_closed_date:'La inscripción terminó el', reg_closed_end:'10 de junio de 2026',
     step_name:'Nombre', step_teams:'Equipos', step_awards:'Premios', step_confirm:'Confirmar',
     your_name:'Tu Nombre', full_name:'Nombre completo', full_name_hint:'Nombre + Apellido',
     name_placeholder:'ej. Pedro Sánchez',
@@ -642,7 +693,7 @@ const LANGS = {
     login_sent_title:'Check your inbox!', login_sent_desc:"We've sent you a link. Click it to sign in.",
     logout:'Sign out',
     register_btn:'Register and pick my teams',
-    reg_closed_msg:'Registration closed on June 7, 2026',
+    reg_closed_msg:'Registration closed on June 10, 2026',
     team_selection:'Team Selection', group_label:'Group',
     pick_team:'Pick', pick_team_s:'team', pick_team_p:'teams',
     teams_available:'teams available',
@@ -667,7 +718,7 @@ const LANGS = {
       {phase:'Semi-finals',detail:'4 teams → 2'},
       {phase:'Final',detail:'World Champion'},
     ],
-    reg_closed_title:'REGISTRATION CLOSED', reg_closed_date:'Registration ended on', reg_closed_end:'June 7, 2026',
+    reg_closed_title:'REGISTRATION CLOSED', reg_closed_date:'Registration ended on', reg_closed_end:'June 10, 2026',
     step_name:'Name', step_teams:'Teams', step_awards:'Awards', step_confirm:'Confirm',
     your_name:'Your Name', full_name:'Full name', full_name_hint:'First name + Last name',
     name_placeholder:'e.g. Pedro Sánchez',
@@ -735,7 +786,7 @@ const LANGS = {
     login_sent_title:'Verifique seu e-mail!', login_sent_desc:'Enviamos um link. Clique nele para entrar.',
     logout:'Sair',
     register_btn:'Inscrever-me e escolher meus times',
-    reg_closed_msg:'Inscrições encerradas em 7 de junho de 2026',
+    reg_closed_msg:'Inscrições encerradas em 10 de junho de 2026',
     team_selection:'Seleção de Times', group_label:'Grupo',
     pick_team:'Escolha', pick_team_s:'time', pick_team_p:'times',
     teams_available:'times disponíveis',
@@ -760,7 +811,7 @@ const LANGS = {
       {phase:'Semifinais',detail:'4 times → 2'},
       {phase:'Final',detail:'Campeão do Mundo'},
     ],
-    reg_closed_title:'INSCRIÇÕES ENCERRADAS', reg_closed_date:'As inscrições encerraram em', reg_closed_end:'7 de junho de 2026',
+    reg_closed_title:'INSCRIÇÕES ENCERRADAS', reg_closed_date:'As inscrições encerraram em', reg_closed_end:'10 de junho de 2026',
     step_name:'Nome', step_teams:'Times', step_awards:'Prêmios', step_confirm:'Confirmar',
     your_name:'Seu Nome', full_name:'Nome completo', full_name_hint:'Nome + Sobrenome',
     name_placeholder:'ex. Pedro Sánchez',
@@ -1422,7 +1473,7 @@ function ChronicleCard({ session, chronicle, reactions, comments,
   );
 }
 
-function HomePage({ participants, goTo, t, myParticipant, participantsSorted, resultsMap,
+function HomePage({ participants, goTo, t, myParticipant, participantsSorted, resultsMap, matches,
                     chronicle, chronicleReactions, chronicleComments,
                     onChronicleReact, onChronicleUnreact, onChronicleComment, onChronicleDeleteComment, session }) {
   const open=isRegistrationOpen();
@@ -1592,7 +1643,7 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
           </div>
           <div className="mini-squad">
             {(myParticipant.teams||[]).map(tm => {
-              const st = teamStatus(tm, resultsMap);
+              const st = teamStatus(tm, matches);
               const dotCol = st.state==='champion'?'var(--gold)':st.state==='alive'?'var(--green)':st.state==='out'?'#475569':'transparent';
               return (
                 <div key={tm} className="mini-squad-item" style={{opacity:st.state==='out'?0.5:1}} title={`${tm} · ${st.label}`}>
@@ -2135,7 +2186,7 @@ function JumpToMeFab({ myParticipant, sorted, page, setPage }) {
   return <button className="jump-fab" onClick={handleClick}>↓ Mi posición #{myIdx+1}</button>;
 }
 
-function PlayerSheet({ participant, resultsMap, winnersMap, onClose, participants=[] }) {
+function PlayerSheet({ participant, resultsMap, winnersMap, matches, onClose, participants=[] }) {
   if (!participant) return null;
   const maxPts = Math.max(...(participant.teams||[]).map(t=>calcTotal(resultsMap[t]||{})), 1);
   const got = calcAchievementsPM(participant, { participants, resultsMap, winnersMap });
@@ -2185,7 +2236,7 @@ function PlayerSheet({ participant, resultsMap, winnersMap, onClose, participant
           return (
             <div className="squad-tier-group" key={key}>
               <div className="squad-tier-hdr" style={{color:g.color}}>{g.label}</div>
-              {teams.map(t=><SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} maxPts={maxPts}/>)}
+              {teams.map(t=><SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} matches={matches} maxPts={maxPts}/>)}
             </div>
           );
         })}
@@ -2194,7 +2245,7 @@ function PlayerSheet({ participant, resultsMap, winnersMap, onClose, participant
   );
 }
 
-function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, onRefresh, t, myGroups=[], groupMembersById={} }) {
+function LeaderboardPage({ participants, winnersMap, resultsMap, matches, myParticipant, onRefresh, t, myGroups=[], groupMembersById={} }) {
   const [page,setPage]=useState(1);
   const [detail,setDetail]=useState(null);
   const [groupFilterId,setGroupFilterId]=useState(null); // null = General; otherwise group.id
@@ -2311,7 +2362,7 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
         </div>
       )}
       <JumpToMeFab myParticipant={myParticipant} sorted={sorted} page={page} setPage={setPage}/>
-      <PlayerSheet participant={detail} resultsMap={resultsMap} winnersMap={winnersMap}
+      <PlayerSheet participant={detail} resultsMap={resultsMap} winnersMap={winnersMap} matches={matches}
         participants={participants} onClose={()=>setDetail(null)}/>
       <div key={page} style={{animation:'fadeIn 0.2s ease'}}>
         {showPodium&&(
@@ -2958,10 +3009,10 @@ function ChronicleAdminSection({ session, participants, resultsMap, matches, win
   );
 }
 
-function SquadCard({ team, result, resultsMap, maxPts }) {
+function SquadCard({ team, result, resultsMap, matches, maxPts }) {
   const tier = tierOf(team);
   const total = calcTotal(result);
-  const st = teamStatus(team, resultsMap);
+  const st = teamStatus(team, matches);
   const tierColor = tier?.color || 'var(--mut)';
   const dead = st.state === 'out';
   const pending = st.state === 'pending';
@@ -2978,14 +3029,22 @@ function SquadCard({ team, result, resultsMap, maxPts }) {
       <div className="squad-main">
         <div className="squad-top">
           <span className="squad-name">{team}</span>
-          {st.state==='alive'&&(TEAM_TIER[team]==='g4'||TEAM_TIER[team]==='g3')&&st.reachedIdx>=5&&
+          {st.state==='alive'&&st.lastMatch&&ROUND_ORDER.indexOf(st.lastMatch.round)>=5&&
             <Icon name="flame" size={13} color="#ff6b35"/>}
         </div>
         <div className="squad-sub">
           <span className="tier-tag" style={{color:tierColor}}>{tier?.label}</span>
           <span className="squad-dot">·</span>
-          <span style={{color:dead?'var(--mut)':'var(--txt-mid)'}}>{pending?'Por empezar':st.label}</span>
+          <span style={{color:dead?'var(--mut)':'var(--txt-mid)'}}>{pending?'Por debutar':st.label}</span>
         </div>
+        {st.lastMatch&&(
+          <div style={{fontSize:11,color:'var(--mut)',marginTop:3,display:'flex',alignItems:'center',gap:5}}>
+            <FlagChip team={st.lastMatch.opp} size={14}/>
+            <span>
+              {ROUND_LABEL[st.lastMatch.round]||st.lastMatch.round} · {st.lastMatch.result==='W'?'Ganó':st.lastMatch.result==='L'?'Perdió':'Empató'} {st.lastMatch.gf}-{st.lastMatch.ga} vs {st.lastMatch.opp}
+            </span>
+          </div>
+        )}
         {!pending&&<div className="squad-bar"><div style={{width:`${pct}%`,background:tierColor}}/></div>}
       </div>
       <div className="squad-pts">
@@ -3091,9 +3150,9 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
         <div className="sect-title" style={{marginBottom:12}}>Mi plantilla</div>
         {(()=>{
           const teams=myParticipant.teams||[];
-          const live=teams.filter(t=>['alive','champion'].includes(teamStatus(t,resultsMap).state)).length;
-          const out=teams.filter(t=>teamStatus(t,resultsMap).state==='out').length;
-          const started=tournamentStage(resultsMap)>=0;
+          const live=teams.filter(t=>['alive','champion','pending'].includes(teamStatus(t,matches).state)).length;
+          const out=teams.filter(t=>teamStatus(t,matches).state==='out').length;
+          const started=tournamentHasStarted(matches);
           return(
             <div className="squad-summary">
               {started?(
@@ -3107,7 +3166,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
             </div>
           );
         })()}
-        {tournamentStage(resultsMap)<0&&(
+        {!tournamentHasStarted(matches)&&(
           <div className="pre-banner">
             <Icon name="trophy" size={15} color="var(--gold)"/>
             El torneo arranca el 11 de junio. Aquí seguirás a tus equipos en vivo: rondas, puntos y quién sigue con vida.
@@ -3125,7 +3184,7 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
                 <span className="pick">{teamsInTier.length} {teamsInTier.length>1?'equipos':'equipo'}</span>
               </div>
               {sorted.map(t=>(
-                <SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} maxPts={maxPts}/>
+                <SquadCard key={t} team={t} result={resultsMap[t]||{}} resultsMap={resultsMap} matches={matches} maxPts={maxPts}/>
               ))}
             </div>
           );
@@ -3565,7 +3624,7 @@ export default function App() {
           </div>
         </div>
       </div>
-      {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}
+      {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap} matches={matches}
                               session={session}
                               chronicle={latestChronicle}
                               chronicleReactions={chronicleReactions}
@@ -3578,7 +3637,7 @@ export default function App() {
       {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t} matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred} participants={participantsWithTotals}/>}
       {tab==='seleccion'     &&!myParticipant    &&<><RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/><div className="page" style={{paddingTop:0}}><TiebreakerSection matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred} t={t}/></div></>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
-      {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t} myGroups={myGroups} groupMembersById={groupMembersById}/>}
+      {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} matches={matches} myParticipant={myParticipant} onRefresh={loadData} t={t} myGroups={myGroups} groupMembersById={groupMembersById}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch} onGroupsChange={loadGroups}
                               session={session} participants={participantsWithTotals} resultsMap={resultsMap}
                               chronicles={chronicles} onChroniclesChange={loadChronicles}/>}
