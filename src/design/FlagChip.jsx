@@ -1,42 +1,43 @@
+import { useState } from 'react';
 import { country } from './flags';
-function bg(c) {
-  const [a, b, d] = c.colors;
-  switch (c.stripes) {
-    case 'vert':    return `linear-gradient(90deg, ${a} 0 33%, ${b} 33% 67%, ${d} 67% 100%)`;
-    case 'horiz':   return `linear-gradient(180deg, ${a} 0 33%, ${b} 33% 67%, ${d} 67% 100%)`;
-    case 'dot':     return `radial-gradient(circle, ${d} 0 32%, ${a} 32% 100%)`;
-    case 'diamond': return `radial-gradient(ellipse at center, ${d} 0 26%, ${b} 26% 60%, ${a} 60% 100%)`;
-    case 'us':      return `repeating-linear-gradient(180deg, ${a} 0 14.2%, ${b} 14.2% 28.5%)`;
-    case 'cross':   return a;
-    default:        return a;
-  }
-}
+
+// Bandera real (PNG vía flagcdn.com) recortada en círculo. Si la imagen
+// falla al cargar (red, código mal mapeado, etc.) cae a un texto con el
+// código del país en vez de mostrar un icono roto.
 export function FlagChip({ team, size = 28, style = {} }) {
   const c = country(team);
-  const [, b] = c.colors;
+  const [errored, setErrored] = useState(false);
+  const showImg = c.iso && !errored;
+
   return (
     <span style={{
       width: size, height: size, borderRadius: '50%',
-      background: bg(c),
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0, overflow: 'hidden', verticalAlign: 'middle',
+      background: '#1a2d52',
       border: '1.5px solid rgba(255,255,255,0.15)',
       boxShadow: 'inset 0 -2px 4px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.4)',
-      display: 'inline-block', flexShrink: 0, position: 'relative',
-      overflow: 'hidden', verticalAlign: 'middle', ...style,
+      ...style,
     }}>
-      {c.stripes === 'cross' && (
-        <>
-          <span style={{position:'absolute',top:'42%',left:0,right:0,height:'16%',background:b}}/>
-          <span style={{position:'absolute',top:0,bottom:0,left:'42%',width:'16%',background:b}}/>
-        </>
-      )}
-      {c.stripes === 'us' && (
-        <span style={{position:'absolute',top:0,left:0,width:'45%',height:'53%',
-          background:c.colors[2],display:'flex',alignItems:'center',justifyContent:'center',
-          color:'#fff',fontSize:size*0.3,lineHeight:1}}>★</span>
+      {showImg ? (
+        <img
+          src={`https://flagcdn.com/w80/${c.iso}.png`}
+          srcSet={`https://flagcdn.com/w160/${c.iso}.png 2x`}
+          alt={team}
+          loading="lazy"
+          onError={() => setErrored(true)}
+          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
+        />
+      ) : (
+        <span style={{
+          fontSize: size * 0.32, color: '#94A3B8', fontWeight: 700,
+          fontFamily: "'Geist','Inter',system-ui,sans-serif", letterSpacing: '0.02em',
+        }}>{c.code}</span>
       )}
     </span>
   );
 }
+
 export function TeamTag({ team, size = 22, showName = false, style = {} }) {
   const c = country(team);
   return (
