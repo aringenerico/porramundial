@@ -1025,6 +1025,10 @@ html,body{font-family:'Geist','Inter',system-ui,sans-serif;background:var(--bg);
 .clasif-row.me{background:rgba(245,183,49,0.06);border-color:rgba(245,183,49,0.4)}
 .clasif-row.me .clasif-name{color:var(--gold)}
 .me-pin{font-family:'Archivo Black','Archivo',system-ui,sans-serif;font-weight:800;font-size:8.5px;letter-spacing:0.08em;color:var(--bg);background:var(--gold);padding:1px 6px;border-radius:99px;margin-left:7px;text-transform:uppercase;vertical-align:middle}
+.contrib-bar{display:flex;gap:2px;height:4px;border-radius:99px;overflow:hidden;max-width:170px;margin-top:6px;background:var(--sur2)}
+.lb-legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 2px 12px;font-size:10px;color:var(--mut);font-weight:600}
+.lb-legend span{display:flex;align-items:center;gap:5px}
+.lb-legend i{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0}
 .jump-fab{position:fixed;right:16px;bottom:90px;z-index:40;background:var(--sur);color:var(--gold);border:1.5px solid rgba(245,183,49,0.45);border-radius:99px;padding:10px 16px;font-family:var(--f-ui);font-weight:600;font-size:12px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);animation:fadeIn .25s ease;backdrop-filter:blur(8px)}
 .sheet-backdrop{position:fixed;inset:0;background:rgba(5,16,31,0.75);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:flex-end}
 .sheet{background:var(--sur);width:100%;max-height:82vh;overflow:auto;border-radius:22px 22px 0 0;padding:14px 18px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--brd2);animation:sheetUp .25s ease}
@@ -2127,18 +2131,29 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
   );
 }
 
-// Color del tier del equipo que más puntos aporta a este participante —
-// se usa como acento visual (borde izquierdo) en la fila de la clasificación,
-// sin pedir interpretación al usuario.
-function strongestTierColor(participant, resultsMap) {
-  const teams = participant.teams || [];
-  let best = null, bestPts = 0;
-  teams.forEach(tm => {
-    const pts = calcTotal(resultsMap[tm]||{});
-    if (pts > bestPts) { bestPts = pts; best = tm; }
+function contribByTier(participant, resultsMap, winnersMap) {
+  const seg = { g1:0, g2:0, g3:0, g4:0, bonus:0 };
+  (participant.teams||[]).forEach(tm => {
+    const k = TEAM_TIER[tm]; if (k) seg[k] += calcTotal(resultsMap[tm]||{});
   });
-  if (!best) return null;
-  return tierOf(best)?.color || null;
+  seg.bonus = AWARD_CONFIG.filter(a => winnersMap[a.key] && norm(participant[a.col])===norm(winnersMap[a.key])).length * AWARD_BONUS;
+  return seg;
+}
+
+function ContribBar({ participant, resultsMap, winnersMap }) {
+  const seg = contribByTier(participant, resultsMap, winnersMap);
+  const total = seg.g1+seg.g2+seg.g3+seg.g4+seg.bonus;
+  if (total <= 0) return null;
+  const parts = [
+    { v:seg.g1, c:GROUPS.g1.color }, { v:seg.g2, c:GROUPS.g2.color },
+    { v:seg.g3, c:GROUPS.g3.color }, { v:seg.g4, c:GROUPS.g4.color },
+    { v:seg.bonus, c:'var(--green)' },
+  ].filter(p => p.v > 0);
+  return (
+    <div className="contrib-bar" title="Contribución por tier (+ bonus)">
+      {parts.map((p,i)=><div key={i} style={{flex:p.v, background:p.c}}/>)}
+    </div>
+  );
 }
 
 function JumpToMeFab({ myParticipant, sorted, page, setPage }) {
@@ -2374,14 +2389,19 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, matches, myPart
             })}
           </div>
         )}
+        <div className="lb-legend">
+          <span><i style={{background:GROUPS.g1.color}}/>TOP</span>
+          <span><i style={{background:GROUPS.g2.color}}/>STRONG</span>
+          <span><i style={{background:GROUPS.g3.color}}/>AVERAGE</span>
+          <span><i style={{background:GROUPS.g4.color}}/>SURPRISE</span>
+          <span><i style={{background:'var(--green)'}}/>Bonus</span>
+        </div>
         {listRows.map((p,i)=>{
           const sortedIdx=pageStart+(isFirstPage&&showPodium?3:0)+i;
           const pos=sortedIdx+1;
           const isMe=myParticipant&&p.name===myParticipant.name;
-          const accentColor=strongestTierColor(p, resultsMap);
           return(
-            <div className={`clasif-row${isMe?' me':''}`} id={isMe?'me-row':undefined} key={p.name} onClick={()=>setDetail(p)}
-              style={accentColor?{borderLeftColor:accentColor}:undefined}>
+            <div className={`clasif-row${isMe?' me':''}`} id={isMe?'me-row':undefined} key={p.name} onClick={()=>setDetail(p)}>
               <div className="clasif-pos" style={
                 pos===1?{background:'rgba(245,183,49,0.15)',borderColor:'rgba(245,183,49,0.4)',color:'var(--gold)'}:
                 pos===2?{background:'rgba(176,184,204,0.10)',borderColor:'rgba(176,184,204,0.35)',color:'#b0b8cc'}:
@@ -2394,6 +2414,7 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, matches, myPart
                   <BonusBadge p={p}/>
                   <TbBadge p={p} idx={sortedIdx}/>
                 </div>
+                <ContribBar participant={p} resultsMap={resultsMap} winnersMap={winnersMap}/>
                 <PickChips p={p}/>
               </div>
               <div className="clasif-pts">{p.total}<span> {t.pts}</span></div>
