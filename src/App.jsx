@@ -89,6 +89,280 @@ function calcTbScore(pred, match) {
   return { total: pts, exact: exact ? 1 : 0 };
 }
 
+// ─── CHRONICLE TEMPLATES (cachondeo, adapted to team-pick scoring) ──────────
+const ROUND_LABEL = {
+  j1:'Jornada 1', j2:'Jornada 2', j3:'Jornada 3',
+  r32:'Dieciseisavos', r16:'Octavos', qf:'Cuartos',
+  sf:'Semifinales', '3rd':'Tercer Puesto', final:'Final',
+};
+const ROUND_ORDER = ['j1','j2','j3','r32','r16','qf','sf','3rd','final'];
+
+const CHRONICLE_TEMPLATES_PM = {
+  king_blowout: [
+    '{name} se saca {pts} pts esta ronda. Insufrible toda la semana.',
+    '{name} arrasa con {pts} pts. Sus equipos han hecho overtime.',
+    '{name} con {pts} pts. Aplausos forzados desde el resto.',
+    'Esta ronda es de {name} ({pts} pts). Os ha pasado por encima.',
+    '{name} arriba con {pts}. Mañana le habláis de usted.',
+  ],
+  king_tight: [
+    '{name} se lleva la ronda por los pelos: {pts} pts. Suerte de principiante.',
+    'Por un suspiro, {name} con {pts}. Casi nada.',
+    '{name} gana la ronda con {pts}. Foto-finish y carrera de quejas.',
+    '{name} clava {pts} pts. Por uno, pero los uno cuentan.',
+  ],
+  comeback_huge: [
+    '{name} sube {n} puestos. RESUCITADO.',
+    '{name} escala {n} posiciones. De repente todos somos sus amigos.',
+    '{name} sube {n} puestos en una ronda. Sospechoso, ¿no?',
+    '{name} hace +{n} puestos. Lazarus de la porra.',
+  ],
+  comeback_small: [
+    '{name} sube {n} puestos. Avisado queda el de arriba.',
+    '{name} se mueve +{n}. Lento pero seguro.',
+    '{name} escala {n} posiciones. Modesto pero firme.',
+  ],
+  drop_huge: [
+    '{name} cae {n} puestos. Recomendamos respirar profundo.',
+    '{name} desciende {n}. Aceptamos donaciones para subirle la moral.',
+    '{name} pierde {n} puestos. Sin comentarios, por respeto.',
+    '{name} con -{n}. Apaga la app, anda.',
+  ],
+  drop_small: [
+    '{name} cae {n} puestos. Mañana se levanta otro día.',
+    '{name} resbala {n} posiciones. A por la próxima.',
+    '{name} pierde {n}. Pasa en las mejores familias.',
+  ],
+  hot_team: [
+    '{team} dándolo todo: {pts} pts. {n} apostasteis y celebráis.',
+    '{team} rompiéndola con {pts} pts. {n} forever fans os vais a saco.',
+    '{team} arriba ({pts} pts). Brindad los {n} que les apostasteis.',
+    'Equipo de la ronda: {team} con {pts} pts. {n} apostadores ganando.',
+  ],
+  cold_team: [
+    '{team} en horas bajas: {pts} pts. {n} apostadores lloran en privado.',
+    '{team} decepciona ({pts} pts). {n} apostasteis. Lo sentimos.',
+    '{team} no carbura ({pts} pts). {n} de vosotros preguntándose qué hicisteis mal.',
+    '{team} dando pena: {pts} pts. {n} apostadores buscando explicaciones.',
+  ],
+  upset: [
+    '{team1} {sc1}-{sc2} {team2}. Bombazo. Nadie se lo veía venir.',
+    'Pelotazo: {team1} se carga a {team2} ({sc1}-{sc2}). Sorpresa mayúscula.',
+    '{team1} {sc1}-{sc2} {team2}: el partido que nadie pidió.',
+  ],
+  goal_fest: [
+    'Festival de goles: {team1} {sc1}-{sc2} {team2}. {total} goles para alegrar.',
+    '{total} goles en {team1} vs {team2} ({sc1}-{sc2}). Espectáculo puro.',
+  ],
+  champion_pick: [
+    '{name} apostó al campeón. Brujo certificado.',
+    '{name} predijo al ganador. ¿O tenía info privilegiada?',
+  ],
+  next_round: [
+    'Próxima ronda: {next}. Volverán los lloros.',
+    'En camino: {next}. Preparad excusas.',
+    '{next} a la vista. Que cunda el pánico.',
+  ],
+  empty: [
+    'Ronda plana. Ni penas ni glorias.',
+    'Pocas emociones esta ronda. Igual la próxima.',
+    'Ronda gris. Sin destacados. Pasamos página.',
+  ],
+};
+
+function pickHeadlinePM(type, vars={}) {
+  const pool = CHRONICLE_TEMPLATES_PM[type] || CHRONICLE_TEMPLATES_PM.empty;
+  const tmpl = pool[Math.floor(Math.random() * pool.length)];
+  return tmpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
+}
+
+// Generate chronicle headlines for porramundial.
+// Inputs: roundCol (e.g. 'j1'), participants (with .teams[], .user_id, .name),
+// resultsMap (per team aggregated stats with j1/j2/j3/... columns),
+// matches (with round_col + scores), winnersMap (awards), nextRoundCol.
+// Returns: array of { type, emoji, text }.
+function generateChronicleHeadlinesPM({ roundCol, participants, resultsMap, matches, winnersMap, nextRoundCol }) {
+  const out = [];
+
+  // Per-participant points GAINED in THIS round (sum of teams' result[roundCol])
+  const ptsByName = new Map();
+  participants.forEach(p => {
+    const pts = (p.teams||[]).reduce((s,t) => s + (resultsMap[t]?.[roundCol] || 0), 0);
+    ptsByName.set(p.name, { pts, name: p.name });
+  });
+
+  // Top scorer of the round
+  const ranking = [...ptsByName.values()].sort((a,b) => b.pts - a.pts);
+  if (ranking.length > 0 && ranking[0].pts > 0) {
+    const king = ranking[0];
+    const second = ranking[1]?.pts || 0;
+    const type = (king.pts - second) > 4 ? 'king_blowout' : 'king_tight';
+    out.push({ type, emoji:'👑', text: pickHeadlinePM(type, { name: king.name, pts: king.pts }) });
+  }
+
+  // Cumulative ranks: BEFORE round (totals minus this round) and AFTER (current totals)
+  const cumByName = new Map();
+  participants.forEach(p => {
+    const cum = (p.teams||[]).reduce((s,t) => s + calcTotal(resultsMap[t]||{}), 0);
+    const thisRound = ptsByName.get(p.name)?.pts || 0;
+    cumByName.set(p.name, { cum, prev: cum - thisRound });
+  });
+  const currRanked = [...cumByName.entries()].sort((a,b) => b[1].cum - a[1].cum);
+  const prevRanked = [...cumByName.entries()].sort((a,b) => b[1].prev - a[1].prev);
+  const currRank = new Map(currRanked.map(([n], i) => [n, i+1]));
+  const prevRank = new Map(prevRanked.map(([n], i) => [n, i+1]));
+  const deltas = [...currRank.keys()].map(n => ({ name:n, delta: prevRank.get(n) - currRank.get(n) }));
+
+  const up = deltas.filter(d => d.delta > 0).sort((a,b) => b.delta - a.delta)[0];
+  const down = deltas.filter(d => d.delta < 0).sort((a,b) => a.delta - b.delta)[0];
+  if (up && up.delta >= 3) {
+    const type = up.delta >= 8 ? 'comeback_huge' : 'comeback_small';
+    out.push({ type, emoji:'🚀', text: pickHeadlinePM(type, { name: up.name, n: up.delta }) });
+  }
+  if (down && Math.abs(down.delta) >= 3) {
+    const type = Math.abs(down.delta) >= 8 ? 'drop_huge' : 'drop_small';
+    out.push({ type, emoji:'📉', text: pickHeadlinePM(type, { name: down.name, n: Math.abs(down.delta) }) });
+  }
+
+  // Hot team: team with most points this round, and how many participants picked it
+  const teamPtsThisRound = Object.entries(resultsMap||{})
+    .map(([team, r]) => ({ team, pts: r?.[roundCol] || 0 }))
+    .filter(x => x.pts > 0)
+    .sort((a,b) => b.pts - a.pts);
+  if (teamPtsThisRound[0]) {
+    const top = teamPtsThisRound[0];
+    const pickers = participants.filter(p => (p.teams||[]).includes(top.team)).length;
+    out.push({ type:'hot_team', emoji:'🔥',
+      text: pickHeadlinePM('hot_team', { team: top.team, pts: top.pts, n: pickers }) });
+  }
+
+  // Cold team: team that was picked by 3+ people and got 0 this round
+  const colds = Object.entries(resultsMap||{})
+    .map(([team, r]) => ({
+      team, pts: r?.[roundCol] || 0,
+      pickers: participants.filter(p => (p.teams||[]).includes(team)).length,
+    }))
+    .filter(x => x.pts === 0 && x.pickers >= 3)
+    .sort((a,b) => b.pickers - a.pickers);
+  if (colds[0]) {
+    out.push({ type:'cold_team', emoji:'❄️',
+      text: pickHeadlinePM('cold_team', { team: colds[0].team, pts: 0, n: colds[0].pickers }) });
+  }
+
+  // Look for match upsets in this round (big-goal-difference match)
+  const roundMatches = (matches||[]).filter(m => m.round_col === roundCol
+    && m.home_goals != null && m.away_goals != null);
+  // Goal-fest: any match with 5+ total goals
+  const fest = roundMatches.find(m => (m.home_goals + m.away_goals) >= 5);
+  if (fest) {
+    out.push({ type:'goal_fest', emoji:'🎪',
+      text: pickHeadlinePM('goal_fest', {
+        team1: fest.home_team, team2: fest.away_team,
+        sc1: fest.home_goals, sc2: fest.away_goals,
+        total: fest.home_goals + fest.away_goals,
+      })
+    });
+  }
+
+  // Champion pick — only meaningful in 'final' chronicle
+  if (roundCol === 'final' && winnersMap?.champion) {
+    const winners = participants.filter(p => (p.teams||[]).includes(winnersMap.champion));
+    winners.slice(0, 1).forEach(p => {
+      out.push({ type:'champion_pick', emoji:'🏆',
+        text: pickHeadlinePM('champion_pick', { name: p.name }) });
+    });
+  }
+
+  // Teaser
+  if (nextRoundCol) {
+    out.push({ type:'next_round', emoji:'⏳',
+      text: pickHeadlinePM('next_round', { next: ROUND_LABEL[nextRoundCol] || nextRoundCol }) });
+  }
+
+  if (out.length === 0) {
+    out.push({ type:'empty', emoji:'🕰️', text: pickHeadlinePM('empty') });
+  }
+
+  return out.slice(0, 6);
+}
+
+// ─── ACHIEVEMENTS (porramundial — team-pick scoring) ─────────────────────────
+const ACHIEVEMENTS_PM = [
+  { id:'champion_pick',   emoji:'🏆', name:'Apostó al Campeón',
+    desc:'Tenías al campeón en tu lista. Brujería pura.' },
+  { id:'top_scorer_pick', emoji:'⚽', name:'Adivino Goleador',
+    desc:'Acertaste el Top Scorer. Le viste venir.' },
+  { id:'mvp_pick',        emoji:'⭐', name:'Sexto Sentido',
+    desc:'Acertaste el MVP. ¿Suerte o talento?' },
+  { id:'young_pick',      emoji:'🌱', name:'Cazatalentos',
+    desc:'Acertaste al Best Young Player. Buen ojo.' },
+  { id:'goalkeeper_pick', emoji:'🧤', name:'Visionario',
+    desc:'Acertaste al Best Goalkeeper. Apuesta valiente.' },
+  { id:'full_awards',     emoji:'🌟', name:'Pleno Premios',
+    desc:'Los 4 premios acertados. Brujo. Brujo. BRUJO.' },
+  { id:'top_team',        emoji:'💎', name:'Equipo Estrella',
+    desc:'Tienes uno de los 3 equipos con más puntos del torneo.' },
+  { id:'king_round',      emoji:'👑', name:'Rey de Ronda',
+    desc:'Fuiste el que más puntos sumó en al menos una ronda.' },
+  { id:'diversified',     emoji:'🎲', name:'Diversificado',
+    desc:'Tienes equipos de los 4 tiers. Estrategia sólida.' },
+  { id:'all_in',          emoji:'📝', name:'Completista',
+    desc:'Pronosticaste los 4 premios + 7 equipos. Lleno total.' },
+];
+
+function calcAchievementsPM(participant, { participants, resultsMap, winnersMap }) {
+  const got = new Set();
+  if (!participant) return got;
+  const myTeams = participant.teams || [];
+
+  // 1. champion_pick
+  if (winnersMap?.champion && myTeams.includes(winnersMap.champion)) got.add('champion_pick');
+
+  // 2-5. award picks
+  const norm = s => (s||'').toString().trim().toLowerCase();
+  if (winnersMap?.top_scorer      && norm(participant.top_scorer)      === norm(winnersMap.top_scorer))      got.add('top_scorer_pick');
+  if (winnersMap?.mvp             && norm(participant.mvp)             === norm(winnersMap.mvp))             got.add('mvp_pick');
+  if (winnersMap?.best_young      && norm(participant.best_young)      === norm(winnersMap.best_young))      got.add('young_pick');
+  if (winnersMap?.best_goalkeeper && norm(participant.best_goalkeeper) === norm(winnersMap.best_goalkeeper)) got.add('goalkeeper_pick');
+
+  // 6. full_awards — all 4 award picks correct
+  if (got.has('top_scorer_pick') && got.has('mvp_pick') && got.has('young_pick') && got.has('goalkeeper_pick')) {
+    got.add('full_awards');
+  }
+
+  // 7. top_team — owns a team in the top-3 by calcTotal across the whole resultsMap
+  const sortedTeams = Object.entries(resultsMap||{})
+    .map(([team, r]) => ({ team, pts: calcTotal(r) }))
+    .filter(x => x.pts > 0)
+    .sort((a,b) => b.pts - a.pts);
+  const top3Teams = sortedTeams.slice(0, 3).map(x => x.team);
+  if (myTeams.some(t => top3Teams.includes(t))) got.add('top_team');
+
+  // 8. king_round — in some round, my points >= max of all participants
+  for (const round of ROUND_ORDER) {
+    const ptsByName = new Map();
+    (participants||[]).forEach(p => {
+      const pts = (p.teams||[]).reduce((s,t) => s + (resultsMap[t]?.[round] || 0), 0);
+      ptsByName.set(p.name, pts);
+    });
+    const ranked = [...ptsByName.entries()].sort((a,b) => b[1] - a[1]);
+    if (ranked[0] && ranked[0][0] === participant.name && ranked[0][1] > 0) {
+      got.add('king_round'); break;
+    }
+  }
+
+  // 9. diversified — teams from all 4 tiers
+  const tiers = new Set(myTeams.map(t => TEAM_TIER[t]).filter(Boolean));
+  if (tiers.size >= 4) got.add('diversified');
+
+  // 10. all_in — filled all 4 award picks (regardless of correctness) + 7 teams
+  const allPicks = ['top_scorer','mvp','best_young','best_goalkeeper']
+    .every(k => participant[k] && participant[k].trim());
+  if (allPicks && myTeams.length >= 7) got.add('all_in');
+
+  return got;
+}
+
 // Admin access is controlled server-side via the `admins` table in Supabase (Phase 3).
 const FD_TEAM_MAP = {
   'Korea Republic':'South Korea',"Côte d'Ivoire":'Ivory Coast','IR Iran':'Iran',
@@ -996,7 +1270,161 @@ function TiebreakerSection({ matches, tbPreds, session, onSaveTbPred, t }) {
   );
 }
 
-function HomePage({ participants, goTo, t, myParticipant, participantsSorted, resultsMap }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// CHRONICLE CARD (Home top)
+// ─────────────────────────────────────────────────────────────────────────────
+const CHRONICLE_EMOJIS = ['👏','😂','🔥','💀'];
+function ChronicleCard({ session, chronicle, reactions, comments,
+                          onReact, onUnreact, onAddComment, onDeleteComment }) {
+  const [sheetOpen,setSheetOpen]=useState(false);
+  const [newComment,setNewComment]=useState('');
+  if(!chronicle)return null;
+  const headlines=Array.isArray(chronicle.headlines)?chronicle.headlines:[];
+  const myReactions=new Set((reactions||[]).filter(r=>r.user_id===session?.user?.id).map(r=>r.emoji));
+  const reactionCounts=CHRONICLE_EMOJIS.reduce((acc,e)=>{acc[e]=(reactions||[]).filter(r=>r.emoji===e).length;return acc;},{});
+  const commentsForThis=(comments||[]).filter(c=>c.chronicle_id===chronicle.id)
+    .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+
+  const toggle=e=>{if(!session?.user)return;if(myReactions.has(e))onUnreact(e);else onReact(e);};
+  const submit=async()=>{const text=newComment.trim();if(!text||!session?.user)return;await onAddComment(text);setNewComment('');};
+
+  return(
+    <>
+      <div className="card" style={{
+        marginBottom:16,padding:'14px 16px',position:'relative',overflow:'hidden',
+        border:'1px solid rgba(245,183,49,0.25)',
+        background:'linear-gradient(135deg,var(--sur),var(--sur2,var(--sur)))',
+      }}>
+        <div style={{position:'absolute',top:-30,right:-30,width:90,height:90,
+          borderRadius:'50%',background:'rgba(245,183,49,0.10)',filter:'blur(20px)',pointerEvents:'none'}}/>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,position:'relative'}}>
+          <Icon name="trophy" size={14} color="var(--gold)"/>
+          <span style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontSize:14,
+            textTransform:'uppercase',letterSpacing:'.08em',color:'var(--white)'}}>{chronicle.title}</span>
+          <span style={{marginLeft:'auto',fontSize:10,color:'var(--mut)',letterSpacing:'.08em',textTransform:'uppercase'}}>La Crónica</span>
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:10,position:'relative'}}>
+          {headlines.map((h,i)=>(
+            <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',
+              paddingBottom:i<headlines.length-1?10:0,
+              borderBottom:i<headlines.length-1?'1px dashed var(--brd)':'none'}}>
+              <div style={{fontSize:18,lineHeight:1.1,flexShrink:0}}>{h.emoji||'•'}</div>
+              <div style={{fontSize:13,lineHeight:1.4,color:'var(--white)'}}>{h.text}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{display:'flex',alignItems:'center',gap:6,marginTop:14,
+          paddingTop:12,borderTop:'1px solid var(--brd)',flexWrap:'wrap',position:'relative'}}>
+          {CHRONICLE_EMOJIS.map(e=>{
+            const mine=myReactions.has(e);
+            const n=reactionCounts[e]||0;
+            return(
+              <button key={e} onClick={()=>toggle(e)} disabled={!session?.user} style={{
+                fontSize:13,padding:'4px 9px',borderRadius:99,
+                background:mine?'rgba(245,183,49,0.15)':'var(--sur)',
+                border:`1px solid ${mine?'rgba(245,183,49,0.5)':'var(--brd)'}`,
+                color:mine?'var(--gold)':'var(--mut)',
+                cursor:session?.user?'pointer':'default',display:'inline-flex',alignItems:'center',gap:4,
+                fontFamily:"var(--f-mono)",fontWeight:700,
+              }}>
+                <span style={{fontFamily:'sans-serif'}}>{e}</span>
+                {n>0&&<span style={{fontSize:11}}>{n}</span>}
+              </button>
+            );
+          })}
+          <button onClick={()=>setSheetOpen(true)} style={{
+            marginLeft:'auto',fontSize:12,padding:'5px 11px',borderRadius:99,
+            background:'transparent',border:'1px solid var(--brd)',color:'var(--mut)',
+            cursor:'pointer',display:'inline-flex',alignItems:'center',gap:5,fontWeight:600,
+          }}>
+            💬 {commentsForThis.length>0?`Comentarios (${commentsForThis.length})`:'Comentar'}
+          </button>
+        </div>
+      </div>
+
+      {sheetOpen&&(
+        <div onClick={()=>setSheetOpen(false)} style={{
+          position:'fixed',inset:0,zIndex:200,background:'rgba(0,0,0,.65)',
+          backdropFilter:'blur(4px)',display:'flex',alignItems:'flex-end',justifyContent:'center',
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            width:'100%',maxWidth:560,maxHeight:'80vh',background:'#0a1628',
+            borderRadius:'16px 16px 0 0',border:'1px solid var(--brd)',borderBottom:'none',
+            display:'flex',flexDirection:'column',
+          }}>
+            <div style={{padding:'12px 16px',borderBottom:'1px solid var(--brd)',
+              display:'flex',alignItems:'center',gap:8}}>
+              <Icon name="trophy" size={14} color="var(--gold)"/>
+              <span style={{fontWeight:700,fontSize:14,color:'var(--white)'}}>Comentarios · {chronicle.title}</span>
+              <button onClick={()=>setSheetOpen(false)} style={{
+                marginLeft:'auto',background:'transparent',border:'none',color:'var(--mut)',
+                fontSize:22,cursor:'pointer',lineHeight:1,padding:0,
+              }}>×</button>
+            </div>
+            <div style={{flex:1,overflowY:'auto',padding:'12px 16px'}}>
+              {commentsForThis.length===0&&(
+                <div style={{textAlign:'center',color:'var(--mut)',fontSize:13,padding:'24px 0'}}>
+                  Sé el primero en comentar.
+                </div>
+              )}
+              {commentsForThis.map(c=>{
+                const isMine=c.user_id===session?.user?.id;
+                const ini=(c.display_name||'?').replace(/[^a-zA-Z]/g,'').slice(0,2).toUpperCase()||'?';
+                return(
+                  <div key={c.id} style={{display:'flex',gap:10,padding:'10px 0',borderBottom:'1px solid var(--brd)'}}>
+                    <div style={{
+                      width:34,height:34,borderRadius:10,background:'var(--sur)',
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      fontWeight:700,fontSize:12,color:'var(--gold)',flexShrink:0,
+                    }}>{ini}</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:'flex',alignItems:'baseline',gap:6}}>
+                        <span style={{fontSize:12,fontWeight:700,color:'var(--white)'}}>{c.display_name||'Anónimo'}</span>
+                        <span style={{fontSize:10,color:'var(--mut)'}}>
+                          {new Date(c.created_at).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+                        </span>
+                        {isMine&&(
+                          <button onClick={()=>onDeleteComment(c.id)} style={{
+                            marginLeft:'auto',background:'transparent',border:'none',
+                            color:'var(--mut)',fontSize:11,cursor:'pointer',
+                          }} title="Borrar">🗑</button>
+                        )}
+                      </div>
+                      <div style={{fontSize:13,marginTop:3,wordBreak:'break-word',color:'var(--white)'}}>{c.text}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {session?.user?(
+              <div style={{padding:'10px 16px',borderTop:'1px solid var(--brd)',display:'flex',gap:8,alignItems:'center'}}>
+                <input
+                  value={newComment}
+                  onChange={e=>setNewComment(e.target.value.slice(0,280))}
+                  onKeyDown={e=>{if(e.key==='Enter')submit();}}
+                  placeholder="Suéltalo aquí (280 chars)"
+                  style={{flex:1,padding:'8px 12px',fontSize:13,borderRadius:10,
+                    background:'var(--sur)',border:'1px solid var(--brd)',color:'var(--white)'}}/>
+                <button className="btn-primary" onClick={submit} disabled={!newComment.trim()}
+                  style={{fontSize:13,padding:'8px 14px'}}>Enviar</button>
+              </div>
+            ):(
+              <div style={{padding:'12px 16px',borderTop:'1px solid var(--brd)',textAlign:'center',color:'var(--mut)',fontSize:12}}>
+                Inicia sesión para comentar
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function HomePage({ participants, goTo, t, myParticipant, participantsSorted, resultsMap,
+                    chronicle, chronicleReactions, chronicleComments,
+                    onChronicleReact, onChronicleUnreact, onChronicleComment, onChronicleDeleteComment, session }) {
   const open=isRegistrationOpen();
   const countdown=useCountdown(DEADLINE);
   const prizeCards=[
@@ -1125,6 +1553,10 @@ function HomePage({ participants, goTo, t, myParticipant, participantsSorted, re
 
   return(
     <div className="page">
+      <ChronicleCard session={session} chronicle={chronicle}
+        reactions={chronicleReactions} comments={chronicleComments}
+        onReact={onChronicleReact} onUnreact={onChronicleUnreact}
+        onAddComment={onChronicleComment} onDeleteComment={onChronicleDeleteComment}/>
       {myParticipant&&(
         <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`,marginBottom:16}}>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -1703,9 +2135,10 @@ function JumpToMeFab({ myParticipant, sorted, page, setPage }) {
   return <button className="jump-fab" onClick={handleClick}>↓ Mi posición #{myIdx+1}</button>;
 }
 
-function PlayerSheet({ participant, resultsMap, winnersMap, onClose }) {
+function PlayerSheet({ participant, resultsMap, winnersMap, onClose, participants=[] }) {
   if (!participant) return null;
   const maxPts = Math.max(...(participant.teams||[]).map(t=>calcTotal(resultsMap[t]||{})), 1);
+  const got = calcAchievementsPM(participant, { participants, resultsMap, winnersMap });
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={e=>e.stopPropagation()}>
@@ -1718,6 +2151,34 @@ function PlayerSheet({ participant, resultsMap, winnersMap, onClose }) {
             </div>
           </div>
         </div>
+
+        {/* LOGROS */}
+        <div style={{marginBottom:18}}>
+          <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:12,
+            color:'var(--white)',letterSpacing:1,textTransform:'uppercase',marginBottom:8,paddingLeft:6,
+            borderLeft:'3px solid var(--gold)'}}>
+            🏅 Logros · {got.size}/{ACHIEVEMENTS_PM.length}
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+            {ACHIEVEMENTS_PM.map(a => {
+              const has = got.has(a.id);
+              return (
+                <div key={a.id} title={a.desc} style={{
+                  display:'inline-flex',alignItems:'center',gap:5,
+                  padding:'5px 10px',borderRadius:99,fontSize:11,fontWeight:600,
+                  background: has ? 'rgba(245,183,49,0.12)' : 'var(--sur)',
+                  border: has ? '1px solid rgba(245,183,49,0.4)' : '1px solid var(--brd)',
+                  color: has ? 'var(--gold)' : 'var(--mut)',
+                  opacity: has ? 1 : 0.55,
+                }}>
+                  <span style={{fontSize:13}}>{a.emoji}</span>
+                  <span>{a.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {Object.entries(GROUPS).map(([key,g]) => {
           const teams = (participant.teams||[]).filter(t=>TEAM_TIER[t]===key);
           if (!teams.length) return null;
@@ -1850,7 +2311,8 @@ function LeaderboardPage({ participants, winnersMap, resultsMap, myParticipant, 
         </div>
       )}
       <JumpToMeFab myParticipant={myParticipant} sorted={sorted} page={page} setPage={setPage}/>
-      <PlayerSheet participant={detail} resultsMap={resultsMap} winnersMap={winnersMap} onClose={()=>setDetail(null)}/>
+      <PlayerSheet participant={detail} resultsMap={resultsMap} winnersMap={winnersMap}
+        participants={participants} onClose={()=>setDetail(null)}/>
       <div key={page} style={{animation:'fadeIn 0.2s ease'}}>
         {showPodium&&(
           <div className="podium">
@@ -2179,7 +2641,9 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
   );
 }
 
-function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch, onGroupsChange }) {
+function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch, onGroupsChange,
+                       session, participants=[], resultsMap={},
+                       chronicles=[], onChroniclesChange }) {
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
@@ -2400,7 +2864,96 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
             </div>
           );
         })}
+
+        {/* ── CRÓNICA: GENERAR ─────────────────────────────────────────── */}
+        <hr className="admin-divider"/>
+        <ChronicleAdminSection
+          session={session} participants={participants} resultsMap={resultsMap}
+          matches={savedMatches} winnersMap={winnersMap}
+          chronicles={chronicles} onChroniclesChange={onChroniclesChange}/>
       </div>
+    </div>
+  );
+}
+
+function ChronicleAdminSection({ session, participants, resultsMap, matches, winnersMap,
+                                  chronicles, onChroniclesChange }) {
+  const [selected,setSelected]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [status,setStatus]=useState('');
+
+  // Rounds that have at least one match with a result
+  const availableRounds = useMemo(() => {
+    const finishedRounds = new Set();
+    (matches||[]).forEach(m => {
+      if (m.home_goals != null && m.away_goals != null) finishedRounds.add(m.round_col);
+    });
+    return ROUND_ORDER.filter(r => finishedRounds.has(r));
+  }, [matches]);
+
+  const existing = new Set((chronicles||[]).map(c => c.round_col));
+
+  const generate = async () => {
+    if (!selected || !session?.user) return;
+    setBusy(true); setStatus('');
+    try {
+      const idx = ROUND_ORDER.indexOf(selected);
+      const next = idx >= 0 ? ROUND_ORDER.slice(idx+1).find(r => availableRounds.indexOf(r) < 0) : null;
+      const headlines = generateChronicleHeadlinesPM({
+        roundCol: selected,
+        participants: participants || [],
+        resultsMap: resultsMap || {},
+        matches: matches || [],
+        winnersMap: winnersMap || {},
+        nextRoundCol: next,
+      });
+      const title = `La Crónica · ${ROUND_LABEL[selected] || selected.toUpperCase()}`;
+      const { error } = await supabase.from('chronicles').upsert(
+        { round_col: selected, title, headlines, generated_by: session.user.id, generated_at: new Date().toISOString() },
+        { onConflict: 'round_col' }
+      );
+      if (error) throw error;
+      setStatus('ok');
+      onChroniclesChange?.();
+      setTimeout(() => setStatus(''), 3000);
+    } catch (e) {
+      setStatus('err:' + (e.message || 'desconocido'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={{padding:'12px 0'}}>
+      <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,
+        fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:6}}>📰 Generar Crónica</div>
+      <div style={{fontSize:12,color:'var(--mut)',marginBottom:10}}>
+        Solo aparecen rondas con partidos finalizados. Si regeneras, sale otra mezcla de frases aleatorias.
+      </div>
+      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+        <select value={selected} onChange={e=>setSelected(e.target.value)}
+          style={{fontSize:13,padding:'6px 10px',borderRadius:6,
+            background:'var(--sur)',border:'1px solid var(--brd)',
+            color: selected ? 'var(--white)' : 'var(--mut)'}}>
+          <option value="">— Elige ronda —</option>
+          {availableRounds.map(r => (
+            <option key={r} value={r}>{ROUND_LABEL[r]}{existing.has(r) ? ' (regenerar)' : ''}</option>
+          ))}
+        </select>
+        <button className="btn-primary" onClick={generate} disabled={!selected||busy}
+          style={{fontSize:13,padding:'7px 14px'}}>
+          {busy ? '⏳ Generando…' : '📰 Generar'}
+        </button>
+        {status === 'ok' && <span style={{fontSize:12,color:'var(--green)'}}>✓ Generada</span>}
+        {status.startsWith?.('err:') && (
+          <span style={{fontSize:12,color:'#e55'}}>❌ {status.replace('err:','')}</span>
+        )}
+      </div>
+      {availableRounds.length === 0 && (
+        <div style={{fontSize:12,color:'var(--mut)',fontStyle:'italic',marginTop:8}}>
+          Aún no hay rondas con partidos terminados.
+        </div>
+      )}
     </div>
   );
 }
@@ -2446,7 +2999,7 @@ function SquadCard({ team, result, resultsMap, maxPts }) {
   );
 }
 
-function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t, matches, tbPreds, session, onSaveTbPred }) {
+function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersMap, goTo, t, matches, tbPreds, session, onSaveTbPred, participants=[] }) {
   if(!myParticipant)return(
     <div className="page">
       <div className="card" style={{textAlign:'center',padding:'48px 20px'}}>
@@ -2474,8 +3027,37 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
   const rankBg=rank===1?'rgba(245,183,49,0.1)':rank===2?'rgba(176,184,204,0.07)':rank===3?'rgba(154,112,80,0.07)':'rgba(90,159,255,0.07)';
   const rankBrd=rank===1?'rgba(245,183,49,0.35)':rank===2?'rgba(176,184,204,0.3)':rank===3?'rgba(154,112,80,0.3)':'rgba(90,159,255,0.25)';
 
+  const myGot = calcAchievementsPM(myParticipant, { participants, resultsMap, winnersMap });
+
   return(
     <div className="page">
+      {/* LOGROS — visible al usuario logueado */}
+      <div className="card" style={{marginBottom:16,padding:'12px 14px',border:'1px solid rgba(245,183,49,0.25)'}}>
+        <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:12,
+          color:'var(--white)',letterSpacing:1,textTransform:'uppercase',marginBottom:8,paddingLeft:6,
+          borderLeft:'3px solid var(--gold)'}}>
+          🏅 Logros · {myGot.size}/{ACHIEVEMENTS_PM.length}
+        </div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+          {ACHIEVEMENTS_PM.map(a => {
+            const has = myGot.has(a.id);
+            return (
+              <div key={a.id} title={a.desc} style={{
+                display:'inline-flex',alignItems:'center',gap:5,
+                padding:'5px 10px',borderRadius:99,fontSize:11,fontWeight:600,
+                background: has ? 'rgba(245,183,49,0.12)' : 'var(--sur)',
+                border: has ? '1px solid rgba(245,183,49,0.4)' : '1px solid var(--brd)',
+                color: has ? 'var(--gold)' : 'var(--mut)',
+                opacity: has ? 1 : 0.55,
+              }}>
+                <span style={{fontSize:13}}>{a.emoji}</span>
+                <span>{a.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Position card */}
       <div className="card" style={{background:rankBg,border:`1px solid ${rankBrd}`}}>
         <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
@@ -2679,6 +3261,9 @@ export default function App() {
   const [myParticipant,setMyParticipant]=useState(null);
   const [myGroups,setMyGroups]=useState([]);                 // [{id, name}] groups I belong to
   const [groupMembersById,setGroupMembersById]=useState({}); // { group_id: Set<user_id> }
+  const [chronicles,setChronicles]=useState([]);
+  const [chronicleReactions,setChronicleReactions]=useState([]);
+  const [chronicleComments,setChronicleComments]=useState([]);
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
   const t=LANGS[lang];
 
@@ -2720,6 +3305,47 @@ export default function App() {
     setGroupMembersById(memMap);
   };
   useEffect(()=>{loadGroups();},[session]);
+
+  // Load chronicles + reactions + comments. RLS allows public select on all 3.
+  const loadChronicles=async()=>{
+    const [{data:chrs},{data:rxs},{data:cmts}]=await Promise.all([
+      supabase.from('chronicles').select('*').order('id',{ascending:false}),
+      supabase.from('chronicle_reactions').select('*'),
+      supabase.from('chronicle_comments').select('id, chronicle_id, user_id, text, created_at').order('created_at'),
+    ]);
+    setChronicles(chrs||[]);
+    setChronicleReactions(rxs||[]);
+    // Look up commenter names from participants (already loaded)
+    const nameByUid=new Map((participants||[]).filter(p=>p.user_id).map(p=>[p.user_id,p.name]));
+    setChronicleComments((cmts||[]).map(c=>({
+      ...c, display_name: nameByUid.get(c.user_id) || 'Anónimo',
+    })));
+  };
+  useEffect(()=>{loadChronicles();},[participants.length]);
+
+  // Chronicle handlers
+  const latestChronicle = chronicles[0] || null;
+  const chronicleReact = async(emoji)=>{
+    if(!session?.user||!latestChronicle)return;
+    await supabase.from('chronicle_reactions').insert({chronicle_id:latestChronicle.id,user_id:session.user.id,emoji});
+    loadChronicles();
+  };
+  const chronicleUnreact = async(emoji)=>{
+    if(!session?.user||!latestChronicle)return;
+    await supabase.from('chronicle_reactions').delete()
+      .eq('chronicle_id',latestChronicle.id).eq('user_id',session.user.id).eq('emoji',emoji);
+    loadChronicles();
+  };
+  const chronicleAddComment = async(text)=>{
+    if(!session?.user||!latestChronicle)return;
+    await supabase.from('chronicle_comments').insert({chronicle_id:latestChronicle.id,user_id:session.user.id,text});
+    loadChronicles();
+  };
+  const chronicleDeleteComment = async(id)=>{
+    if(!session?.user)return;
+    await supabase.from('chronicle_comments').delete().eq('id',id).eq('user_id',session.user.id);
+    loadChronicles();
+  };
 
   useEffect(()=>{loadData();},[]);
 
@@ -2939,13 +3565,23 @@ export default function App() {
           </div>
         </div>
       </div>
-      {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}/>}
+      {tab==='inicio'        &&<HomePage        participants={participantsWithTotals} goTo={setTab} t={t} myParticipant={myParticipant} participantsSorted={participantsSorted} resultsMap={resultsMap}
+                              session={session}
+                              chronicle={latestChronicle}
+                              chronicleReactions={chronicleReactions}
+                              chronicleComments={chronicleComments}
+                              onChronicleReact={chronicleReact}
+                              onChronicleUnreact={chronicleUnreact}
+                              onChronicleComment={chronicleAddComment}
+                              onChronicleDeleteComment={chronicleDeleteComment}/>}
       {tab==='normas'        &&<RulesPage        t={t}/>}
-      {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t} matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred}/>}
+      {tab==='seleccion'     && myParticipant    &&<MyResultsPage    myParticipant={myParticipant} resultsMap={resultsMap} participantsSorted={participantsSorted} winnersMap={winnersMap} goTo={setTab} t={t} matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred} participants={participantsWithTotals}/>}
       {tab==='seleccion'     &&!myParticipant    &&<><RegistrationPage onSubmit={handleRegister} userId={session?.user?.id} t={t}/><div className="page" style={{paddingTop:0}}><TiebreakerSection matches={matches} tbPreds={tbPreds} session={session} onSaveTbPred={handleSaveTbPred} t={t}/></div></>}
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} myParticipant={myParticipant} onRefresh={loadData} t={t} myGroups={myGroups} groupMembersById={groupMembersById}/>}
-      {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch} onGroupsChange={loadGroups}/>}
+      {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch} onGroupsChange={loadGroups}
+                              session={session} participants={participantsWithTotals} resultsMap={resultsMap}
+                              chronicles={chronicles} onChroniclesChange={loadChronicles}/>}
       <AppFooter/>
       <nav className="bnav">
         {navItems.map(nt=>(
