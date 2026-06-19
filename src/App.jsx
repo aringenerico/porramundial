@@ -94,9 +94,11 @@ function teamStatus(team, matches) {
   // ── Fase de grupos ──
   if (groupKey) {
     const standings = calcGroupStandings(groupKey, matches);
-    const myRow = standings.find(s => s.team === team);
     const groupDone = standings.length === 4 && standings.every(s => s.played === 3);
-    const played = myRow ? myRow.played : 0;
+    // Contamos los partidos jugados directamente desde los partidos reales del
+    // equipo, no desde la tabla de grupos (que requiere que el rival también
+    // esté listado en TOURNEY_GROUPS y puede desincronizarse).
+    const played = myPlayed.filter(m => ['j1','j2','j3'].includes(m.round_col)).length;
 
     if (!groupDone) {
       return {
@@ -3038,11 +3040,12 @@ function SquadCard({ team, result, resultsMap, matches, maxPts }) {
           <span style={{color:dead?'var(--mut)':'var(--txt-mid)'}}>{pending?'Por debutar':st.label}</span>
         </div>
         {st.lastMatch&&(
-          <div style={{fontSize:11,color:'var(--mut)',marginTop:3,display:'flex',alignItems:'center',gap:5}}>
-            <FlagChip team={st.lastMatch.opp} size={14}/>
+          <div style={{fontSize:11,color:'var(--mut)',marginTop:3,display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
             <span>
-              {ROUND_LABEL[st.lastMatch.round]||st.lastMatch.round} · {st.lastMatch.result==='W'?'Ganó':st.lastMatch.result==='L'?'Perdió':'Empató'} {st.lastMatch.gf}-{st.lastMatch.ga} vs {st.lastMatch.opp}
+              {ROUND_LABEL[st.lastMatch.round]||st.lastMatch.round} · {st.lastMatch.result==='W'?'Ganó':st.lastMatch.result==='L'?'Perdió':'Empató'} {st.lastMatch.gf}-{st.lastMatch.ga} vs
             </span>
+            <FlagChip team={st.lastMatch.opp} size={14}/>
+            <span>{st.lastMatch.opp}</span>
           </div>
         )}
         {!pending&&<div className="squad-bar"><div style={{width:`${pct}%`,background:tierColor}}/></div>}
