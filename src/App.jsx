@@ -2599,7 +2599,7 @@ function resolveBestThirdsAssignment(allMatches) {
   return assigned;
 }
 
-function resolveSlot(slot, allMatches) {
+function resolveSlot(slot, allMatches, thirdOverrides = {}) {
   const grp=/^([A-L])([123])$/.exec(slot);
   if(grp){
     const st=calcGroupStandings(grp[1],allMatches), pos=parseInt(grp[2])-1;
@@ -2610,6 +2610,10 @@ function resolveSlot(slot, allMatches) {
   const t3set=/^3_([A-L]+)$/.exec(slot);
   if(t3set){
     const eligLabel = `3º(${t3set[1].split('').join('/')})`;
+    // Admin override wins over greedy assignment
+    if (thirdOverrides && thirdOverrides[slot]) {
+      return { team: thirdOverrides[slot], label: eligLabel, ready: true };
+    }
     const map = resolveBestThirdsAssignment(allMatches);
     if (map && map[slot]) return { team: map[slot], label: eligLabel, ready: true };
     return { team: null, label: eligLabel, ready: false };
@@ -2633,7 +2637,7 @@ function resolveSlot(slot, allMatches) {
   if(prev){
     const[,rnd,n]=prev; const bm=(BRACKET[rnd]||[])[parseInt(n)-1];
     if(!bm)return{team:null,label:slot,ready:false};
-    const h=resolveSlot(bm.home,allMatches),a=resolveSlot(bm.away,allMatches);
+    const h=resolveSlot(bm.home,allMatches,thirdOverrides),a=resolveSlot(bm.away,allMatches,thirdOverrides);
     if(!h.team||!a.team)return{team:null,label:`W(${rnd.toUpperCase()}${n})`,ready:false};
     const sv=(allMatches||[]).find(m=>
       m.round_col===rnd&&m.home_goals!=null&&m.away_goals!=null&&
@@ -2649,7 +2653,7 @@ function resolveSlot(slot, allMatches) {
   return{team:null,label:slot,ready:false};
 }
 
-function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
+function AutoKnockoutSection({ savedMatches, onSaveMatch, thirdOverrides={}, onSetThirdOverride }) {
   const [roundTab,setRoundTab]=useState('grupos');
   const tabs=[
     {key:'grupos',label:'Grupos'},
@@ -2718,20 +2722,74 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
       ):(
         <div>
           {(BRACKET[roundTab]||[]).map(bm=>{
-            const h=resolveSlot(bm.home,savedMatches),a=resolveSlot(bm.away,savedMatches);
+            const h=resolveSlot(bm.home,savedMatches,thirdOverrides);
+            const a=resolveSlot(bm.away,savedMatches,thirdOverrides);
+            // Detect a 3_XXXXX slot in this row (only relevant in r32)
+            const thirdSlot = /^3_[A-L]+$/.test(bm.home) ? bm.home
+                            : /^3_[A-L]+$/.test(bm.away) ? bm.away : null;
+
+            // Eligible teams for the override dropdown: the 8 best-3rd-placed teams
+            // (or fewer if groups not all done yet)
+            const eligibleThirds = thirdSlot ? (() => {
+              const allDone = Object.keys(TOURNEY_GROUPS).every(gk => {
+                const st = calcGroupStandings(gk, savedMatches);
+                return st.length === 4 && st.every(x => x.played === 3);
+              });
+              if (!allDone) return null;
+              const eligGroups = new Set(thirdSlot.slice(2).split(''));
+              return Object.keys(TOURNEY_GROUPS)
+                .map(gk => ({ ...calcGroupStandings(gk, savedMatches)[2], group: gk }))
+                .filter(x => x.team && eligGroups.has(x.group))
+                .sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+            })() : null;
+
+            // Override picker only when admin can actually choose (groups done)
+            const overridePicker = thirdSlot && eligibleThirds && eligibleThirds.length > 0 && onSetThirdOverride ? (
+              <div style={{
+                padding:'6px 12px 8px',background:'rgba(96,170,255,0.05)',
+                borderBottom:'1px solid rgba(255,255,255,0.04)',
+                display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',fontSize:11,
+              }}>
+                <span style={{color:'var(--mut)',fontWeight:600}}>
+                  Mejor 3º de {thirdSlot.slice(2).split('').join('/')} →
+                </span>
+                <select
+                  value={thirdOverrides[thirdSlot] || ''}
+                  onChange={e => onSetThirdOverride(thirdSlot, e.target.value || null)}
+                  style={{
+                    fontSize:12,padding:'4px 8px',borderRadius:6,
+                    background:'var(--sur)',border:'1px solid var(--brd)',
+                    color: thirdOverrides[thirdSlot] ? 'var(--white)' : 'var(--mut)',
+                  }}>
+                  <option value="">— Auto (greedy) —</option>
+                  {eligibleThirds.map(t => (
+                    <option key={t.team} value={t.team}>
+                      {t.team} (Gr.{t.group} · {t.pts}p · {t.gd>=0?'+':''}{t.gd}gd · {t.gf}gf)
+                    </option>
+                  ))}
+                </select>
+                {thirdOverrides[thirdSlot] && (
+                  <span style={{color:'var(--gold)',fontSize:10}}>manual</span>
+                )}
+              </div>
+            ) : null;
+
             if(!h.ready||!a.ready){
               return(
-                <div key={bm.n} style={{display:'flex',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',gap:6}}>
-                  <div style={{flex:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
-                    {h.team?<><FlagChip team={h.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{h.team}</span></>
-                    :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{h.label}</span>}
+                <div key={bm.n}>
+                  {overridePicker}
+                  <div style={{display:'flex',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',gap:6}}>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
+                      {h.team?<><FlagChip team={h.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{h.team}</span></>
+                      :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{h.label}</span>}
+                    </div>
+                    <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,width:22,textAlign:'center'}}>vs</span>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:5}}>
+                      {a.team?<><FlagChip team={a.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{a.team}</span></>
+                      :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{a.label}</span>}
+                    </div>
+                    <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,paddingLeft:4}}>pendiente</span>
                   </div>
-                  <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,width:22,textAlign:'center'}}>vs</span>
-                  <div style={{flex:1,display:'flex',alignItems:'center',gap:5}}>
-                    {a.team?<><FlagChip team={a.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{a.team}</span></>
-                    :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{a.label}</span>}
-                  </div>
-                  <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,paddingLeft:4}}>pendiente</span>
                 </div>
               );
             }
@@ -2739,7 +2797,12 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
               m.round_col===roundTab&&
               ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
             );
-            return <MatchRow key={bm.n} home={h.team} away={a.team} round={roundTab} saved={sv} onSave={onSaveMatch}/>;
+            return (
+              <div key={bm.n}>
+                {overridePicker}
+                <MatchRow home={h.team} away={a.team} round={roundTab} saved={sv} onSave={onSaveMatch}/>
+              </div>
+            );
           })}
         </div>
       )}
@@ -2749,7 +2812,8 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
 
 function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch, onGroupsChange,
                        session, participants=[], resultsMap={},
-                       chronicles=[], onChroniclesChange }) {
+                       chronicles=[], onChroniclesChange,
+                       thirdOverrides={}, onSetThirdOverride }) {
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
@@ -2894,7 +2958,8 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
             </div>
           ));
         })()}
-        {matchTab==='elim'&&<AutoKnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}/>}
+        {matchTab==='elim'&&<AutoKnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}
+                              thirdOverrides={thirdOverrides} onSetThirdOverride={onSetThirdOverride}/>}
 
         {/* ── GROUPS ──────────────────────────────────────────────────────── */}
         <hr className="admin-divider"/>
@@ -3379,6 +3444,7 @@ export default function App() {
   const [chronicles,setChronicles]=useState([]);
   const [chronicleReactions,setChronicleReactions]=useState([]);
   const [chronicleComments,setChronicleComments]=useState([]);
+  const [thirdOverrides,setThirdOverrides]=useState({}); // { '3_ABCDF': 'Brazil' }
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
   const t=LANGS[lang];
 
@@ -3461,6 +3527,44 @@ export default function App() {
     await supabase.from('chronicle_comments').delete().eq('id',id).eq('user_id',session.user.id);
     loadChronicles();
   };
+
+  // Load admin overrides for the "3 of group X/Y/Z" R32 slots
+  const loadThirdOverrides = async () => {
+    const { data } = await supabase.from('r32_third_overrides').select('slot, team');
+    const map = {};
+    (data || []).forEach(r => { map[r.slot] = r.team; });
+    setThirdOverrides(map);
+  };
+  useEffect(() => { loadThirdOverrides(); }, []);
+
+  // Admin sets/clears the 3rd-team for a 3_XXXXX R32 slot.
+  // Also wipes any existing R32 match where the slot's fixed-side team appears,
+  // so recalc reassigns the +6 advance bonus correctly.
+  async function setThirdOverride(slot, newTeam) {
+    if (!session?.user) return;
+    const bm = BRACKET.r32.find(b => b.home === slot || b.away === slot);
+    if (!bm) return;
+    // Resolve the fixed (non-third) side to know which existing r32 match to wipe
+    const fixedSlot = bm.home === slot ? bm.away : bm.home;
+    const fixed = resolveSlot(fixedSlot, matches, thirdOverrides);
+    if (fixed.team) {
+      await supabase.from('matches').delete()
+        .eq('round_col','r32')
+        .or(`home_team.eq.${fixed.team},away_team.eq.${fixed.team}`);
+    }
+    if (newTeam) {
+      await supabase.from('r32_third_overrides').upsert(
+        { slot, team: newTeam, set_by: session.user.id, set_at: new Date().toISOString() },
+        { onConflict: 'slot' }
+      );
+    } else {
+      await supabase.from('r32_third_overrides').delete().eq('slot', slot);
+    }
+    await loadThirdOverrides();
+    // Trigger recalc (no-op if no match rows exist, harmless)
+    await fetch('/api/recalc', { method: 'POST' }).catch(()=>{});
+    await loadData();
+  }
 
   useEffect(()=>{loadData();},[]);
 
@@ -3696,7 +3800,8 @@ export default function App() {
       {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} matches={matches} myParticipant={myParticipant} onRefresh={loadData} t={t} myGroups={myGroups} groupMembersById={groupMembersById}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch} onGroupsChange={loadGroups}
                               session={session} participants={participantsWithTotals} resultsMap={resultsMap}
-                              chronicles={chronicles} onChroniclesChange={loadChronicles}/>}
+                              chronicles={chronicles} onChroniclesChange={loadChronicles}
+                              thirdOverrides={thirdOverrides} onSetThirdOverride={setThirdOverride}/>}
       <AppFooter/>
       <nav className="bnav">
         {navItems.map(nt=>(
