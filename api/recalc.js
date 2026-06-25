@@ -79,14 +79,22 @@ function calcMatchPts(allMats) {
     }
     thirds.push(st[2]); // collect 3rd-place teams for best-8 ranking
   }
-  // Best 8 of the 3rd-place teams also qualify
-  thirds
-    .sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf)
-    .slice(0, 8)
-    .forEach(t => {
-      if (!pts[t.team]) pts[t.team] = blank();
-      pts[t.team].j3 += 6;
-    });
+  // Best 8 of the 3rd-place teams also qualify — but ONLY once every group is
+  // fully finished. Otherwise the intermediate ranking is meaningless (a third
+  // could lose the bonus later when more groups finish), which produces
+  // confusing points swings during the group stage.
+  const allGroupsDone = Object.entries(TOURNEY_GROUPS).every(([, teams]) =>
+    groupStandings(teams, allMats).every(r => r.played === 3)
+  );
+  if (allGroupsDone) {
+    thirds
+      .sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf)
+      .slice(0, 8)
+      .forEach(t => {
+        if (!pts[t.team]) pts[t.team] = blank();
+        pts[t.team].j3 += 6;
+      });
+  }
 
   return pts;
 }
