@@ -543,16 +543,28 @@ const TB_SLOTS = [
 ];
 
 // 'r32_Nw'=winner of r32 match N, etc.
+// ── Official FIFA 2026 Round of 32 (Dieciseisavos) bracket ─────────────────
+// 'XY'  → group X position Y (1=winner, 2=runner-up)
+// '3_XXXXX' → best 3rd-placed team from groups XXXXX (assigned per FIFA's
+//             advancing-thirds order via resolveBestThirdsAssignment)
 const BRACKET = {
   r32:[
-    {n:1,home:'A1',away:'B2'},{n:2,home:'C1',away:'D2'},
-    {n:3,home:'B1',away:'A2'},{n:4,home:'D1',away:'C2'},
-    {n:5,home:'E1',away:'F2'},{n:6,home:'G1',away:'H2'},
-    {n:7,home:'F1',away:'E2'},{n:8,home:'H1',away:'G2'},
-    {n:9,home:'I1',away:'J2'},{n:10,home:'K1',away:'L2'},
-    {n:11,home:'J1',away:'I2'},{n:12,home:'L1',away:'K2'},
-    {n:13,home:'T1',away:'T2'},{n:14,home:'T3',away:'T4'},
-    {n:15,home:'T5',away:'T6'},{n:16,home:'T7',away:'T8'},
+    {n:1, home:'A2',     away:'B2'},     // M73: 2A v 2B
+    {n:2, home:'E1',     away:'3_ABCDF'},// M74: 1E v best 3rd (A/B/C/D/F)
+    {n:3, home:'F1',     away:'C2'},     // M75: 1F v 2C
+    {n:4, home:'C1',     away:'F2'},     // M76: 1C v 2F
+    {n:5, home:'I1',     away:'3_CDFGH'},// M77: 1I v best 3rd (C/D/F/G/H)
+    {n:6, home:'E2',     away:'I2'},     // M78: 2E v 2I
+    {n:7, home:'A1',     away:'3_CEFHI'},// M79: 1A v best 3rd (C/E/F/H/I)
+    {n:8, home:'L1',     away:'3_EHIJK'},// M80: 1L v best 3rd (E/H/I/J/K)
+    {n:9, home:'D1',     away:'3_BEFIJ'},// M81: 1D v best 3rd (B/E/F/I/J)
+    {n:10,home:'G1',     away:'3_AEHIJ'},// M82: 1G v best 3rd (A/E/H/I/J)
+    {n:11,home:'K2',     away:'L2'},     // M83: 2K v 2L
+    {n:12,home:'H1',     away:'J2'},     // M84: 1H v 2J
+    {n:13,home:'B1',     away:'3_EFGIJ'},// M85: 1B v best 3rd (E/F/G/I/J)
+    {n:14,home:'J1',     away:'H2'},     // M86: 1J v 2H
+    {n:15,home:'K1',     away:'3_DEIJL'},// M87: 1K v best 3rd (D/E/I/J/L)
+    {n:16,home:'D2',     away:'G2'},     // M88: 2D v 2G
   ],
   r16:[
     {n:1,home:'r32_1w',away:'r32_2w'},{n:2,home:'r32_3w',away:'r32_4w'},
@@ -2555,6 +2567,38 @@ function calcGroupStandings(gk, allMatches) {
 }
 
 // Resolve a bracket slot code to actual team name
+// Assigns the 8 best 3rd-placed teams to the 8 r32 slots that take a 3rd.
+// Order follows FIFA 2026 fixture order (M74, M77, M79, M80, M81, M82, M85, M87).
+// For each slot, picks the best-ranked 3rd whose group is in that slot's eligible
+// set AND that has not been assigned to an earlier slot. Each 3rd plays only once.
+function resolveBestThirdsAssignment(allMatches) {
+  const allDone = Object.keys(TOURNEY_GROUPS).every(gk => {
+    const st = calcGroupStandings(gk, allMatches);
+    return st.length === 4 && st.every(x => x.played === 3);
+  });
+  if (!allDone) return null;
+  const thirds = Object.keys(TOURNEY_GROUPS)
+    .map(gk => {
+      const st = calcGroupStandings(gk, allMatches);
+      return st[2] ? { ...st[2], group: gk } : null;
+    })
+    .filter(Boolean)
+    .sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+  // Slot order in the FIFA fixture sequence (matches BRACKET.r32 ordering above)
+  const slotOrder = [
+    '3_ABCDF','3_CDFGH','3_CEFHI','3_EHIJK',
+    '3_BEFIJ','3_AEHIJ','3_EFGIJ','3_DEIJL',
+  ];
+  const assigned = {};
+  const used = new Set();
+  for (const slot of slotOrder) {
+    const elig = new Set(slot.slice(2).split(''));
+    const pick = thirds.find(t => elig.has(t.group) && !used.has(t.group));
+    if (pick) { assigned[slot] = pick.team; used.add(pick.group); }
+  }
+  return assigned;
+}
+
 function resolveSlot(slot, allMatches) {
   const grp=/^([A-L])([123])$/.exec(slot);
   if(grp){
@@ -2562,6 +2606,15 @@ function resolveSlot(slot, allMatches) {
     const done=st.length===4&&st.every(x=>x.played===3);
     return done&&st[pos]?{team:st[pos].team,label:slot,ready:true}:{team:null,label:slot,ready:false};
   }
+  // FIFA 2026 best-3rd slots: '3_ABCDF' etc.
+  const t3set=/^3_([A-L]+)$/.exec(slot);
+  if(t3set){
+    const eligLabel = `3º(${t3set[1].split('').join('/')})`;
+    const map = resolveBestThirdsAssignment(allMatches);
+    if (map && map[slot]) return { team: map[slot], label: eligLabel, ready: true };
+    return { team: null, label: eligLabel, ready: false };
+  }
+  // Legacy T1-T8 (kept for backwards compat, unused in new r32)
   const t3=/^T([1-8])$/.exec(slot);
   if(t3){
     const rank=parseInt(t3[1])-1;
