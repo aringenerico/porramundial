@@ -2269,6 +2269,7 @@ function PlayerSheet({ participant, resultsMap, winnersMap, matches, onClose, pa
 
 // ─── RANKING EVOLUTION CHART ─────────────────────────────────────────────────
 function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
+  const [open, setOpen] = useState(false);
   const [hoverIdx, setHoverIdx] = useState(null);
 
   const ROUNDS = ['j1','j2','j3','r32','r16','qf','sf','final'];
@@ -2351,9 +2352,48 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
         .sort((a, b) => a.rank - b.rank)
     : [];
 
+  // Button toggle — compact, no space stolen from the real leaderboard
   return (
-    <div className="card" style={{ padding: '16px 16px 12px' }}>
-      <div className="sect-title" style={{ marginBottom: 12 }}>📈 Evolución clasificación</div>
+    <div style={{ marginBottom: 16 }}>
+      {/* Toggle button */}
+      <button
+        onClick={() => { setOpen(o => !o); setHoverIdx(null); }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: open ? 'rgba(96,170,255,0.1)' : 'var(--sur)',
+          border: `1px solid ${open ? 'rgba(96,170,255,0.35)' : 'var(--brd)'}`,
+          borderRadius: 10, padding: '9px 16px',
+          color: open ? 'var(--blue)' : 'var(--mut)',
+          cursor: 'pointer', fontSize: 13, fontWeight: 600,
+          width: '100%', justifyContent: 'space-between',
+          transition: 'all .18s ease',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 15 }}>📈</span>
+          Evolución clasificación
+        </span>
+        <span style={{
+          fontSize: 10, color: 'var(--mut)', letterSpacing: 0.5,
+          transform: open ? 'rotate(180deg)' : 'none',
+          transition: 'transform .2s',
+          display: 'inline-block',
+        }}>▼</span>
+      </button>
+
+      {/* Chart — only rendered when open */}
+      {open && (
+        <div style={{
+          background: 'var(--sur)', border: '1px solid rgba(96,170,255,0.2)',
+          borderTop: 'none', borderRadius: '0 0 10px 10px',
+          padding: '14px 14px 10px',
+        }}>
+      <div style={{ position: 'relative' }}>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          style={{ width: '100%', display: 'block', overflow: 'visible' }}
+          onMouseLeave={() => setHoverIdx(null)}
+        >
 
       {/* Zone width helper */}
       <div style={{ position: 'relative' }}>
@@ -2488,6 +2528,8 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
           </div>
         ))}
       </div>
+        </div>  
+      )}
     </div>
   );
 }
