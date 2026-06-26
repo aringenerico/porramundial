@@ -2075,6 +2075,240 @@ function TeamTable({ rows, showIndex=true }) {
   );
 }
 
+// ─── UPCOMING MATCHES ────────────────────────────────────────────────────────
+// Muestra los próximos partidos de fase de grupos que aún no se han jugado
+// para los equipos del usuario.
+function UpcomingMatches({ myParticipant, matches }) {
+  if (!myParticipant) return null;
+  const myTeams = myParticipant.teams || [];
+  if (!myTeams.length) return null;
+
+  const played = new Set(
+    (matches || [])
+      .filter(m => m.home_goals != null)
+      .flatMap(m => [
+        `${m.home_team}|${m.away_team}|${m.round_col}`,
+        `${m.away_team}|${m.home_team}|${m.round_col}`,
+      ])
+  );
+
+  const upcoming = [];
+  ['j1','j2','j3'].forEach(round => {
+    (FIXTURES[round] || []).forEach(f => {
+      const myTeam = myTeams.includes(f.home) ? f.home
+                   : myTeams.includes(f.away) ? f.away : null;
+      if (!myTeam) return;
+      if (played.has(`${f.home}|${f.away}|${round}`)) return;
+      upcoming.push({
+        myTeam,
+        opp: myTeam === f.home ? f.away : f.home,
+        round,
+        label: ROUND_LABEL[round],
+      });
+    });
+  });
+
+  if (!upcoming.length) return null;
+
+  return (
+    <div className="card" style={{
+      marginBottom: 16,
+      border: '1px solid rgba(245,183,49,0.2)',
+      background: 'rgba(245,183,49,0.03)',
+      padding: '14px 16px',
+    }}>
+      <div style={{
+        fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",
+        fontWeight: 800, fontSize: 12,
+        color: 'var(--white)', letterSpacing: 1, textTransform: 'uppercase',
+        marginBottom: 10, paddingLeft: 6,
+        borderLeft: '3px solid var(--gold)',
+      }}>
+        ⏱ Próximos partidos
+      </div>
+      {upcoming.slice(0, 6).map((u, i) => (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 0',
+          borderBottom: i < upcoming.length - 1 ? '1px solid var(--brd)' : 'none',
+        }}>
+          <FlagChip team={u.myTeam} size={22}/>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--white)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {u.myTeam}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--mut)', flexShrink: 0 }}>vs</span>
+          <FlagChip team={u.opp} size={22}/>
+          <span style={{ fontSize: 13, color: 'var(--txt)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            {u.opp}
+          </span>
+          <span style={{
+            fontSize: 10, fontWeight: 700, flexShrink: 0,
+            background: 'rgba(245,183,49,0.12)', color: 'var(--gold)',
+            padding: '2px 8px', borderRadius: 4, letterSpacing: 0.5,
+          }}>
+            {u.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── WHO HAS WHAT ─────────────────────────────────────────────────────────────
+// Matriz equipo × participantes: quién apostó por cada equipo.
+function WhoHasWhat({ participants, resultsMap, participantsSorted }) {
+  const [open, setOpen]           = useState(false);
+  const [activeTier, setActiveTier] = useState(null); // null = todos
+
+  // Mapa equipo → [nombres de quienes lo tienen]
+  const teamPickers = {};
+  participants.forEach(p => {
+    (p.teams || []).forEach(team => {
+      if (!teamPickers[team]) teamPickers[team] = [];
+      teamPickers[team].push(p.name);
+    });
+  });
+
+  // Color por posición en clasificación (para identificar a cada participante)
+  const rankColor = name => {
+    const rank = (participantsSorted || []).findIndex(p => p.name === name) + 1;
+    if (rank === 1) return '#F5B731';
+    if (rank === 2) return '#b0b8cc';
+    if (rank === 3) return '#9a7050';
+    const colors = ['#60AAFF','#4ADE80','#FF6B8A','#a78bfa','#fb923c','#34d399','#f472b6','#38bdf8'];
+    return colors[(rank - 4) % colors.length];
+  };
+
+  const tiersToShow = activeTier
+    ? [[activeTier, GROUPS[activeTier]]]
+    : Object.entries(GROUPS);
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: open ? 'rgba(74,222,128,0.06)' : 'var(--sur)',
+          border: `1px solid ${open ? 'rgba(74,222,128,0.25)' : 'var(--brd)'}`,
+          borderRadius: open ? '10px 10px 0 0' : 10,
+          padding: '10px 16px',
+          color: open ? 'var(--green)' : 'var(--mut)',
+          cursor: 'pointer', fontSize: 13, fontWeight: 600,
+          width: '100%', justifyContent: 'space-between',
+          transition: 'all .18s ease',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>🗺️</span>
+          Mapa de equipos
+        </span>
+        <span style={{
+          fontSize: 10, color: 'var(--mut)',
+          transform: open ? 'rotate(180deg)' : 'none',
+          transition: 'transform .2s', display: 'inline-block',
+        }}>▼</span>
+      </button>
+
+      {open && (
+        <div style={{
+          background: 'var(--sur)',
+          border: '1px solid rgba(74,222,128,0.25)',
+          borderTop: 'none', borderRadius: '0 0 10px 10px',
+          padding: '12px 14px',
+        }}>
+          {/* Filtro por tier */}
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
+            {[null, ...Object.keys(GROUPS)].map(key => {
+              const g = key ? GROUPS[key] : null;
+              const active = activeTier === key;
+              return (
+                <button key={String(key)} onClick={() => setActiveTier(key)}
+                  style={{
+                    fontSize: 11, fontWeight: 700, padding: '4px 10px',
+                    borderRadius: 6, cursor: 'pointer',
+                    border: `1px solid ${active ? (g?.color || 'var(--green)') : 'var(--brd)'}`,
+                    background: active ? `${g?.color || 'var(--green)'}18` : 'transparent',
+                    color: active ? (g?.color || 'var(--green)') : 'var(--mut)',
+                    transition: 'all .15s',
+                  }}>
+                  {key ? g.label : 'Todos'}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tabla */}
+          {tiersToShow.map(([key, g]) => {
+            const rows = g.teams
+              .map(team => ({ team, pickers: teamPickers[team] || [], pts: calcTotal(resultsMap[team] || {}) }))
+              .sort((a, b) => b.pickers.length - a.pickers.length || b.pts - a.pts);
+            return (
+              <div key={key} style={{ marginBottom: 14 }}>
+                <div style={{
+                  fontSize: 10, fontWeight: 800, color: g.color,
+                  letterSpacing: 1, textTransform: 'uppercase',
+                  marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: g.color }}/>
+                  {g.label} · {g.pick} por persona
+                </div>
+                {rows.map(({ team, pickers, pts }, i) => (
+                  <div key={team} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '6px 0',
+                    borderBottom: i < rows.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  }}>
+                    <FlagChip team={team} size={18}/>
+                    <span style={{
+                      fontSize: 12, color: pickers.length ? 'var(--white)' : 'var(--mut)',
+                      fontWeight: pickers.length ? 600 : 400,
+                      minWidth: 90, maxWidth: 110,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}>{team}</span>
+                    {pts > 0 && (
+                      <span style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'var(--f-mono)', flexShrink: 0 }}>
+                        {pts}p
+                      </span>
+                    )}
+                    <div style={{
+                      display: 'flex', flexWrap: 'wrap', gap: 3,
+                      flex: 1, justifyContent: 'flex-end',
+                    }}>
+                      {pickers.length === 0 ? (
+                        <span style={{ fontSize: 10, color: 'rgba(168,188,206,0.3)', fontStyle: 'italic' }}>nadie</span>
+                      ) : pickers.map(name => (
+                        <span key={name} title={name} style={{
+                          fontSize: 10, padding: '1px 6px', borderRadius: 4,
+                          background: `${rankColor(name)}22`,
+                          color: rankColor(name),
+                          border: `1px solid ${rankColor(name)}44`,
+                          fontWeight: 600, whiteSpace: 'nowrap',
+                        }}>
+                          {name.split(' ')[0]}
+                        </span>
+                      ))}
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, flexShrink: 0,
+                      color: pickers.length >= 4 ? 'var(--gold)' : pickers.length >= 2 ? 'var(--txt)' : 'var(--mut)',
+                      fontFamily: 'var(--f-mono)', minWidth: 16, textAlign: 'right',
+                    }}>
+                      {pickers.length > 0 ? pickers.length : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, t }) {
   const [query,setQuery]=useState('');
   const [showDrop,setShowDrop]=useState(false);
@@ -2128,6 +2362,8 @@ function ResultsPage({ resultsMap, participants, participantsSorted, onRefresh, 
           )}
         </div>
       </div>
+      <WhoHasWhat participants={participants} resultsMap={resultsMap} participantsSorted={participantsSorted}/>
+
       {foundParticipant&&(
         <div className="card" style={{border:`1px solid ${rankBorder}`,background:rankBg}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}}>
@@ -3448,6 +3684,8 @@ function MyResultsPage({ myParticipant, resultsMap, participantsSorted, winnersM
           </div>
         )}
       </div>
+
+      <UpcomingMatches myParticipant={myParticipant} matches={matches}/>
 
       {/* Teams breakdown — living roster */}
       <div className="card">
