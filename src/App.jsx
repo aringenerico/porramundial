@@ -2275,17 +2275,14 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
   const ROUNDS = ['j1','j2','j3','r32','r16','qf','sf','final'];
   const LABELS = { j1:'J1', j2:'J2', j3:'J3', r32:'D16', r16:'Oct', qf:'CdF', sf:'Semi', final:'Final' };
 
-  // Only rounds that actually have points
   const activeRounds = ROUNDS.filter(r =>
     Object.values(resultsMap).some(t => (t?.[r] || 0) > 0)
   );
-  if (activeRounds.length < 2) return null;
 
   const calcBonus = p => AWARD_CONFIG
     .filter(a => winnersMap?.[a.key] && norm(p[a.col]) === norm(winnersMap[a.key]))
     .length * AWARD_BONUS;
 
-  // Cumulative points + rank at each round snapshot
   const snapshots = activeRounds.map(round => {
     const ri = ROUNDS.indexOf(round);
     const upTo = ROUNDS.slice(0, ri + 1);
@@ -2295,18 +2292,18 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
         sum + upTo.reduce((s, r) => s + (resultsMap[team]?.[r] || 0), 0)
       , 0) + calcBonus(p);
     });
-    const sorted = Object.entries(pts)
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const sorted = Object.entries(pts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     const ranks = {}, points = pts;
     sorted.forEach(([name], i) => { ranks[name] = i + 1; });
     return { round, label: LABELS[round], ranks, points };
   });
 
+  if (activeRounds.length < 2) return null;
+
   const last = snapshots[snapshots.length - 1];
   const total = participants.length;
   const myRankNow = myParticipant ? last.ranks[myParticipant.name] : null;
 
-  // Decide who to highlight: top 3 + user + ±2 neighbours of user
   const featured = new Set();
   Object.entries(last.ranks).filter(([,r]) => r <= 3).forEach(([n]) => featured.add(n));
   if (myParticipant) {
@@ -2319,50 +2316,42 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
   }
   const lines = [...featured];
 
-  // Color palette
   const PALETTE = ['#60AAFF','#4ADE80','#FF6B8A','#a78bfa','#fb923c','#34d399','#f472b6','#38bdf8'];
   const colorOf = name => {
     if (myParticipant?.name === name) return '#F5B731';
-    const rankNow = last.ranks[name];
-    if (rankNow === 1) return '#F5B731';
-    if (rankNow === 2) return '#b0b8cc';
-    if (rankNow === 3) return '#9a7050';
+    const r = last.ranks[name];
+    if (r === 1) return '#F5B731';
+    if (r === 2) return '#b0b8cc';
+    if (r === 3) return '#9a7050';
     return PALETTE[lines.indexOf(name) % PALETTE.length];
   };
 
-  // SVG layout
   const W = 560, H = 200;
   const PAD = { top: 12, right: 8, bottom: 26, left: 32 };
   const cW = W - PAD.left - PAD.right;
   const cH = H - PAD.top - PAD.bottom;
   const n = activeRounds.length;
-
   const xOf = i => PAD.left + (n === 1 ? cW / 2 : (i / (n - 1)) * cW);
   const yOf = rank => PAD.top + ((rank - 1) / Math.max(total - 1, 1)) * cH;
-
-  // Y-axis tick values
   const yTicks = [1, Math.round(total * 0.33), Math.round(total * 0.66), total]
     .filter((v, i, arr) => arr.indexOf(v) === i && v >= 1);
 
-  // Hover tooltip content
   const hoverSnap = hoverIdx !== null ? snapshots[hoverIdx] : null;
   const hoverRankings = hoverSnap
-    ? lines
-        .map(n => ({ name: n, rank: hoverSnap.ranks[n], pts: hoverSnap.points[n] }))
+    ? lines.map(nm => ({ name: nm, rank: hoverSnap.ranks[nm], pts: hoverSnap.points[nm] }))
         .sort((a, b) => a.rank - b.rank)
     : [];
 
-  // Button toggle — compact, no space stolen from the real leaderboard
   return (
     <div style={{ marginBottom: 16 }}>
-      {/* Toggle button */}
       <button
         onClick={() => { setOpen(o => !o); setHoverIdx(null); }}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          background: open ? 'rgba(96,170,255,0.1)' : 'var(--sur)',
-          border: `1px solid ${open ? 'rgba(96,170,255,0.35)' : 'var(--brd)'}`,
-          borderRadius: 10, padding: '9px 16px',
+          background: open ? 'rgba(96,170,255,0.08)' : 'var(--sur)',
+          border: `1px solid ${open ? 'rgba(96,170,255,0.3)' : 'var(--brd)'}`,
+          borderRadius: open ? '10px 10px 0 0' : 10,
+          padding: '10px 16px',
           color: open ? 'var(--blue)' : 'var(--mut)',
           cursor: 'pointer', fontSize: 13, fontWeight: 600,
           width: '100%', justifyContent: 'space-between',
@@ -2370,165 +2359,122 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 15 }}>📈</span>
+          <span>📈</span>
           Evolución clasificación
         </span>
         <span style={{
-          fontSize: 10, color: 'var(--mut)', letterSpacing: 0.5,
+          fontSize: 10, color: 'var(--mut)',
           transform: open ? 'rotate(180deg)' : 'none',
-          transition: 'transform .2s',
-          display: 'inline-block',
+          transition: 'transform .2s', display: 'inline-block',
         }}>▼</span>
       </button>
 
-      {/* Chart — only rendered when open */}
       {open && (
         <div style={{
-          background: 'var(--sur)', border: '1px solid rgba(96,170,255,0.2)',
-          borderTop: 'none', borderRadius: '0 0 10px 10px',
+          background: 'var(--sur)',
+          border: '1px solid rgba(96,170,255,0.3)',
+          borderTop: 'none',
+          borderRadius: '0 0 10px 10px',
           padding: '14px 14px 10px',
         }}>
-      <div style={{ position: 'relative' }}>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          style={{ width: '100%', display: 'block', overflow: 'visible' }}
-          onMouseLeave={() => setHoverIdx(null)}
-        >
-
-      {/* Zone width helper */}
-      <div style={{ position: 'relative' }}>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          style={{ width: '100%', display: 'block', overflow: 'visible' }}
-          onMouseLeave={() => setHoverIdx(null)}
-        >
-          {/* Background grid */}
-          {yTicks.map(r => (
-            <g key={r}>
-              <line x1={PAD.left} y1={yOf(r)} x2={PAD.left + cW} y2={yOf(r)}
-                stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
-              <text x={PAD.left - 5} y={yOf(r) + 3.5}
-                textAnchor="end" fontSize={8.5} fill="#6b7e94">#{r}</text>
-            </g>
-          ))}
-
-          {/* Hover vertical line */}
-          {hoverIdx !== null && (
-            <line
-              x1={xOf(hoverIdx)} y1={PAD.top}
-              x2={xOf(hoverIdx)} y2={PAD.top + cH}
-              stroke="rgba(255,255,255,0.18)" strokeWidth={1} strokeDasharray="3,3" />
-          )}
-
-          {/* Lines */}
-          {lines.map(name => {
-            const isMe = myParticipant?.name === name;
-            const color = colorOf(name);
-            const pts = snapshots.map((s, i) => `${xOf(i)},${yOf(s.ranks[name] || total)}`).join(' ');
-            return (
-              <g key={name}>
-                <polyline points={pts} fill="none"
-                  stroke={color}
-                  strokeWidth={isMe ? 2.5 : 1.5}
-                  strokeOpacity={isMe ? 1 : 0.65}
-                  strokeLinejoin="round" strokeLinecap="round" />
-                {snapshots.map((s, i) => (
-                  <circle key={i}
-                    cx={xOf(i)} cy={yOf(s.ranks[name] || total)}
-                    r={isMe ? 3.5 : 2.5}
-                    fill={color} fillOpacity={isMe ? 1 : 0.75} />
-                ))}
-              </g>
-            );
-          })}
-
-          {/* Hover dots highlight */}
-          {hoverSnap && lines.map(name => {
-            const r = hoverSnap.ranks[name] || total;
-            return (
-              <circle key={name}
-                cx={xOf(hoverIdx)} cy={yOf(r)} r={4.5}
-                fill={colorOf(name)} stroke="#0a1628" strokeWidth={1.5} />
-            );
-          })}
-
-          {/* X axis labels */}
-          {activeRounds.map((r, i) => (
-            <text key={r} x={xOf(i)} y={H - 4}
-              textAnchor="middle" fontSize={9.5} fill={hoverIdx === i ? '#f8fafc' : '#A8BCCE'}
-              fontWeight={hoverIdx === i ? 700 : 400}>
-              {LABELS[r]}
-            </text>
-          ))}
-
-          {/* Invisible hover zones */}
-          {activeRounds.map((_, i) => {
-            const x0 = i === 0 ? 0 : (xOf(i - 1) + xOf(i)) / 2;
-            const x1 = i === n - 1 ? W : (xOf(i) + xOf(i + 1)) / 2;
-            return (
-              <rect key={i} x={x0} y={PAD.top} width={x1 - x0} height={cH + 10}
-                fill="transparent" style={{ cursor: 'crosshair' }}
-                onMouseEnter={() => setHoverIdx(i)} />
-            );
-          })}
-        </svg>
-
-        {/* Floating tooltip */}
-        {hoverSnap && hoverRankings.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: 8,
-            left: hoverIdx < n / 2 ? `${(xOf(hoverIdx) / W * 100) + 2}%` : 'auto',
-            right: hoverIdx >= n / 2 ? `${((W - xOf(hoverIdx)) / W * 100) + 2}%` : 'auto',
-            background: 'rgba(10,22,40,0.96)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 8,
-            padding: '8px 12px',
-            fontSize: 11,
-            pointerEvents: 'none',
-            zIndex: 10,
-            minWidth: 130,
-            backdropFilter: 'blur(8px)',
-          }}>
-            <div style={{ fontWeight: 800, fontSize: 10, color: 'var(--mut)', letterSpacing: 1, marginBottom: 5, textTransform: 'uppercase' }}>
-              {hoverSnap.label}
-            </div>
-            {hoverRankings.map(({ name, rank, pts }) => (
-              <div key={name} style={{
-                display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3,
-                color: colorOf(name),
-                fontWeight: myParticipant?.name === name ? 700 : 400,
+          <div style={{ position: 'relative' }}>
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              style={{ width: '100%', display: 'block', overflow: 'visible' }}
+              onMouseLeave={() => setHoverIdx(null)}
+            >
+              {yTicks.map(r => (
+                <g key={r}>
+                  <line x1={PAD.left} y1={yOf(r)} x2={PAD.left + cW} y2={yOf(r)}
+                    stroke="rgba(255,255,255,0.05)" strokeWidth={1}/>
+                  <text x={PAD.left - 5} y={yOf(r) + 3.5}
+                    textAnchor="end" fontSize={8.5} fill="#6b7e94">{"#"}{r}</text>
+                </g>
+              ))}
+              {hoverIdx !== null && (
+                <line x1={xOf(hoverIdx)} y1={PAD.top} x2={xOf(hoverIdx)} y2={PAD.top + cH}
+                  stroke="rgba(255,255,255,0.18)" strokeWidth={1} strokeDasharray="3,3"/>
+              )}
+              {lines.map(name => {
+                const isMe = myParticipant?.name === name;
+                const color = colorOf(name);
+                const pts = snapshots.map((s, i) => `${xOf(i)},${yOf(s.ranks[name] || total)}`).join(' ');
+                return (
+                  <g key={name}>
+                    <polyline points={pts} fill="none"
+                      stroke={color} strokeWidth={isMe ? 2.5 : 1.5}
+                      strokeOpacity={isMe ? 1 : 0.65}
+                      strokeLinejoin="round" strokeLinecap="round"/>
+                    {snapshots.map((s, i) => (
+                      <circle key={i} cx={xOf(i)} cy={yOf(s.ranks[name] || total)}
+                        r={isMe ? 3.5 : 2.5} fill={color} fillOpacity={isMe ? 1 : 0.75}/>
+                    ))}
+                  </g>
+                );
+              })}
+              {hoverSnap && lines.map(name => (
+                <circle key={name}
+                  cx={xOf(hoverIdx)} cy={yOf(hoverSnap.ranks[name] || total)} r={4.5}
+                  fill={colorOf(name)} stroke="#0a1628" strokeWidth={1.5}/>
+              ))}
+              {activeRounds.map((r, i) => (
+                <text key={r} x={xOf(i)} y={H - 4}
+                  textAnchor="middle" fontSize={9.5}
+                  fill={hoverIdx === i ? '#f8fafc' : '#A8BCCE'}
+                  fontWeight={hoverIdx === i ? 700 : 400}>
+                  {LABELS[r]}
+                </text>
+              ))}
+              {activeRounds.map((_, i) => {
+                const x0 = i === 0 ? 0 : (xOf(i - 1) + xOf(i)) / 2;
+                const x1 = i === n - 1 ? W : (xOf(i) + xOf(i + 1)) / 2;
+                return (
+                  <rect key={i} x={x0} y={PAD.top} width={x1 - x0} height={cH + 10}
+                    fill="transparent" style={{ cursor: 'crosshair' }}
+                    onMouseEnter={() => setHoverIdx(i)}/>
+                );
+              })}
+            </svg>
+            {hoverSnap && hoverRankings.length > 0 && (
+              <div style={{
+                position: 'absolute', top: 8,
+                left: hoverIdx < n / 2 ? `${(xOf(hoverIdx) / W * 100) + 2}%` : 'auto',
+                right: hoverIdx >= n / 2 ? `${((W - xOf(hoverIdx)) / W * 100) + 2}%` : 'auto',
+                background: 'rgba(10,22,40,0.96)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 8, padding: '8px 12px', fontSize: 11,
+                pointerEvents: 'none', zIndex: 10, minWidth: 130,
               }}>
-                <span style={{ fontFamily: 'var(--f-mono)', minWidth: 24, fontSize: 10 }}>#{rank}</span>
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {name.split(' ')[0]}{myParticipant?.name === name ? ' ←' : ''}
+                <div style={{ fontWeight: 800, fontSize: 10, color: 'var(--mut)', letterSpacing: 1, marginBottom: 5, textTransform: 'uppercase' }}>
+                  {hoverSnap.label}
+                </div>
+                {hoverRankings.map(({ name, rank, pts }) => (
+                  <div key={name} style={{
+                    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3,
+                    color: colorOf(name),
+                    fontWeight: myParticipant?.name === name ? 700 : 400,
+                  }}>
+                    <span style={{ fontFamily: 'var(--f-mono)', minWidth: 24, fontSize: 10 }}>{"#"}{rank}</span>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {name.split(' ')[0]}{myParticipant?.name === name ? ' ←' : ''}
+                    </span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--mut)' }}>{pts}p</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 12px', marginTop: 8 }}>
+            {lines.map(name => (
+              <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10 }}>
+                <div style={{ width: 16, height: 2.5, borderRadius: 2, background: colorOf(name), opacity: myParticipant?.name === name ? 1 : 0.7 }}/>
+                <span style={{ color: myParticipant?.name === name ? colorOf(name) : 'var(--mut)', fontWeight: myParticipant?.name === name ? 700 : 400 }}>
+                  {name.split(' ')[0]} <span style={{ opacity: 0.6 }}>{"#"}{last.ranks[name]}</span>
                 </span>
-                <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--mut)' }}>{pts}p</span>
               </div>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* Legend */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', marginTop: 8, padding: '0 2px' }}>
-        {lines.map(name => (
-          <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10 }}>
-            <div style={{
-              width: 18, height: 2.5, borderRadius: 2,
-              background: colorOf(name),
-              opacity: myParticipant?.name === name ? 1 : 0.7,
-            }} />
-            <span style={{
-              color: myParticipant?.name === name ? colorOf(name) : 'var(--mut)',
-              fontWeight: myParticipant?.name === name ? 700 : 400,
-            }}>
-              {name.split(' ')[0]} <span style={{ opacity: 0.6 }}>#{last.ranks[name]}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-        </div>  
+        </div>
       )}
     </div>
   );
