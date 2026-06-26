@@ -2083,22 +2083,36 @@ function UpcomingMatches({ myParticipant, matches }) {
   const myTeams = myParticipant.teams || [];
   if (!myTeams.length) return null;
 
-  const played = new Set(
-    (matches || [])
-      .filter(m => m.home_goals != null)
-      .flatMap(m => [
-        `${m.home_team}|${m.away_team}|${m.round_col}`,
-        `${m.away_team}|${m.home_team}|${m.round_col}`,
-      ])
-  );
+  const GS_ROUNDS = ['j1','j2','j3'];
+
+  const isPlayed = (home, away, round) =>
+    (matches || []).some(m =>
+      m.round_col === round &&
+      m.home_goals != null && m.away_goals != null &&
+      ((m.home_team === home && m.away_team === away) ||
+       (m.home_team === away && m.away_team === home))
+    );
+
+  // A round is "over" for display purposes if any of my teams
+  // has already played in a later round — handles missing DB entries gracefully.
+  const roundIsOver = round => {
+    const ri = GS_ROUNDS.indexOf(round);
+    return GS_ROUNDS.slice(ri + 1).some(later =>
+      (FIXTURES[later] || []).some(f =>
+        (myTeams.includes(f.home) || myTeams.includes(f.away)) &&
+        isPlayed(f.home, f.away, later)
+      )
+    );
+  };
 
   const upcoming = [];
-  ['j1','j2','j3'].forEach(round => {
+  GS_ROUNDS.forEach(round => {
+    if (roundIsOver(round)) return; // skip rounds clearly in the past
     (FIXTURES[round] || []).forEach(f => {
       const myTeam = myTeams.includes(f.home) ? f.home
                    : myTeams.includes(f.away) ? f.away : null;
       if (!myTeam) return;
-      if (played.has(`${f.home}|${f.away}|${round}`)) return;
+      if (isPlayed(f.home, f.away, round)) return;
       upcoming.push({
         myTeam,
         opp: myTeam === f.home ? f.away : f.home,
