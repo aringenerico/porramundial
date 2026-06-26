@@ -2269,11 +2269,15 @@ function PlayerSheet({ participant, resultsMap, winnersMap, matches, onClose, pa
 
 // ─── RANKING EVOLUTION CHART ─────────────────────────────────────────────────
 function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]         = useState(false);
   const [hoverIdx, setHoverIdx] = useState(null);
+  const [search, setSearch]     = useState('');
+  const [extra, setExtra]       = useState(new Set()); // extra names added via search
+  const [showDrop, setShowDrop] = useState(false);
+  const searchRef = useRef(null);
 
   const ROUNDS = ['j1','j2','j3','r32','r16','qf','sf','final'];
-  const LABELS = { j1:'J1', j2:'J2', j3:'J3', r32:'D16', r16:'Oct', qf:'CdF', sf:'Semi', final:'Final' };
+  const LABELS  = { j1:'J1', j2:'J2', j3:'J3', r32:'D16', r16:'Oct', qf:'CdF', sf:'Semi', final:'Final' };
 
   const activeRounds = ROUNDS.filter(r =>
     Object.values(resultsMap).some(t => (t?.[r] || 0) > 0)
@@ -2283,6 +2287,7 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
     .filter(a => winnersMap?.[a.key] && norm(p[a.col]) === norm(winnersMap[a.key]))
     .length * AWARD_BONUS;
 
+  // Snapshot: cumulative POINTS per participant per round
   const snapshots = activeRounds.map(round => {
     const ri = ROUNDS.indexOf(round);
     const upTo = ROUNDS.slice(0, ri + 1);
@@ -2292,58 +2297,73 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
         sum + upTo.reduce((s, r) => s + (resultsMap[team]?.[r] || 0), 0)
       , 0) + calcBonus(p);
     });
-    const sorted = Object.entries(pts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-    const ranks = {}, points = pts;
-    sorted.forEach(([name], i) => { ranks[name] = i + 1; });
-    return { round, label: LABELS[round], ranks, points };
+    return { round, label: LABELS[round], pts };
   });
 
   if (activeRounds.length < 2) return null;
 
   const last = snapshots[snapshots.length - 1];
-  const total = participants.length;
-  const myRankNow = myParticipant ? last.ranks[myParticipant.name] : null;
 
-  const featured = new Set();
-  Object.entries(last.ranks).filter(([,r]) => r <= 3).forEach(([n]) => featured.add(n));
-  if (myParticipant) {
-    featured.add(myParticipant.name);
-    if (myRankNow) {
-      Object.entries(last.ranks)
-        .filter(([,r]) => Math.abs(r - myRankNow) <= 2)
-        .forEach(([n]) => featured.add(n));
-    }
-  }
-  const lines = [...featured];
+  // Default lines: top 3 + user
+  const sortedByPts = Object.entries(last.pts).sort((a,b) => b[1]-a[1]);
+  const defaultSet = new Set();
+  sortedByPts.slice(0,3).forEach(([n]) => defaultSet.add(n));
+  if (myParticipant) defaultSet.add(myParticipant.name);
 
-  const PALETTE = ['#60AAFF','#4ADE80','#FF6B8A','#a78bfa','#fb923c','#34d399','#f472b6','#38bdf8'];
+  const lines = [...new Set([...defaultSet, ...extra])];
+
+  // Y axis: points, rounded ticks
+  const maxPts = Math.max(...sortedByPts.map(([,v]) => v), 10);
+  const step   = maxPts <= 50 ? 10 : maxPts <= 100 ? 20 : maxPts <= 200 ? 50 : 100;
+  const yMax   = Math.ceil(maxPts / step) * step;
+  const yTicks = [];
+  for (let v = 0; v <= yMax; v += step) yTicks.push(v);
+
+  // Colors
+  const PALETTE = ['#60AAFF','#4ADE80','#FF6B8A','#a78bfa','#fb923c','#34d399','#f472b6'];
+  const extraArr = [...extra];
   const colorOf = name => {
     if (myParticipant?.name === name) return '#F5B731';
-    const r = last.ranks[name];
-    if (r === 1) return '#F5B731';
-    if (r === 2) return '#b0b8cc';
-    if (r === 3) return '#9a7050';
+    const rank = sortedByPts.findIndex(([n]) => n === name);
+    if (rank === 0) return '#F5B731';
+    if (rank === 1) return '#b0b8cc';
+    if (rank === 2) return '#9a7050';
+    if (extraArr.includes(name)) return PALETTE[extraArr.indexOf(name) % PALETTE.length];
     return PALETTE[lines.indexOf(name) % PALETTE.length];
   };
 
+  // SVG layout
   const W = 560, H = 200;
-  const PAD = { top: 12, right: 8, bottom: 26, left: 32 };
-  const cW = W - PAD.left - PAD.right;
-  const cH = H - PAD.top - PAD.bottom;
-  const n = activeRounds.length;
+  const PAD = { top: 10, right: 10, bottom: 26, left: 36 };
+  const cW  = W - PAD.left - PAD.right;
+  const cH  = H - PAD.top  - PAD.bottom;
+  const n   = activeRounds.length;
   const xOf = i => PAD.left + (n === 1 ? cW / 2 : (i / (n - 1)) * cW);
-  const yOf = rank => PAD.top + ((rank - 1) / Math.max(total - 1, 1)) * cH;
-  const yTicks = [1, Math.round(total * 0.33), Math.round(total * 0.66), total]
-    .filter((v, i, arr) => arr.indexOf(v) === i && v >= 1);
+  const yOf = v  => PAD.top  + (1 - v / yMax) * cH;
 
   const hoverSnap = hoverIdx !== null ? snapshots[hoverIdx] : null;
-  const hoverRankings = hoverSnap
-    ? lines.map(nm => ({ name: nm, rank: hoverSnap.ranks[nm], pts: hoverSnap.points[nm] }))
-        .sort((a, b) => a.rank - b.rank)
+  const hoverRows = hoverSnap
+    ? lines.map(nm => ({ name: nm, pts: hoverSnap.pts[nm] || 0 }))
+           .sort((a,b) => b.pts - a.pts)
     : [];
+
+  // Search suggestions
+  const suggestions = search.trim().length >= 1
+    ? participants
+        .filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && !lines.includes(p.name))
+        .slice(0, 6)
+    : [];
+
+  const addExtra = name => {
+    setExtra(prev => new Set([...prev, name]));
+    setSearch('');
+    setShowDrop(false);
+  };
+  const removeExtra = name => setExtra(prev => { const s = new Set(prev); s.delete(name); return s; });
 
   return (
     <div style={{ marginBottom: 16 }}>
+      {/* Toggle button */}
       <button
         onClick={() => { setOpen(o => !o); setHoverIdx(null); }}
         style={{
@@ -2359,64 +2379,72 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>📈</span>
-          Evolución clasificación
+          <span>{'📈'}</span>
+          Evolución de puntos
         </span>
         <span style={{
           fontSize: 10, color: 'var(--mut)',
           transform: open ? 'rotate(180deg)' : 'none',
           transition: 'transform .2s', display: 'inline-block',
-        }}>▼</span>
+        }}>{'▼'}</span>
       </button>
 
       {open && (
         <div style={{
           background: 'var(--sur)',
           border: '1px solid rgba(96,170,255,0.3)',
-          borderTop: 'none',
-          borderRadius: '0 0 10px 10px',
-          padding: '14px 14px 10px',
+          borderTop: 'none', borderRadius: '0 0 10px 10px',
+          padding: '14px 14px 12px',
         }}>
+          {/* Chart */}
           <div style={{ position: 'relative' }}>
             <svg
               viewBox={`0 0 ${W} ${H}`}
               style={{ width: '100%', display: 'block', overflow: 'visible' }}
               onMouseLeave={() => setHoverIdx(null)}
             >
-              {yTicks.map(r => (
-                <g key={r}>
-                  <line x1={PAD.left} y1={yOf(r)} x2={PAD.left + cW} y2={yOf(r)}
-                    stroke="rgba(255,255,255,0.05)" strokeWidth={1}/>
-                  <text x={PAD.left - 5} y={yOf(r) + 3.5}
-                    textAnchor="end" fontSize={8.5} fill="#6b7e94">{"#"}{r}</text>
+              {/* Grid + Y ticks */}
+              {yTicks.map(v => (
+                <g key={v}>
+                  <line x1={PAD.left} y1={yOf(v)} x2={PAD.left + cW} y2={yOf(v)}
+                    stroke={v === 0 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)'}
+                    strokeWidth={1}/>
+                  <text x={PAD.left - 4} y={yOf(v) + 3.5}
+                    textAnchor="end" fontSize={8.5} fill="#6b7e94">
+                    {v}
+                  </text>
                 </g>
               ))}
+              {/* Hover line */}
               {hoverIdx !== null && (
                 <line x1={xOf(hoverIdx)} y1={PAD.top} x2={xOf(hoverIdx)} y2={PAD.top + cH}
                   stroke="rgba(255,255,255,0.18)" strokeWidth={1} strokeDasharray="3,3"/>
               )}
+              {/* Lines */}
               {lines.map(name => {
-                const isMe = myParticipant?.name === name;
+                const isMe  = myParticipant?.name === name;
                 const color = colorOf(name);
-                const pts = snapshots.map((s, i) => `${xOf(i)},${yOf(s.ranks[name] || total)}`).join(' ');
+                const d = snapshots.map((s, i) => `${xOf(i)},${yOf(s.pts[name] || 0)}`).join(' ');
                 return (
                   <g key={name}>
-                    <polyline points={pts} fill="none"
+                    <polyline points={d} fill="none"
                       stroke={color} strokeWidth={isMe ? 2.5 : 1.5}
                       strokeOpacity={isMe ? 1 : 0.65}
                       strokeLinejoin="round" strokeLinecap="round"/>
                     {snapshots.map((s, i) => (
-                      <circle key={i} cx={xOf(i)} cy={yOf(s.ranks[name] || total)}
+                      <circle key={i} cx={xOf(i)} cy={yOf(s.pts[name] || 0)}
                         r={isMe ? 3.5 : 2.5} fill={color} fillOpacity={isMe ? 1 : 0.75}/>
                     ))}
                   </g>
                 );
               })}
-              {hoverSnap && lines.map(name => (
-                <circle key={name}
-                  cx={xOf(hoverIdx)} cy={yOf(hoverSnap.ranks[name] || total)} r={4.5}
-                  fill={colorOf(name)} stroke="#0a1628" strokeWidth={1.5}/>
+              {/* Hover dots */}
+              {hoverSnap && lines.map(nm => (
+                <circle key={nm}
+                  cx={xOf(hoverIdx)} cy={yOf(hoverSnap.pts[nm] || 0)} r={4.5}
+                  fill={colorOf(nm)} stroke="#0a1628" strokeWidth={1.5}/>
               ))}
+              {/* X labels */}
               {activeRounds.map((r, i) => (
                 <text key={r} x={xOf(i)} y={H - 4}
                   textAnchor="middle" fontSize={9.5}
@@ -2425,9 +2453,10 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
                   {LABELS[r]}
                 </text>
               ))}
+              {/* Hover zones */}
               {activeRounds.map((_, i) => {
-                const x0 = i === 0 ? 0 : (xOf(i - 1) + xOf(i)) / 2;
-                const x1 = i === n - 1 ? W : (xOf(i) + xOf(i + 1)) / 2;
+                const x0 = i === 0 ? 0 : (xOf(i-1) + xOf(i)) / 2;
+                const x1 = i === n-1 ? W : (xOf(i) + xOf(i+1)) / 2;
                 return (
                   <rect key={i} x={x0} y={PAD.top} width={x1 - x0} height={cH + 10}
                     fill="transparent" style={{ cursor: 'crosshair' }}
@@ -2435,44 +2464,99 @@ function RankingChart({ participants, resultsMap, winnersMap, myParticipant }) {
                 );
               })}
             </svg>
-            {hoverSnap && hoverRankings.length > 0 && (
+
+            {/* Floating tooltip */}
+            {hoverSnap && hoverRows.length > 0 && (
               <div style={{
-                position: 'absolute', top: 8,
+                position: 'absolute', top: 4,
                 left: hoverIdx < n / 2 ? `${(xOf(hoverIdx) / W * 100) + 2}%` : 'auto',
                 right: hoverIdx >= n / 2 ? `${((W - xOf(hoverIdx)) / W * 100) + 2}%` : 'auto',
                 background: 'rgba(10,22,40,0.96)',
                 border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 8, padding: '8px 12px', fontSize: 11,
-                pointerEvents: 'none', zIndex: 10, minWidth: 130,
+                borderRadius: 8, padding: '8px 12px',
+                fontSize: 11, pointerEvents: 'none', zIndex: 10, minWidth: 130,
               }}>
                 <div style={{ fontWeight: 800, fontSize: 10, color: 'var(--mut)', letterSpacing: 1, marginBottom: 5, textTransform: 'uppercase' }}>
                   {hoverSnap.label}
                 </div>
-                {hoverRankings.map(({ name, rank, pts }) => (
+                {hoverRows.map(({ name, pts }) => (
                   <div key={name} style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3,
                     color: colorOf(name),
                     fontWeight: myParticipant?.name === name ? 700 : 400,
                   }}>
-                    <span style={{ fontFamily: 'var(--f-mono)', minWidth: 24, fontSize: 10 }}>{"#"}{rank}</span>
                     <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {name.split(' ')[0]}{myParticipant?.name === name ? ' ←' : ''}
+                      {name.split(' ')[0]}{myParticipant?.name === name ? ' \u2190' : ''}
                     </span>
-                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--mut)' }}>{pts}p</span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, minWidth: 28, textAlign: 'right' }}>
+                      {pts}p
+                    </span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 12px', marginTop: 8 }}>
+
+          {/* Legend + remove extra */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 12px', marginTop: 6, marginBottom: 10 }}>
             {lines.map(name => (
               <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10 }}>
-                <div style={{ width: 16, height: 2.5, borderRadius: 2, background: colorOf(name), opacity: myParticipant?.name === name ? 1 : 0.7 }}/>
+                <div style={{ width: 16, height: 2.5, borderRadius: 2, background: colorOf(name), opacity: myParticipant?.name === name ? 1 : 0.75 }}/>
                 <span style={{ color: myParticipant?.name === name ? colorOf(name) : 'var(--mut)', fontWeight: myParticipant?.name === name ? 700 : 400 }}>
-                  {name.split(' ')[0]} <span style={{ opacity: 0.6 }}>{"#"}{last.ranks[name]}</span>
+                  {name.split(' ')[0]}
+                  {' '}
+                  <span style={{ opacity: 0.55 }}>{last.pts[name]}p</span>
                 </span>
+                {extra.has(name) && (
+                  <button onClick={() => removeExtra(name)} style={{
+                    background: 'none', border: 'none', color: 'var(--mut)',
+                    cursor: 'pointer', padding: '0 2px', fontSize: 10, lineHeight: 1,
+                  }}>{'×'}</button>
+                )}
               </div>
             ))}
+          </div>
+
+          {/* Search to add someone */}
+          <div style={{ position: 'relative' }}>
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={e => { setSearch(e.target.value); setShowDrop(true); }}
+              onFocus={() => setShowDrop(true)}
+              onBlur={() => setTimeout(() => setShowDrop(false), 150)}
+              placeholder="+ Añadir participante…"
+              style={{
+                width: '100%', background: 'var(--sur2)',
+                border: '1px solid var(--brd)', borderRadius: 7,
+                padding: '7px 12px', color: 'var(--white)',
+                fontSize: 12, outline: 'none',
+              }}
+            />
+            {showDrop && suggestions.length > 0 && (
+              <div style={{
+                position: 'absolute', bottom: 'calc(100% + 4px)', left: 0, right: 0,
+                background: 'var(--sur)', border: '1px solid var(--brd)',
+                borderRadius: 8, overflow: 'hidden',
+                boxShadow: '0 -8px 24px rgba(0,0,0,0.5)', zIndex: 20,
+              }}>
+                {suggestions.map(p => (
+                  <button key={p.name} onMouseDown={() => addExtra(p.name)} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', padding: '8px 12px',
+                    background: 'none', border: 'none',
+                    borderBottom: '1px solid var(--brd)',
+                    color: 'var(--txt)', fontSize: 12, cursor: 'pointer',
+                    textAlign: 'left',
+                  }}>
+                    <span>{p.name}</span>
+                    <span style={{ color: 'var(--mut)', fontFamily: 'var(--f-mono)', fontSize: 11 }}>
+                      {last.pts[p.name] || 0}p
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
