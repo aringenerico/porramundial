@@ -53,13 +53,21 @@ function calcMatchPts(allMats) {
     if (!pts[away]) pts[away] = blank();
     // Goals
     pts[home][col] += hg; pts[away][col] += ag;
-    // Win/draw
+    // Win/draw (regular-time result — penalties never change this part)
     if (hg > ag) pts[home][col] += 3;
     else if (hg < ag) pts[away][col] += 3;
     else { pts[home][col] += 1; pts[away][col] += 1; }
-    // Knockout advance bonus (+6 per round, both teams just for reaching it)
-    if (!['j1','j2','j3'].includes(col)) { pts[home][col] += 6; pts[away][col] += 6; }
-    // Champion bonus (+6 for winning the final)
+    // Knockout advance bonus (+6) — ONLY for the team that actually advances.
+    // In regular knockout rounds that's the team with more goals; if level,
+    // it's whoever won on penalties (penalty_winner). The team eliminated
+    // never receives this bonus, even if the match itself was a draw.
+    if (!['j1','j2','j3'].includes(col)) {
+      const advancing = hg > ag ? home
+                       : hg < ag ? away
+                       : (m.penalty_winner || null);
+      if (advancing) pts[advancing][col] += 6;
+    }
+    // Champion bonus (+6 for winning the final) — same winner-resolution logic
     if (col === 'final') {
       const w = hg > ag ? home : hg < ag ? away : (m.penalty_winner || home);
       pts[w][col] += 6;
