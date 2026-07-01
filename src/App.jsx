@@ -98,6 +98,39 @@ function resolveBestThirdsAssignment(allMatches) {
   return result;
 }
 
+// Greedy assignment of the 8 best 3rds to the 8 official R32 slots
+// ('3_ABCDF', '3_CDFGH', ...). Walks slots in fixture order; for each, picks
+// the best-ranked 3rd whose group is in the slot's eligible set AND has not
+// been used. Returns a map { slot: team } or null until all 12 groups finish.
+function resolveOfficialThirdSlots(allMatches) {
+  const allDone = Object.keys(TOURNEY_GROUPS).every(gk => {
+    const st = calcGroupStandings(gk, allMatches);
+    return st.length === 4 && st.every(x => x.played === 3);
+  });
+  if (!allDone) return null;
+  // Build a list of all 3rds with their group, sorted by pts/gd/gf
+  const thirds = Object.keys(TOURNEY_GROUPS)
+    .map(gk => {
+      const st = calcGroupStandings(gk, allMatches);
+      return st[2] ? { ...st[2], group: gk } : null;
+    })
+    .filter(Boolean)
+    .sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+  // Slot order in FIFA fixture sequence (M74, M77, M79, M80, M81, M82, M85, M87)
+  const slotOrder = [
+    '3_ABCDF','3_CDFGH','3_CEFHI','3_EHIJK',
+    '3_BEFIJ','3_AEHIJ','3_EFGIJ','3_DEIJL',
+  ];
+  const assigned = {};
+  const used = new Set();
+  for (const slot of slotOrder) {
+    const elig = new Set(slot.slice(2).split(''));
+    const pick = thirds.find(t => elig.has(t.group) && !used.has(t.group));
+    if (pick) { assigned[slot] = pick.team; used.add(pick.group); }
+  }
+  return assigned;
+}
+
 // ── Team status — derived from REAL played matches (`matches`), not from the
 // points table. A team is only "out" once its group has finished all 3
 // matchdays and it placed 3rd/4th, or it lost a knockout match outright.
@@ -154,14 +187,13 @@ function teamStatus(team, matches) {
       // Todos los grupos terminados — comprobamos si es de los 8 mejores terceros
       const assignment = resolveBestThirdsAssignment(matches);
       const advancing = new Set(assignment ? Object.values(assignment) : []);
-      if (!advancing.has(team)) {
-        return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
+      if (advancing.has(team)) {
+        return { state: 'alive', label: 'Clasificado como mejor 3º', lastMatch: lastDesc };
       }
-      // Sí avanza como mejor 3º → cae al bloque de eliminatorias abajo
-      // (igual que 1º y 2º) para detectar si luego fue eliminado en r32/r16/etc.
+      return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
     }
 
-    // 1º, 2º o mejor 3º → sigue vivo, comprobamos eliminatorias abajo
+    // 1º o 2º de grupo → sigue vivo, comprobamos eliminatorias abajo
   }
 
   // ── Eliminatorias ──
@@ -593,16 +625,29 @@ const TB_SLOTS = [
 ];
 
 // 'r32_Nw'=winner of r32 match N, etc.
+// ── Official FIFA 2026 Round of 32 (Dieciseisavos) bracket ─────────────────
+// 'XY'  → group X position Y (1=winner, 2=runner-up)
+// '3_XXXXX' → best 3rd-placed team from groups XXXXX (assigned per FIFA's
+//             advancing-thirds order via resolveOfficialThirdSlots, with
+//             admin override via thirdOverrides)
 const BRACKET = {
   r32:[
-    {n:1,home:'A1',away:'B2'},{n:2,home:'C1',away:'D2'},
-    {n:3,home:'B1',away:'A2'},{n:4,home:'D1',away:'C2'},
-    {n:5,home:'E1',away:'F2'},{n:6,home:'G1',away:'H2'},
-    {n:7,home:'F1',away:'E2'},{n:8,home:'H1',away:'G2'},
-    {n:9,home:'I1',away:'J2'},{n:10,home:'K1',away:'L2'},
-    {n:11,home:'J1',away:'I2'},{n:12,home:'L1',away:'K2'},
-    {n:13,home:'T1',away:'T2'},{n:14,home:'T3',away:'T4'},
-    {n:15,home:'T5',away:'T6'},{n:16,home:'T7',away:'T8'},
+    {n:1, home:'A2',     away:'B2'},     // M73: 2A v 2B
+    {n:2, home:'E1',     away:'3_ABCDF'},// M74: 1E v best 3rd (A/B/C/D/F)
+    {n:3, home:'F1',     away:'C2'},     // M75: 1F v 2C
+    {n:4, home:'C1',     away:'F2'},     // M76: 1C v 2F
+    {n:5, home:'I1',     away:'3_CDFGH'},// M77: 1I v best 3rd (C/D/F/G/H)
+    {n:6, home:'E2',     away:'I2'},     // M78: 2E v 2I
+    {n:7, home:'A1',     away:'3_CEFHI'},// M79: 1A v best 3rd (C/E/F/H/I)
+    {n:8, home:'L1',     away:'3_EHIJK'},// M80: 1L v best 3rd (E/H/I/J/K)
+    {n:9, home:'D1',     away:'3_BEFIJ'},// M81: 1D v best 3rd (B/E/F/I/J)
+    {n:10,home:'G1',     away:'3_AEHIJ'},// M82: 1G v best 3rd (A/E/H/I/J)
+    {n:11,home:'K2',     away:'L2'},     // M83: 2K v 2L
+    {n:12,home:'H1',     away:'J2'},     // M84: 1H v 2J
+    {n:13,home:'B1',     away:'3_EFGIJ'},// M85: 1B v best 3rd (E/F/G/I/J)
+    {n:14,home:'J1',     away:'H2'},     // M86: 1J v 2H
+    {n:15,home:'K1',     away:'3_DEIJL'},// M87: 1K v best 3rd (D/E/I/J/L)
+    {n:16,home:'D2',     away:'G2'},     // M88: 2D v 2G
   ],
   r16:[
     {n:1,home:'r32_1w',away:'r32_2w'},{n:2,home:'r32_3w',away:'r32_4w'},
@@ -3107,13 +3152,25 @@ function calcGroupStandings(gk, allMatches) {
 }
 
 // Resolve a bracket slot code to actual team name
-function resolveSlot(slot, allMatches) {
+function resolveSlot(slot, allMatches, thirdOverrides = {}) {
   const grp=/^([A-L])([123])$/.exec(slot);
   if(grp){
     const st=calcGroupStandings(grp[1],allMatches), pos=parseInt(grp[2])-1;
     const done=st.length===4&&st.every(x=>x.played===3);
     return done&&st[pos]?{team:st[pos].team,label:slot,ready:true}:{team:null,label:slot,ready:false};
   }
+  // Official FIFA 2026 best-3rd slots: '3_ABCDF', etc. Admin override > greedy.
+  const t3set=/^3_([A-L]+)$/.exec(slot);
+  if(t3set){
+    const eligLabel = `3º(${t3set[1].split('').join('/')})`;
+    if (thirdOverrides && thirdOverrides[slot]) {
+      return { team: thirdOverrides[slot], label: eligLabel, ready: true };
+    }
+    const map = resolveOfficialThirdSlots(allMatches);
+    if (map && map[slot]) return { team: map[slot], label: eligLabel, ready: true };
+    return { team: null, label: eligLabel, ready: false };
+  }
+  // Legacy T1-T8 (kept for compat with teamStatus)
   const t3=/^T([1-8])$/.exec(slot);
   if(t3){
     const rank=parseInt(t3[1])-1;
@@ -3132,7 +3189,7 @@ function resolveSlot(slot, allMatches) {
   if(prev){
     const[,rnd,n]=prev; const bm=(BRACKET[rnd]||[])[parseInt(n)-1];
     if(!bm)return{team:null,label:slot,ready:false};
-    const h=resolveSlot(bm.home,allMatches),a=resolveSlot(bm.away,allMatches);
+    const h=resolveSlot(bm.home,allMatches,thirdOverrides),a=resolveSlot(bm.away,allMatches,thirdOverrides);
     if(!h.team||!a.team)return{team:null,label:`W(${rnd.toUpperCase()}${n})`,ready:false};
     const sv=(allMatches||[]).find(m=>
       m.round_col===rnd&&m.home_goals!=null&&m.away_goals!=null&&
@@ -3148,7 +3205,7 @@ function resolveSlot(slot, allMatches) {
   return{team:null,label:slot,ready:false};
 }
 
-function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
+function AutoKnockoutSection({ savedMatches, onSaveMatch, thirdOverrides={}, onSetThirdOverride }) {
   const [roundTab,setRoundTab]=useState('grupos');
   const tabs=[
     {key:'grupos',label:'Grupos'},
@@ -3217,20 +3274,67 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
       ):(
         <div>
           {(BRACKET[roundTab]||[]).map(bm=>{
-            const h=resolveSlot(bm.home,savedMatches),a=resolveSlot(bm.away,savedMatches);
+            const h=resolveSlot(bm.home,savedMatches,thirdOverrides);
+            const a=resolveSlot(bm.away,savedMatches,thirdOverrides);
+            const thirdSlot = /^3_[A-L]+$/.test(bm.home) ? bm.home
+                            : /^3_[A-L]+$/.test(bm.away) ? bm.away : null;
+            const eligibleThirds = thirdSlot ? (() => {
+              const allDone = Object.keys(TOURNEY_GROUPS).every(gk => {
+                const st = calcGroupStandings(gk, savedMatches);
+                return st.length === 4 && st.every(x => x.played === 3);
+              });
+              if (!allDone) return null;
+              const eligGroups = new Set(thirdSlot.slice(2).split(''));
+              return Object.keys(TOURNEY_GROUPS)
+                .map(gk => ({ ...calcGroupStandings(gk, savedMatches)[2], group: gk }))
+                .filter(x => x.team && eligGroups.has(x.group))
+                .sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+            })() : null;
+            const overridePicker = thirdSlot && eligibleThirds && eligibleThirds.length > 0 && onSetThirdOverride ? (
+              <div style={{
+                padding:'6px 12px 8px',background:'rgba(96,170,255,0.05)',
+                borderBottom:'1px solid rgba(255,255,255,0.04)',
+                display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',fontSize:11,
+              }}>
+                <span style={{color:'var(--mut)',fontWeight:600}}>
+                  Mejor 3º de {thirdSlot.slice(2).split('').join('/')} →
+                </span>
+                <select
+                  value={thirdOverrides[thirdSlot] || ''}
+                  onChange={e => onSetThirdOverride(thirdSlot, e.target.value || null)}
+                  style={{
+                    fontSize:12,padding:'4px 8px',borderRadius:6,
+                    background:'var(--sur)',border:'1px solid var(--brd)',
+                    color: thirdOverrides[thirdSlot] ? 'var(--white)' : 'var(--mut)',
+                  }}>
+                  <option value="">— Auto (greedy) —</option>
+                  {eligibleThirds.map(t => (
+                    <option key={t.team} value={t.team}>
+                      {t.team} (Gr.{t.group} · {t.pts}p · {t.gd>=0?'+':''}{t.gd}gd · {t.gf}gf)
+                    </option>
+                  ))}
+                </select>
+                {thirdOverrides[thirdSlot] && (
+                  <span style={{color:'var(--gold)',fontSize:10}}>manual</span>
+                )}
+              </div>
+            ) : null;
             if(!h.ready||!a.ready){
               return(
-                <div key={bm.n} style={{display:'flex',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',gap:6}}>
-                  <div style={{flex:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
-                    {h.team?<><FlagChip team={h.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{h.team}</span></>
-                    :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{h.label}</span>}
+                <div key={bm.n}>
+                  {overridePicker}
+                  <div style={{display:'flex',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',gap:6}}>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:5,justifyContent:'flex-end'}}>
+                      {h.team?<><FlagChip team={h.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{h.team}</span></>
+                      :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{h.label}</span>}
+                    </div>
+                    <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,width:22,textAlign:'center'}}>vs</span>
+                    <div style={{flex:1,display:'flex',alignItems:'center',gap:5}}>
+                      {a.team?<><FlagChip team={a.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{a.team}</span></>
+                      :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{a.label}</span>}
+                    </div>
+                    <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,paddingLeft:4}}>pendiente</span>
                   </div>
-                  <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,width:22,textAlign:'center'}}>vs</span>
-                  <div style={{flex:1,display:'flex',alignItems:'center',gap:5}}>
-                    {a.team?<><FlagChip team={a.team} size={18}/><span style={{fontSize:11,color:'var(--txt-mid)'}}>{a.team}</span></>
-                    :<span style={{fontSize:11,color:'var(--mut)',fontStyle:'italic'}}>{a.label}</span>}
-                  </div>
-                  <span style={{fontSize:10,color:'var(--mut)',flexShrink:0,paddingLeft:4}}>pendiente</span>
                 </div>
               );
             }
@@ -3238,7 +3342,12 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
               m.round_col===roundTab&&
               ((m.home_team===h.team&&m.away_team===a.team)||(m.home_team===a.team&&m.away_team===h.team))
             );
-            return <MatchRow key={bm.n} home={h.team} away={a.team} round={roundTab} saved={sv} onSave={onSaveMatch}/>;
+            return (
+              <div key={bm.n}>
+                {overridePicker}
+                <MatchRow home={h.team} away={a.team} round={roundTab} saved={sv} onSave={onSaveMatch}/>
+              </div>
+            );
           })}
         </div>
       )}
@@ -3248,7 +3357,8 @@ function AutoKnockoutSection({ savedMatches, onSaveMatch }) {
 
 function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatch, onGroupsChange,
                        session, participants=[], resultsMap={},
-                       chronicles=[], onChroniclesChange }) {
+                       chronicles=[], onChroniclesChange,
+                       thirdOverrides={}, onSetThirdOverride }) {
   const [log,setLog]=useState('Ready. Press Sync to fetch latest results.');
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
@@ -3393,7 +3503,8 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
             </div>
           ));
         })()}
-        {matchTab==='elim'&&<AutoKnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}/>}
+        {matchTab==='elim'&&<AutoKnockoutSection savedMatches={savedMatches} onSaveMatch={onSaveMatch}
+                              thirdOverrides={thirdOverrides} onSetThirdOverride={onSetThirdOverride}/>}
 
         {/* ── GROUPS ──────────────────────────────────────────────────────── */}
         <hr className="admin-divider"/>
@@ -3880,6 +3991,7 @@ export default function App() {
   const [chronicles,setChronicles]=useState([]);
   const [chronicleReactions,setChronicleReactions]=useState([]);
   const [chronicleComments,setChronicleComments]=useState([]);
+  const [thirdOverrides,setThirdOverrides]=useState({}); // { '3_ABCDF': 'Brazil', ... }
   useEffect(()=>{ try{localStorage.setItem('lang',lang);}catch{} },[lang]);
   const t=LANGS[lang];
 
@@ -3962,6 +4074,42 @@ export default function App() {
     await supabase.from('chronicle_comments').delete().eq('id',id).eq('user_id',session.user.id);
     loadChronicles();
   };
+
+  // Load admin overrides for the "3 of group X/Y/Z" R32 slots
+  const loadThirdOverrides = async () => {
+    const { data } = await supabase.from('r32_third_overrides').select('slot, team');
+    const map = {};
+    (data || []).forEach(r => { map[r.slot] = r.team; });
+    setThirdOverrides(map);
+  };
+  useEffect(() => { loadThirdOverrides(); }, []);
+
+  // Admin sets/clears the 3rd-team for a 3_XXXXX R32 slot.
+  // Wipes the existing R32 match where the slot's fixed-side team appears so
+  // recalc reassigns the +6 advance bonus to the new team.
+  async function setThirdOverride(slot, newTeam) {
+    if (!session?.user) return;
+    const bm = BRACKET.r32.find(b => b.home === slot || b.away === slot);
+    if (!bm) return;
+    const fixedSlot = bm.home === slot ? bm.away : bm.home;
+    const fixed = resolveSlot(fixedSlot, matches, thirdOverrides);
+    if (fixed.team) {
+      await supabase.from('matches').delete()
+        .eq('round_col','r32')
+        .or(`home_team.eq.${fixed.team},away_team.eq.${fixed.team}`);
+    }
+    if (newTeam) {
+      await supabase.from('r32_third_overrides').upsert(
+        { slot, team: newTeam, set_by: session.user.id, set_at: new Date().toISOString() },
+        { onConflict: 'slot' }
+      );
+    } else {
+      await supabase.from('r32_third_overrides').delete().eq('slot', slot);
+    }
+    await loadThirdOverrides();
+    await fetch('/api/recalc', { method: 'POST' }).catch(()=>{});
+    await loadData();
+  }
 
   useEffect(()=>{loadData();},[]);
 
@@ -4196,6 +4344,7 @@ export default function App() {
       {tab==='resultados'    &&<ResultsPage      resultsMap={resultsMap} participants={participants} participantsSorted={participantsSorted} onRefresh={loadData} t={t}/>}
       {tab==='clasificacion' &&<LeaderboardPage participants={participantsWithTotals} winnersMap={winnersMap} resultsMap={resultsMap} matches={matches} myParticipant={myParticipant} onRefresh={loadData} t={t} myGroups={myGroups} groupMembersById={groupMembersById}/>}
       {tab==='admin'         &&<AdminPage        onSync={handleSync} winnersMap={winnersMap} onSaveWinners={handleSaveWinners} savedMatches={matches} onSaveMatch={handleSaveMatch} onGroupsChange={loadGroups}
+                              thirdOverrides={thirdOverrides} onSetThirdOverride={setThirdOverride}
                               session={session} participants={participantsWithTotals} resultsMap={resultsMap}
                               chronicles={chronicles} onChroniclesChange={loadChronicles}/>}
       <AppFooter/>
