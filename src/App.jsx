@@ -145,13 +145,15 @@ function teamStatus(team, matches) {
 
   const groupKey = Object.keys(TOURNEY_GROUPS||{}).find(g => TOURNEY_GROUPS[g].includes(team));
 
+  // Si el equipo ya tiene partidos de eliminatorias en la BD, la fase de grupos
+  // está terminada por definición — saltamos directo al bloque de knockouts.
+  // Evita que resultados de grupo incompletos en la BD oculten eliminaciones reales.
+  const hasKnockoutActivity = myPlayed.some(m => !['j1','j2','j3'].includes(m.round_col));
+
   // ── Fase de grupos ──
-  if (groupKey) {
+  if (groupKey && !hasKnockoutActivity) {
     const standings = calcGroupStandings(groupKey, matches);
     const groupDone = standings.length === 4 && standings.every(s => s.played === 3);
-    // Contamos los partidos jugados directamente desde los partidos reales del
-    // equipo, no desde la tabla de grupos (que requiere que el rival también
-    // esté listado en TOURNEY_GROUPS y puede desincronizarse).
     const played = myPlayed.filter(m => ['j1','j2','j3'].includes(m.round_col)).length;
 
     if (!groupDone) {
@@ -168,32 +170,28 @@ function teamStatus(team, matches) {
       return { state:'out', label:'Eliminado en fase de grupos', lastMatch: lastDesc };
     }
 
-    // 3er lugar: en el Mundial 2026 con 12 grupos, 8 de los 12 terceros avanzan.
-    // Solo marcamos como eliminado cuando TODOS los grupos estén completos y el
-    // algoritmo de mejores terceros confirme que este equipo no pasa.
+    // 3er lugar: 8 de los 12 terceros avanzan.
     if (idx === 2) {
       const allGroupsDone = Object.keys(TOURNEY_GROUPS).every(gk => {
         const st = calcGroupStandings(gk, matches);
         return st.length === 4 && st.every(x => x.played === 3);
       });
       if (!allGroupsDone) {
-        // Hay grupos sin terminar — puede ser mejor tercero todavía
         return {
           state: 'alive',
           label: 'Fase de grupos · 3º (pendiente mejor tercero)',
           lastMatch: lastDesc,
         };
       }
-      // Todos los grupos terminados — comprobamos si es de los 8 mejores terceros
       const assignment = resolveBestThirdsAssignment(matches);
       const advancing = new Set(assignment ? Object.values(assignment) : []);
-      if (advancing.has(team)) {
-        return { state: 'alive', label: 'Clasificado como mejor 3º', lastMatch: lastDesc };
+      if (!advancing.has(team)) {
+        return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
       }
-      return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
+      // Avanza como mejor 3º → cae al bloque de eliminatorias abajo
     }
 
-    // 1º o 2º de grupo → sigue vivo, comprobamos eliminatorias abajo
+    // 1º, 2º o mejor 3º → comprobamos eliminatorias abajo
   }
 
   // ── Eliminatorias ──
