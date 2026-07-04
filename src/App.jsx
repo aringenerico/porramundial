@@ -650,10 +650,14 @@ const BRACKET = {
     {n:16,home:'D2',     away:'G2'},     // M88: 2D v 2G
   ],
   r16:[
-    {n:1,home:'r32_1w',away:'r32_2w'},{n:2,home:'r32_3w',away:'r32_4w'},
-    {n:3,home:'r32_5w',away:'r32_6w'},{n:4,home:'r32_7w',away:'r32_8w'},
-    {n:5,home:'r32_9w',away:'r32_10w'},{n:6,home:'r32_11w',away:'r32_12w'},
-    {n:7,home:'r32_13w',away:'r32_14w'},{n:8,home:'r32_15w',away:'r32_16w'},
+    {n:1,home:'r32_1w',away:'r32_3w'},   // Canada v Morocco
+    {n:2,home:'r32_2w',away:'r32_5w'},   // Paraguay v France
+    {n:3,home:'r32_4w',away:'r32_6w'},   // Brazil v Norway
+    {n:4,home:'r32_7w',away:'r32_8w'},   // Mexico v England
+    {n:5,home:'r32_9w',away:'r32_10w'},  // United States v Belgium
+    {n:6,home:'r32_13w',away:'r32_11w'}, // Switzerland v Colombia
+    {n:7,home:'r32_14w',away:'r32_16w'}, // Argentina v Egypt
+    {n:8,home:'r32_12w',away:'r32_15w'}, // Spain v Portugal
   ],
   qf:[
     {n:1,home:'r16_1w',away:'r16_2w'},{n:2,home:'r16_3w',away:'r16_4w'},
