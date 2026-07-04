@@ -3060,6 +3060,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
   const [hg, setHg] = useState(saved?.home_goals?.toString() ?? '');
   const [ag, setAg] = useState(saved?.away_goals?.toString() ?? '');
   const [pw, setPw] = useState(saved?.penalty_winner ?? '');
+  const [et, setEt] = useState(!!saved?.went_to_et);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(!!saved);
   const [err, setErr] = useState('');
@@ -3070,16 +3071,18 @@ function MatchRow({ home, away, round, saved, onSave }) {
     setHg(saved?.home_goals?.toString() ?? '');
     setAg(saved?.away_goals?.toString() ?? '');
     setPw(saved?.penalty_winner ?? '');
+    setEt(!!saved?.went_to_et);
     setDone(!!saved);
-  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner]);
+  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner, saved?.went_to_et]);
 
   const isDirty = hg !== (saved?.home_goals?.toString() ?? '')
     || ag !== (saved?.away_goals?.toString() ?? '')
-    || pw !== (saved?.penalty_winner ?? '');
+    || pw !== (saved?.penalty_winner ?? '')
+    || et !== !!saved?.went_to_et;
   const canSave = hg !== '' && ag !== ''
     && !(isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag) && !pw);
 
-  const resetScore = () => { setDone(false); setErr(''); setPw(''); };
+  const resetScore = () => { setDone(false); setErr(''); setPw(''); setEt(false); };
   const save = async () => {
     // Hard guard — never save a knockout draw without a penalty winner
     if (isKnockout && parseInt(hg) === parseInt(ag) && !pw) {
@@ -3093,12 +3096,14 @@ function MatchRow({ home, away, round, saved, onSave }) {
       home_goals:parseInt(hg), away_goals:parseInt(ag),
       round_col:round,
       penalty_winner: (isKnockout && parseInt(hg)===parseInt(ag)) ? (pw||null) : null,
+      went_to_et: isKnockout && parseInt(hg) !== parseInt(ag) ? et : false,
     });
     if (result === true) setDone(true);
     else if (typeof result === 'string') setErr(result);
     setBusy(false);
   };
   const penaltyNeeded = isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
+  const etApplicable = isKnockout && hg !== '' && ag !== '' && parseInt(hg) !== parseInt(ag);
   return (
     <div className={`match-card${done && !isDirty && (!penaltyNeeded||pw) ? ' saved' : ''}`} style={{marginBottom:6}}>
       <div style={{display:'flex',alignItems:'center',gap:6,padding:'7px 10px'}}>
@@ -3129,6 +3134,12 @@ function MatchRow({ home, away, round, saved, onSave }) {
             {away}
           </button>
         </div>
+      )}
+      {etApplicable && (
+        <label style={{display:'flex',alignItems:'center',gap:6,padding:'0 10px 8px',borderTop:'1px solid rgba(255,255,255,0.06)',fontSize:10,color:'var(--mut)',cursor:'pointer'}}>
+          <input type="checkbox" checked={et} onChange={e=>{setEt(e.target.checked);setDone(false);setErr('');}}/>
+          ⏱️ Se decidió en la prórroga (puntúa como empate 1-1)
+        </label>
       )}
       {err && <div style={{fontSize:11,color:'var(--gold)',padding:'0 10px 6px'}}>{err}</div>}
     </div>
@@ -4224,7 +4235,7 @@ export default function App() {
     return null;
   }
 
-  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner}) {
+  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner,went_to_et}) {
     // Delete any existing entry for this pair+round (index is on least/greatest so either order)
     const {data:existing}=await supabase.from('matches').select('id,home_team,away_team')
       .eq('round_col',round_col)
@@ -4233,7 +4244,7 @@ export default function App() {
       const ids=existing.map(r=>r.id);
       await supabase.from('matches').delete().in('id',ids);
     }
-    const row={home_team,away_team,home_goals,away_goals,round_col,source:'manual'};
+    const row={home_team,away_team,home_goals,away_goals,round_col,source:'manual',went_to_et:!!went_to_et};
     if(penalty_winner)row.penalty_winner=penalty_winner;
     const {error}=await supabase.from('matches').insert(row);
     if(error){console.error('handleSaveMatch insert error:',error);return 'Error al guardar: '+error.message;}
@@ -4264,6 +4275,8 @@ export default function App() {
       const toUpsert=[];
       for(const m of finished){
         const home=normTeam(m.homeTeam.name),away=normTeam(m.awayTeam.name);
+        // fullTime already reflects the score after extra time, excluding
+        // penalty-shootout kicks (those live in score.penalties, unused here).
         const hg=m.score.fullTime.home??0,ag=m.score.fullTime.away??0;
         let col;
         if(m.stage==='GROUP_STAGE'){col=m.matchday===1?'j1':m.matchday===2?'j2':'j3';}
@@ -4271,7 +4284,12 @@ export default function App() {
         if(!col)continue;
         const a=home<away?home:away,b=home<away?away:home;
         if(manualKeys.has(`${a}|${b}|${col}`)){log(`Skipping manual: ${home} vs ${away} (${col})`);continue;}
-        toUpsert.push({home_team:home,away_team:away,home_goals:hg,away_goals:ag,round_col:col,source:'api'});
+        const duration=m.score?.duration;
+        const wentToEt=duration==='EXTRA_TIME'||duration==='PENALTY_SHOOTOUT';
+        const penaltyWinner=(duration==='PENALTY_SHOOTOUT'&&hg===ag)
+          ?(m.score.winner==='HOME_TEAM'?home:m.score.winner==='AWAY_TEAM'?away:null)
+          :null;
+        toUpsert.push({home_team:home,away_team:away,home_goals:hg,away_goals:ag,round_col:col,source:'api',went_to_et:wentToEt,penalty_winner:penaltyWinner});
       }
 
       if(toUpsert.length){

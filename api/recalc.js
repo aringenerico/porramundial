@@ -53,8 +53,13 @@ function calcMatchPts(allMats) {
     if (!pts[away]) pts[away] = blank();
     // Goals
     pts[home][col] += hg; pts[away][col] += ag;
-    // Win/draw (regular-time result — penalties never change this part)
-    if (hg > ag) pts[home][col] += 3;
+    // Win/draw (90-minute result). A match still level after 90' counts as a
+    // draw for these points even if it's later decided in extra time without
+    // a shootout (went_to_et) — the goal itself still counts above, only the
+    // win bonus doesn't apply. Matches level after ET (penalties) already
+    // have hg===ag and fall into the draw branch regardless.
+    if (m.went_to_et) { pts[home][col] += 1; pts[away][col] += 1; }
+    else if (hg > ag) pts[home][col] += 3;
     else if (hg < ag) pts[away][col] += 3;
     else { pts[home][col] += 1; pts[away][col] += 1; }
     // Knockout advance bonus (+6) — ONLY for the team that actually advances.
