@@ -145,15 +145,13 @@ function teamStatus(team, matches) {
 
   const groupKey = Object.keys(TOURNEY_GROUPS||{}).find(g => TOURNEY_GROUPS[g].includes(team));
 
-  // Si el equipo ya tiene partidos de eliminatorias en la BD, la fase de grupos
-  // está terminada por definición — saltamos directo al bloque de knockouts.
-  // Evita que resultados de grupo incompletos en la BD oculten eliminaciones reales.
-  const hasKnockoutActivity = myPlayed.some(m => !['j1','j2','j3'].includes(m.round_col));
-
   // ── Fase de grupos ──
-  if (groupKey && !hasKnockoutActivity) {
+  if (groupKey) {
     const standings = calcGroupStandings(groupKey, matches);
     const groupDone = standings.length === 4 && standings.every(s => s.played === 3);
+    // Contamos los partidos jugados directamente desde los partidos reales del
+    // equipo, no desde la tabla de grupos (que requiere que el rival también
+    // esté listado en TOURNEY_GROUPS y puede desincronizarse).
     const played = myPlayed.filter(m => ['j1','j2','j3'].includes(m.round_col)).length;
 
     if (!groupDone) {
@@ -170,28 +168,32 @@ function teamStatus(team, matches) {
       return { state:'out', label:'Eliminado en fase de grupos', lastMatch: lastDesc };
     }
 
-    // 3er lugar: 8 de los 12 terceros avanzan.
+    // 3er lugar: en el Mundial 2026 con 12 grupos, 8 de los 12 terceros avanzan.
+    // Solo marcamos como eliminado cuando TODOS los grupos estén completos y el
+    // algoritmo de mejores terceros confirme que este equipo no pasa.
     if (idx === 2) {
       const allGroupsDone = Object.keys(TOURNEY_GROUPS).every(gk => {
         const st = calcGroupStandings(gk, matches);
         return st.length === 4 && st.every(x => x.played === 3);
       });
       if (!allGroupsDone) {
+        // Hay grupos sin terminar — puede ser mejor tercero todavía
         return {
           state: 'alive',
           label: 'Fase de grupos · 3º (pendiente mejor tercero)',
           lastMatch: lastDesc,
         };
       }
+      // Todos los grupos terminados — comprobamos si es de los 8 mejores terceros
       const assignment = resolveBestThirdsAssignment(matches);
       const advancing = new Set(assignment ? Object.values(assignment) : []);
-      if (!advancing.has(team)) {
-        return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
+      if (advancing.has(team)) {
+        return { state: 'alive', label: 'Clasificado como mejor 3º', lastMatch: lastDesc };
       }
-      // Avanza como mejor 3º → cae al bloque de eliminatorias abajo
+      return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
     }
 
-    // 1º, 2º o mejor 3º → comprobamos eliminatorias abajo
+    // 1º o 2º de grupo → sigue vivo, comprobamos eliminatorias abajo
   }
 
   // ── Eliminatorias ──
@@ -2098,7 +2100,7 @@ function RegistrationPage({ onSubmit, userId, t }) {
   );
 }
 
-const COLS=[{k:'j1',lbl:'MD1'},{k:'j2',lbl:'MD2'},{k:'j3',lbl:'MD3'},{k:'r32',lbl:'R32'},{k:'r16',lbl:'R16'},{k:'qf',lbl:'QF'},{k:'sf',lbl:'SF'},{k:'final',lbl:'FIN'}];
+const COLS=[{k:'j1',lbl:'J1'},{k:'j2',lbl:'J2'},{k:'j3',lbl:'J3'},{k:'r32',lbl:'D16'},{k:'r16',lbl:'8vos'},{k:'qf',lbl:'4tos'},{k:'sf',lbl:'SF'},{k:'final',lbl:'FIN'}];
 
 function TeamTable({ rows, showIndex=true }) {
   return(
@@ -3053,6 +3055,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
   const [hg, setHg] = useState(saved?.home_goals?.toString() ?? '');
   const [ag, setAg] = useState(saved?.away_goals?.toString() ?? '');
   const [pw, setPw] = useState(saved?.penalty_winner ?? '');
+  const [aet, setAet] = useState(!!saved?.extra_time);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(!!saved);
   const [err, setErr] = useState('');
@@ -3063,19 +3066,24 @@ function MatchRow({ home, away, round, saved, onSave }) {
     setHg(saved?.home_goals?.toString() ?? '');
     setAg(saved?.away_goals?.toString() ?? '');
     setPw(saved?.penalty_winner ?? '');
+    setAet(!!saved?.extra_time);
     setDone(!!saved);
-  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner]);
+  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner, saved?.extra_time]);
 
   const isDirty = hg !== (saved?.home_goals?.toString() ?? '')
     || ag !== (saved?.away_goals?.toString() ?? '')
-    || pw !== (saved?.penalty_winner ?? '');
+    || pw !== (saved?.penalty_winner ?? '')
+    || aet !== (!!saved?.extra_time);
+  const isDraw = hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
+  // Penaltis solo cuando el marcador queda empatado (se resolvió en la tanda).
+  const penaltyNeeded = isKnockout && isDraw;
   const canSave = hg !== '' && ag !== ''
-    && !(isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag) && !pw);
+    && !(penaltyNeeded && !pw);
 
   const resetScore = () => { setDone(false); setErr(''); setPw(''); };
   const save = async () => {
     // Hard guard — never save a knockout draw without a penalty winner
-    if (isKnockout && parseInt(hg) === parseInt(ag) && !pw) {
+    if (penaltyNeeded && !pw) {
       setErr('Empate en eliminatoria: selecciona el ganador por penaltis ↓');
       return;
     }
@@ -3085,13 +3093,15 @@ function MatchRow({ home, away, round, saved, onSave }) {
       home_team:home, away_team:away,
       home_goals:parseInt(hg), away_goals:parseInt(ag),
       round_col:round,
-      penalty_winner: (isKnockout && parseInt(hg)===parseInt(ag)) ? (pw||null) : null,
+      penalty_winner: (penaltyNeeded) ? (pw||null) : null,
+      // Prórroga: empate a penaltis SIEMPRE es prórroga; marcador desigual solo
+      // si el admin marca el check. En ambos casos cuenta como empate en puntos.
+      extra_time: isKnockout && (penaltyNeeded || aet),
     });
     if (result === true) setDone(true);
     else if (typeof result === 'string') setErr(result);
     setBusy(false);
   };
-  const penaltyNeeded = isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
   return (
     <div className={`match-card${done && !isDirty && (!penaltyNeeded||pw) ? ' saved' : ''}`} style={{marginBottom:6}}>
       <div style={{display:'flex',alignItems:'center',gap:6,padding:'7px 10px'}}>
@@ -3121,6 +3131,19 @@ function MatchRow({ home, away, round, saved, onSave }) {
           <button type="button" className={`penalty-btn${pw===away?' active':''}`} onClick={()=>{setPw(away);setDone(false);setErr('');}}>
             {away}
           </button>
+        </div>
+      )}
+      {isKnockout && !isDraw && hg !== '' && ag !== '' && (
+        <div style={{display:'flex',alignItems:'center',gap:7,padding:'0 10px 8px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+          <label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:10,color:'var(--mut)'}}>
+            <input
+              type="checkbox"
+              checked={aet}
+              onChange={e=>{setAet(e.target.checked);setDone(false);setErr('');}}
+              style={{width:14,height:14,accentColor:'var(--gold)',cursor:'pointer'}}
+            />
+            <span>⏱ Decidido en la prórroga <span style={{opacity:0.7}}>(cuenta como empate)</span></span>
+          </label>
         </div>
       )}
       {err && <div style={{fontSize:11,color:'var(--gold)',padding:'0 10px 6px'}}>{err}</div>}
@@ -4217,7 +4240,7 @@ export default function App() {
     return null;
   }
 
-  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner}) {
+  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner,extra_time}) {
     // Delete any existing entry for this pair+round (index is on least/greatest so either order)
     const {data:existing}=await supabase.from('matches').select('id,home_team,away_team')
       .eq('round_col',round_col)
@@ -4228,6 +4251,7 @@ export default function App() {
     }
     const row={home_team,away_team,home_goals,away_goals,round_col,source:'manual'};
     if(penalty_winner)row.penalty_winner=penalty_winner;
+    if(extra_time)row.extra_time=true;
     const {error}=await supabase.from('matches').insert(row);
     if(error){console.error('handleSaveMatch insert error:',error);return 'Error al guardar: '+error.message;}
     const recalcErr=await recalcAndSaveResults();
