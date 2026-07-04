@@ -3138,7 +3138,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
       {etApplicable && (
         <label style={{display:'flex',alignItems:'center',gap:6,padding:'0 10px 8px',borderTop:'1px solid rgba(255,255,255,0.06)',fontSize:10,color:'var(--mut)',cursor:'pointer'}}>
           <input type="checkbox" checked={et} onChange={e=>{setEt(e.target.checked);setDone(false);setErr('');}}/>
-          ⏱️ Se decidió en la prórroga (puntúa como empate 1-1)
+          ⏱️ Se decidió en la prórroga (puntos por resultado: 1 pt para cada equipo, no 3-0)
         </label>
       )}
       {err && <div style={{fontSize:11,color:'var(--gold)',padding:'0 10px 6px'}}>{err}</div>}
