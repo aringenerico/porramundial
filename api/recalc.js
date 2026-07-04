@@ -51,26 +51,16 @@ function calcMatchPts(allMats) {
     if (!col) continue;
     if (!pts[home]) pts[home] = blank();
     if (!pts[away]) pts[away] = blank();
-    // Goals — always the full final score, extra time included
+    // Goals
     pts[home][col] += hg; pts[away][col] += ag;
-    // Win/draw points.
-    // A knockout tie decided in extra time (extra_time = true) counts as a DRAW
-    // for result points: both teams get +1, the winner does NOT get the +3.
-    // This applies whether the final score is level (1-1 → penalties) or uneven
-    // (3-2 scored during extra time). Only a regulation win pays +3.
-    const decidedInExtraTime = !!m.extra_time && !['j1','j2','j3'].includes(col);
-    if (decidedInExtraTime) {
-      pts[home][col] += 1; pts[away][col] += 1;
-    } else if (hg > ag) {
-      pts[home][col] += 3;
-    } else if (hg < ag) {
-      pts[away][col] += 3;
-    } else {
-      pts[home][col] += 1; pts[away][col] += 1;
-    }
+    // Win/draw (regular-time result — penalties never change this part)
+    if (hg > ag) pts[home][col] += 3;
+    else if (hg < ag) pts[away][col] += 3;
+    else { pts[home][col] += 1; pts[away][col] += 1; }
     // Knockout advance bonus (+6) — ONLY for the team that actually advances.
-    // Whoever scored more goals advances; if level, whoever won on penalties.
-    // The eliminated team never receives this bonus, even on a draw.
+    // In regular knockout rounds that's the team with more goals; if level,
+    // it's whoever won on penalties (penalty_winner). The team eliminated
+    // never receives this bonus, even if the match itself was a draw.
     if (!['j1','j2','j3'].includes(col)) {
       const advancing = hg > ag ? home
                        : hg < ag ? away
