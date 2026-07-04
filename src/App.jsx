@@ -3075,14 +3075,15 @@ function MatchRow({ home, away, round, saved, onSave }) {
     || pw !== (saved?.penalty_winner ?? '')
     || aet !== (!!saved?.extra_time);
   const isDraw = hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
-  // Penaltis solo cuando el marcador queda empatado (se resolvió en la tanda).
+  // El selector de penaltis solo hace falta cuando el marcador queda empatado
+  // (no hay ganador por goles → hay que decir quién pasó en la tanda).
   const penaltyNeeded = isKnockout && isDraw;
   const canSave = hg !== '' && ag !== ''
     && !(penaltyNeeded && !pw);
 
   const resetScore = () => { setDone(false); setErr(''); setPw(''); };
   const save = async () => {
-    // Hard guard — never save a knockout draw without a penalty winner
+    // Nunca guardar un empate de eliminatoria sin ganador de penaltis
     if (penaltyNeeded && !pw) {
       setErr('Empate en eliminatoria: selecciona el ganador por penaltis ↓');
       return;
@@ -3094,9 +3095,10 @@ function MatchRow({ home, away, round, saved, onSave }) {
       home_goals:parseInt(hg), away_goals:parseInt(ag),
       round_col:round,
       penalty_winner: (penaltyNeeded) ? (pw||null) : null,
-      // Prórroga: empate a penaltis SIEMPRE es prórroga; marcador desigual solo
-      // si el admin marca el check. En ambos casos cuenta como empate en puntos.
-      extra_time: isKnockout && (penaltyNeeded || aet),
+      // Prórroga: SOLO lo que el admin marca en el check (nada automático).
+      // Si está marcado, el partido cuenta como empate en puntos (ambos +1),
+      // aunque el marcador sea desigual. El ganador avanza igualmente.
+      extra_time: isKnockout && aet,
     });
     if (result === true) setDone(true);
     else if (typeof result === 'string') setErr(result);
@@ -3133,7 +3135,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
           </button>
         </div>
       )}
-      {isKnockout && !isDraw && hg !== '' && ag !== '' && (
+      {isKnockout && hg !== '' && ag !== '' && (
         <div style={{display:'flex',alignItems:'center',gap:7,padding:'0 10px 8px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
           <label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:10,color:'var(--mut)'}}>
             <input
@@ -3142,7 +3144,7 @@ function MatchRow({ home, away, round, saved, onSave }) {
               onChange={e=>{setAet(e.target.checked);setDone(false);setErr('');}}
               style={{width:14,height:14,accentColor:'var(--gold)',cursor:'pointer'}}
             />
-            <span>⏱ Decidido en la prórroga <span style={{opacity:0.7}}>(cuenta como empate)</span></span>
+            <span>⏱ Fue a la prórroga <span style={{opacity:0.7}}>(cuenta como empate)</span></span>
           </label>
         </div>
       )}
