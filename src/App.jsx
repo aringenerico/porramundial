@@ -2100,7 +2100,7 @@ function RegistrationPage({ onSubmit, userId, t }) {
   );
 }
 
-const COLS=[{k:'j1',lbl:'J1'},{k:'j2',lbl:'J2'},{k:'j3',lbl:'J3'},{k:'r32',lbl:'D16'},{k:'r16',lbl:'8vos'},{k:'qf',lbl:'4tos'},{k:'sf',lbl:'SF'},{k:'final',lbl:'FIN'}];
+const COLS=[{k:'j1',lbl:'MD1'},{k:'j2',lbl:'MD2'},{k:'j3',lbl:'MD3'},{k:'r32',lbl:'R32'},{k:'r16',lbl:'R16'},{k:'qf',lbl:'QF'},{k:'sf',lbl:'SF'},{k:'final',lbl:'FIN'}];
 
 function TeamTable({ rows, showIndex=true }) {
   return(
@@ -3055,7 +3055,6 @@ function MatchRow({ home, away, round, saved, onSave }) {
   const [hg, setHg] = useState(saved?.home_goals?.toString() ?? '');
   const [ag, setAg] = useState(saved?.away_goals?.toString() ?? '');
   const [pw, setPw] = useState(saved?.penalty_winner ?? '');
-  const [aet, setAet] = useState(!!saved?.extra_time);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(!!saved);
   const [err, setErr] = useState('');
@@ -3066,25 +3065,19 @@ function MatchRow({ home, away, round, saved, onSave }) {
     setHg(saved?.home_goals?.toString() ?? '');
     setAg(saved?.away_goals?.toString() ?? '');
     setPw(saved?.penalty_winner ?? '');
-    setAet(!!saved?.extra_time);
     setDone(!!saved);
-  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner, saved?.extra_time]);
+  }, [saved?.id, saved?.home_goals, saved?.away_goals, saved?.penalty_winner]);
 
   const isDirty = hg !== (saved?.home_goals?.toString() ?? '')
     || ag !== (saved?.away_goals?.toString() ?? '')
-    || pw !== (saved?.penalty_winner ?? '')
-    || aet !== (!!saved?.extra_time);
-  const isDraw = hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
-  // El selector de penaltis solo hace falta cuando el marcador queda empatado
-  // (no hay ganador por goles → hay que decir quién pasó en la tanda).
-  const penaltyNeeded = isKnockout && isDraw;
+    || pw !== (saved?.penalty_winner ?? '');
   const canSave = hg !== '' && ag !== ''
-    && !(penaltyNeeded && !pw);
+    && !(isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag) && !pw);
 
   const resetScore = () => { setDone(false); setErr(''); setPw(''); };
   const save = async () => {
-    // Nunca guardar un empate de eliminatoria sin ganador de penaltis
-    if (penaltyNeeded && !pw) {
+    // Hard guard — never save a knockout draw without a penalty winner
+    if (isKnockout && parseInt(hg) === parseInt(ag) && !pw) {
       setErr('Empate en eliminatoria: selecciona el ganador por penaltis ↓');
       return;
     }
@@ -3094,16 +3087,13 @@ function MatchRow({ home, away, round, saved, onSave }) {
       home_team:home, away_team:away,
       home_goals:parseInt(hg), away_goals:parseInt(ag),
       round_col:round,
-      penalty_winner: (penaltyNeeded) ? (pw||null) : null,
-      // Prórroga: SOLO lo que el admin marca en el check (nada automático).
-      // Si está marcado, el partido cuenta como empate en puntos (ambos +1),
-      // aunque el marcador sea desigual. El ganador avanza igualmente.
-      extra_time: isKnockout && aet,
+      penalty_winner: (isKnockout && parseInt(hg)===parseInt(ag)) ? (pw||null) : null,
     });
     if (result === true) setDone(true);
     else if (typeof result === 'string') setErr(result);
     setBusy(false);
   };
+  const penaltyNeeded = isKnockout && hg !== '' && ag !== '' && parseInt(hg) === parseInt(ag);
   return (
     <div className={`match-card${done && !isDirty && (!penaltyNeeded||pw) ? ' saved' : ''}`} style={{marginBottom:6}}>
       <div style={{display:'flex',alignItems:'center',gap:6,padding:'7px 10px'}}>
@@ -3133,19 +3123,6 @@ function MatchRow({ home, away, round, saved, onSave }) {
           <button type="button" className={`penalty-btn${pw===away?' active':''}`} onClick={()=>{setPw(away);setDone(false);setErr('');}}>
             {away}
           </button>
-        </div>
-      )}
-      {isKnockout && hg !== '' && ag !== '' && (
-        <div style={{display:'flex',alignItems:'center',gap:7,padding:'0 10px 8px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-          <label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:10,color:'var(--mut)'}}>
-            <input
-              type="checkbox"
-              checked={aet}
-              onChange={e=>{setAet(e.target.checked);setDone(false);setErr('');}}
-              style={{width:14,height:14,accentColor:'var(--gold)',cursor:'pointer'}}
-            />
-            <span>⏱ Fue a la prórroga <span style={{opacity:0.7}}>(cuenta como empate)</span></span>
-          </label>
         </div>
       )}
       {err && <div style={{fontSize:11,color:'var(--gold)',padding:'0 10px 6px'}}>{err}</div>}
@@ -4242,7 +4219,7 @@ export default function App() {
     return null;
   }
 
-  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner,extra_time}) {
+  async function handleSaveMatch({home_team,away_team,home_goals,away_goals,round_col,penalty_winner}) {
     // Delete any existing entry for this pair+round (index is on least/greatest so either order)
     const {data:existing}=await supabase.from('matches').select('id,home_team,away_team')
       .eq('round_col',round_col)
@@ -4253,7 +4230,6 @@ export default function App() {
     }
     const row={home_team,away_team,home_goals,away_goals,round_col,source:'manual'};
     if(penalty_winner)row.penalty_winner=penalty_winner;
-    if(extra_time)row.extra_time=true;
     const {error}=await supabase.from('matches').insert(row);
     if(error){console.error('handleSaveMatch insert error:',error);return 'Error al guardar: '+error.message;}
     const recalcErr=await recalcAndSaveResults();
