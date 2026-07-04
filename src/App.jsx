@@ -187,13 +187,14 @@ function teamStatus(team, matches) {
       // Todos los grupos terminados — comprobamos si es de los 8 mejores terceros
       const assignment = resolveBestThirdsAssignment(matches);
       const advancing = new Set(assignment ? Object.values(assignment) : []);
-      if (advancing.has(team)) {
-        return { state: 'alive', label: 'Clasificado como mejor 3º', lastMatch: lastDesc };
+      if (!advancing.has(team)) {
+        return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
       }
-      return { state: 'out', label: 'Eliminado en fase de grupos', lastMatch: lastDesc };
+      // Clasificado como mejor 3º → sigue vivo, comprobamos eliminatorias abajo
+      // (no return: si luego pierde en r32/r16/..., el bucle de abajo lo marca 'out')
     }
 
-    // 1º o 2º de grupo → sigue vivo, comprobamos eliminatorias abajo
+    // 1º, 2º o mejor 3º de grupo → sigue vivo, comprobamos eliminatorias abajo
   }
 
   // ── Eliminatorias ──
@@ -655,9 +656,9 @@ const BRACKET = {
     {n:3,home:'r32_4w',away:'r32_6w'},   // Brazil v Norway
     {n:4,home:'r32_7w',away:'r32_8w'},   // Mexico v England
     {n:5,home:'r32_9w',away:'r32_10w'},  // United States v Belgium
-    {n:6,home:'r32_13w',away:'r32_11w'}, // Switzerland v Colombia
+    {n:6,home:'r32_13w',away:'r32_15w'}, // Switzerland v Colombia
     {n:7,home:'r32_14w',away:'r32_16w'}, // Argentina v Egypt
-    {n:8,home:'r32_12w',away:'r32_15w'}, // Spain v Portugal
+    {n:8,home:'r32_12w',away:'r32_11w'}, // Spain v Portugal
   ],
   qf:[
     {n:1,home:'r16_1w',away:'r16_2w'},{n:2,home:'r16_3w',away:'r16_4w'},
