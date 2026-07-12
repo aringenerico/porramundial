@@ -504,7 +504,7 @@ const FD_TEAM_MAP = {
   'Korea Republic':'South Korea',"Côte d'Ivoire":'Ivory Coast','IR Iran':'Iran',
   'Congo DR':'DR Congo','Democratic Republic of Congo':'DR Congo','Curaçao':'Curacao',
   'Bosnia-Herzegovina':'Bosnia and Herzegovina','USA':'United States',
-  'Czechia':'Czech Republic',
+  'Czechia':'Czech Republic','Cape Verde Islands':'Cape Verde',
 };
 const normTeam = n => FD_TEAM_MAP[n] || n;
 const STAGE_COL = {
@@ -661,8 +661,10 @@ const BRACKET = {
     {n:8,home:'r32_12w',away:'r32_11w'}, // Spain v Portugal
   ],
   qf:[
-    {n:1,home:'r16_1w',away:'r16_2w'},{n:2,home:'r16_3w',away:'r16_4w'},
-    {n:3,home:'r16_5w',away:'r16_6w'},{n:4,home:'r16_7w',away:'r16_8w'},
+    {n:1,home:'r16_2w',away:'r16_1w'},  // France v Morocco
+    {n:2,home:'r16_8w',away:'r16_5w'},  // Spain v Belgium
+    {n:3,home:'r16_3w',away:'r16_4w'},  // Norway v England
+    {n:4,home:'r16_7w',away:'r16_6w'},  // Argentina v Switzerland
   ],
   sf:[
     {n:1,home:'qf_1w',away:'qf_2w'},{n:2,home:'qf_3w',away:'qf_4w'},
