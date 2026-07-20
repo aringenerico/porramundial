@@ -3381,6 +3381,19 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
   const [syncing,setSyncing]=useState(false);
   const [winners,setWinners]=useState({top_scorer:winnersMap.top_scorer||'',mvp:winnersMap.mvp||'',young:winnersMap.best_young||'',goalkeeper:winnersMap.best_goalkeeper||''});
 
+  // ── Player lists for winners dropdowns (same source as the prediction form) ─
+  // Form key → players.category in DB
+  const WINNERS_CAT = { top_scorer:'top_scorer', mvp:'mvp', young:'best_young', goalkeeper:'best_goalkeeper' };
+  const [playersByCat,setPlayersByCat]=useState({top_scorer:[],mvp:[],best_young:[],best_goalkeeper:[]});
+  useEffect(()=>{
+    supabase.from('players').select('*').order('team').then(({data})=>{
+      if(!data)return;
+      const g={top_scorer:[],mvp:[],best_young:[],best_goalkeeper:[]};
+      data.forEach(p=>{if(g[p.category])g[p.category].push(p);});
+      setPlayersByCat(g);
+    });
+  },[]);
+
   // ── Groups admin state ─────────────────────────────────────────────────────
   const [allGroups,setAllGroups]=useState([]);
   const [allMembers,setAllMembers]=useState({}); // { group_id: [{user_id, name}] }
@@ -3488,12 +3501,30 @@ function AdminPage({ onSync, winnersMap, onSaveWinners, savedMatches, onSaveMatc
         <div style={{fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:800,fontSize:16,color:'var(--white)',letterSpacing:1,marginBottom:14}}>Award Winners</div>
         <div style={{fontSize:13,color:'var(--mut)',marginBottom:14}}>Fill these in when the tournament ends. Each participant who predicted correctly earns +10 pts.</div>
         <div className="award-grid">
-          {[{k:'top_scorer',label:'⚽ Top Scorer'},{k:'mvp',label:'🏆 Tournament MVP'},{k:'young',label:'🌟 Best Young Player'},{k:'goalkeeper',label:'🧤 Best Goalkeeper'}].map(a=>(
-            <div key={a.k}>
-              <label style={{display:'block',fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginBottom:5,fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700}}>{a.label}</label>
-              <input className="inp" style={{marginBottom:0}} placeholder="Player name…" value={winners[a.k]} onChange={e=>setWinners(w=>({...w,[a.k]:e.target.value}))}/>
-            </div>
-          ))}
+          {[{k:'top_scorer',label:'⚽ Top Scorer'},{k:'mvp',label:'🏆 Tournament MVP'},{k:'young',label:'🌟 Best Young Player'},{k:'goalkeeper',label:'🧤 Best Goalkeeper'}].map(a=>{
+            const list=playersByCat[WINNERS_CAT[a.k]]||[];
+            // Group by team so the select is easier to scan (matches the prediction UI list)
+            const byTeam={};
+            list.forEach(p=>{const tm=p.team||'—';if(!byTeam[tm])byTeam[tm]=[];byTeam[tm].push(p);});
+            const teams=Object.keys(byTeam).sort();
+            return(
+              <div key={a.k}>
+                <label style={{display:'block',fontSize:11,color:'var(--mut)',textTransform:'uppercase',letterSpacing:1,marginBottom:5,fontFamily:"'Archivo Black','Archivo',system-ui,sans-serif",fontWeight:700}}>{a.label}</label>
+                <select className="inp" style={{marginBottom:0}}
+                  value={winners[a.k]}
+                  onChange={e=>setWinners(w=>({...w,[a.k]:e.target.value}))}>
+                  <option value="">{list.length===0?'Cargando…':'— Elige jugador —'}</option>
+                  {teams.map(tm=>(
+                    <optgroup key={tm} label={tm}>
+                      {byTeam[tm].map(p=>(
+                        <option key={p.id||p.name} value={p.name}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
         </div>
         <button className="btn-primary" style={{marginTop:14}} onClick={saveWinners} disabled={saving}>{saved?'✅ Guardado!':saving?'Guardando…':'💾 Save Award Winners'}</button>
         {saveErr&&<div style={{marginTop:8,fontSize:12,color:'#e55',background:'rgba(229,85,85,0.1)',border:'1px solid rgba(229,85,85,0.3)',borderRadius:6,padding:'6px 10px'}}>❌ {saveErr}</div>}
